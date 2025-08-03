@@ -7,6 +7,8 @@ import { AuthProvider } from '@/components/providers/auth-provider'
 import { ThemeProvider } from '@/components/providers/theme-provider'
 import { QueryProvider } from '@/components/providers/query-provider'
 import { Toaster } from '@/components/ui/toaster'
+import { ErrorBoundary } from '@/components/error-boundary'
+import { trackPageView } from '@/lib/analytics'
 import './globals.css'
 
 const inter = Inter({ 
@@ -16,6 +18,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
   title: {
     default: 'Sparkle Universe - Where Fans Become Stars',
     template: '%s | Sparkle Universe',
@@ -24,10 +27,22 @@ export const metadata: Metadata = {
   keywords: ['Sparkle', 'YouTube', 'community', 'blog', 'forum', 'fan platform'],
   authors: [{ name: 'Sparkle Universe Team' }],
   creator: 'Sparkle Universe',
+  publisher: 'Sparkle Universe',
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://sparkle-universe.com',
+    url: '/',
     siteName: 'Sparkle Universe',
     title: 'Sparkle Universe - Where Fans Become Stars',
     description: 'The next-generation community platform for Sparkle YouTube fans.',
@@ -46,17 +61,7 @@ export const metadata: Metadata = {
     description: 'The next-generation community platform for Sparkle YouTube fans.',
     images: ['/twitter-image.png'],
     creator: '@sparkleuniverse',
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
+    site: '@sparkleuniverse',
   },
   icons: {
     icon: [
@@ -67,8 +72,17 @@ export const metadata: Metadata = {
     apple: [
       { url: '/apple-touch-icon.png' },
     ],
+    other: [
+      {
+        rel: 'mask-icon',
+        url: '/safari-pinned-tab.svg',
+      },
+    ],
   },
   manifest: '/manifest.json',
+  alternates: {
+    canonical: '/',
+  },
 }
 
 export const viewport: Viewport = {
@@ -79,6 +93,18 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
+  userScalable: true,
+}
+
+// Track page views on route changes
+function ClientAnalytics() {
+  'use client'
+  
+  if (typeof window !== 'undefined') {
+    trackPageView(window.location.pathname, document.referrer)
+  }
+  
+  return null
 }
 
 export default function RootLayout({
@@ -88,22 +114,38 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning className={inter.variable}>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Prevent FOUC (Flash of Unstyled Content)
+              try {
+                const theme = localStorage.getItem('theme') || 'dark';
+                document.documentElement.classList.add(theme);
+              } catch (e) {}
+            `,
+          }}
+        />
+      </head>
       <body className={`${inter.className} antialiased`}>
-        <AuthProvider>
-          <QueryProvider>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="dark"
-              enableSystem
-              disableTransitionOnChange
-            >
-              {children}
-              <Toaster />
-              <Analytics />
-              <SpeedInsights />
-            </ThemeProvider>
-          </QueryProvider>
-        </AuthProvider>
+        <ErrorBoundary>
+          <AuthProvider>
+            <QueryProvider>
+              <ThemeProvider
+                attribute="class"
+                defaultTheme="dark"
+                enableSystem
+                disableTransitionOnChange
+              >
+                {children}
+                <Toaster />
+                <Analytics />
+                <SpeedInsights />
+                <ClientAnalytics />
+              </ThemeProvider>
+            </QueryProvider>
+          </AuthProvider>
+        </ErrorBoundary>
       </body>
     </html>
   )
