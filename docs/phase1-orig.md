@@ -33,6 +33,7 @@ Now, let me create the complete, production-ready versions of all Phase 1 files:
 ### 1. `/package.json` - Complete Implementation
 
 ```json
+# File: package.json
 {
   "name": "sparkle-universe",
   "version": "0.1.0",
@@ -147,6 +148,7 @@ Now, let me create the complete, production-ready versions of all Phase 1 files:
 ### 2. `/tsconfig.json` - Complete Implementation
 
 ```json
+# File: tsconfig.json
 {
   "compilerOptions": {
     "target": "ES2022",
@@ -196,6 +198,7 @@ Now, let me create the complete, production-ready versions of all Phase 1 files:
 ### 3. `/.env.local` - Complete Implementation
 
 ```env
+# File: .env.local
 # Database Configuration
 DATABASE_URL="postgresql://postgres:password@localhost:5432/sparkle_universe_dev"
 DIRECT_URL="postgresql://postgres:password@localhost:5432/sparkle_universe_dev"
