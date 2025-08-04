@@ -49,7 +49,7 @@ graph TB
 ## ✅ Prerequisites
 
 ### **System Requirements**
-- **OS**: Ubuntu 22.04 LTS / Debian 12 / CentOS 9
+- **OS**: Ubuntu 24.04 LTS / Debian 12 / CentOS 9
 - **RAM**: 8GB minimum, 16GB recommended
 - **Storage**: 100GB SSD minimum, 500GB recommended
 - **CPU**: 4 cores minimum, 8 cores recommended
