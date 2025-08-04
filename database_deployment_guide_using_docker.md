@@ -88,8 +88,8 @@ First, let's create the necessary directories and files for our project.
 
 ```bash
 # Create the root project directory
-mkdir luxe-verse-deployment
-cd luxe-verse-deployment
+mkdir docker-deployment
+cd docker-deployment
 
 # Create the directory for your prisma schema
 mkdir prisma
@@ -99,7 +99,7 @@ touch package.json .env.local .gitignore Dockerfile docker-compose.yml
 
 # Copy your existing schema into the prisma directory
 # (Assuming schema.prisma.txt is in your home directory)
-cp ~/schema.prisma.txt prisma/schema.prisma
+cp ../prisma/schema.prisma.v3 prisma/schema.prisma
 ```
 
 Your project should now have the following structure:
@@ -125,7 +125,7 @@ This file defines our project's Node.js dependencies and provides convenient scr
 ```json
 // package.json
 {
-  "name": "luxe-verse-db-deployment",
+  "name": "docker-db-deployment",
   "version": "1.0.0",
   "description": "Handles database deployment and migrations for the LuxeVerse-Quantum project.",
   "main": "index.js",
@@ -163,8 +163,8 @@ This file stores our database credentials and connection string. **Never commit 
 # PostgreSQL Credentials
 # IMPORTANT: Change POSTGRES_PASSWORD to a strong, unique password.
 POSTGRES_USER=postgres_user
-POSTGRES_PASSWORD=YourSuperSecretPassword!
-POSTGRES_DB=luxeversedb
+POSTGRES_PASSWORD=YourSuperSecretPassword
+POSTGRES_DB=sparkle_db
 POSTGRES_PORT=5432
 
 # Prisma Database URL
@@ -207,7 +207,7 @@ This `Dockerfile` defines an image that contains Node.js and our Prisma dependen
 # Dockerfile
 
 # Use a lean, official Node.js image as our base
-FROM node:20-bookworm-slim
+FROM node:22-bookworm-slim
 
 # Set the working directory inside the container
 WORKDIR /usr/src/app
@@ -239,7 +239,7 @@ services:
   # --------------------
   db:
     image: postgres:16-bookworm
-    container_name: luxe-verse-postgres
+    container_name: sparkle-postgres
     restart: always
     ports:
       # Exposes the database port to the host machine for tools like Prisma Studio
