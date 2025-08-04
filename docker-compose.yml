@@ -3,6 +3,8 @@ version: "3.9"
 
 services:
   db:
+    # The conflicting "image:" key has been removed.
+    # Docker Compose will now exclusively use the image from the "build:" block.
     build:
       context: .
       dockerfile: postgres.Dockerfile
@@ -13,7 +15,7 @@ services:
       POSTGRES_PASSWORD: StrongPass1234
       POSTGRES_DB: sparkle_db
     ports:
-      - "5433:5432"  # Corrected: Maps host port 5433 to container port 5432
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
