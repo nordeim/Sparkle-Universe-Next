@@ -1,11 +1,3 @@
-Of course. As your CodeNavigator, I will create a comprehensive, step-by-step guide to deploy your new Prisma schema to a PostgreSQL database running in a Docker container.
-
-This guide is tailored for a developer using a vanilla Ubuntu 24.04.1 desktop and is designed to be robust, reproducible, and easy to follow. It includes all necessary configuration files with detailed explanations for each component.
-
-Here is the complete deployment guide as a markdown document.
-
----
-
 # 🚀 Deployment Guide: Prisma Schema on Dockerized PostgreSQL
 
 This guide provides a comprehensive walkthrough for deploying the `LuxeVerse-Quantum` project's Prisma schema to a PostgreSQL 16 database running inside a Docker container.
