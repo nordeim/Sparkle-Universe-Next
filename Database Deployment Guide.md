@@ -358,7 +358,7 @@ services:
 
   # Backup Service
   backup:
-    image: postgres:16.4-bullseye
+    image: postgres:16-bookworm
     container_name: sparkle-backup
     restart: unless-stopped
     depends_on:
