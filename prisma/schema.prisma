@@ -1,27 +1,3 @@
-// prisma/schema.prisma:2645
-option PollOption @relation(fields: [optionIds[0]], references: [id], onDelete: Cascade)
-```
-The problem is `[optionIds[0]]`. The `fields` argument within a `@relation` attribute must refer to a direct field on the model (a column in the database). It cannot be an expression or refer to an element inside a scalar list (like the `String[]` array). Prisma cannot create a foreign key constraint on an array element.
-
-**2. The Flawed Model Logic:**
-The `PollVote` model was designed to support multiple-choice polls by storing an array of chosen option IDs in the `optionIds` field. This is a common initial thought but is incompatible with how relational databases and Prisma manage relationships. This structure attempts to model a many-to-many relationship (one vote can have many options, one option can be in many votes) without the necessary join table.
-
-### The Solution: An Explicit Join Table
-
-The correct and standard way to model this many-to-many relationship is to introduce an explicit join table. This new table will link a single vote to a single chosen option. A vote with multiple choices will simply have multiple rows in this join table.
-
-Here is the plan to fix the schema:
-1.  **Modify `PollVote`**: Remove the problematic `optionIds: String[]` field and the invalid relation. Add a new relation that points to our new join table.
-2.  **Create `PollVoteChoice`**: This new model will serve as the join table, connecting `PollVote` and `PollOption`.
-3.  **Modify `PollOption`**: Update its relation to point to the new `PollVoteChoice` table instead of directly to `PollVote`.
-
-This approach correctly normalizes the database schema, resolves the validation error, and aligns with Prisma's best practices.
-
-### Complete Updated `prisma/schema.prisma`
-
-Here is the complete, corrected replacement file for `prisma/schema.prisma`. I have surgically applied the fix to the poll-related models while preserving the integrity of the rest of the file.
-
-```prisma
 // prisma/schema.prisma
 // =====================================================
 // Sparkle Universe Complete Prisma Schema
