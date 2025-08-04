@@ -1,0 +1,47 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  # --------------------
+  # PostgreSQL Database Service
+  # --------------------
+  db:
+    image: postgres:16-bookworm
+    container_name: sparkle-postgres
+    restart: always
+    ports:
+      # Exposes the database port to the host machine for tools like Prisma Studio
+      - "${POSTGRES_PORT}:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      # Persists database data on the host machine to prevent data loss on container restart
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      # Checks if the database is ready to accept connections before other services start
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # --------------------
+  # Prisma Migration Service (One-off Task)
+  # --------------------
+  migrate:
+    build:
+      # Uses the Dockerfile in the current directory
+      context: .
+    env_file:
+      # Loads the DATABASE_URL from our .env.local file
+      - .env.local
+    command: "npm run db:deploy"
+    depends_on:
+      db:
+        # Ensures this service only starts after the 'db' service is healthy
+        condition: service_healthy
+
+volumes:
+  # Defines the named volume for data persistence
+  postgres_data:
