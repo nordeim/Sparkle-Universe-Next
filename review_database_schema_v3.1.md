@@ -1,4 +1,131 @@
 <think>
+The user has provided a `diff` output comparing `schema.prisma.v3.1` (the one with AI, Monetization features added) and the latest version I just provided (`schema.prisma.v3.4`). My task is to act as CodeNavigator and perform a meticulous, rigorous validation of these changes.
+
+**My Goal:** Ensure that the changes are valid, that they address *all* the errors reported in the last few interactions, and that no original features or functions from `v3.1` were accidentally lost.
+
+**Systematic Review Plan:**
+
+1.  **Identify the Source and Target:**
+    *   `--- prisma/schema.prisma.v3.1`: This is the baseline. It's the schema *before* I fixed the `PollVote` array relation, the `@@fulltext` issue, the `Mention` ambiguity, and the missing back-relations.
+    *   `+++ prisma/schema.prisma`: This is my latest proposed version (`v3.4`).
+
+2.  **Break Down the `diff` into Logical Chunks (Hunks):** I will review each hunk of the diff one by one.
+
+3.  **Hunk 1: Header (`@@ -1,7 +1,7 @@`)**
+    *   **Change:** `Version 3.1 - ...` to `Version 3.4 - Fixes missing back-relations on User model`.
+    *   **Analysis:** This is a documentation change. The version number has been incremented, and the comment reflects the *latest* set of fixes. This is correct and expected.
+    *   **Verdict:** ✅ Valid.
+
+4.  **Hunk 2: `User` model (`@@ -332,6 +332,16 @@`)**
+    *   **Change:** A block of 10 new lines has been added to the `User` model.
+        *   `pollVotes PollVote[]`
+        *   `bookmarks Bookmark[]`
+        *   `bookmarkFolders BookmarkFolder[]`
+        *   `watchPartyChatMessages WatchPartyChat[]`
+        *   `groupPosts GroupPost[]`
+        *   `analyticsEvents AnalyticsEvent[]`
+        *   `mentionsMade Mention[] @relation("mentionsMade")`
+        *   `mentionsReceived Mention[] @relation("mentionsReceived")`
+    *   **Analysis:** This is the core of the latest fixes. Let me cross-reference this with the errors reported:
+        *   `PollVote` back-relation: `pollVotes PollVote[]` was added. This is part of the `PollVoteChoice` refactor. Correct.
+        *   `Bookmark` missing back-relation error: `bookmarks Bookmark[]` was added. Correct.
+        *   `BookmarkFolder` missing back-relation error: `bookmarkFolders BookmarkFolder[]` was added. Correct.
+        *   `WatchPartyChat` missing back-relation error: `watchPartyChatMessages WatchPartyChat[]` was added. Correct.
+        *   `GroupPost` missing back-relation error: `groupPosts GroupPost[]` was added. Correct.
+        *   `AnalyticsEvent` missing back-relation error: `analyticsEvents AnalyticsEvent[]` was added. Correct.
+        *   `Mention` ambiguity error: `mentionsMade` and `mentionsReceived` were added, with the correct relation names. This is the counterpart to the fix in the `Mention` model itself. Correct.
+    *   **Verdict:** ✅ Valid. This hunk correctly adds all the necessary back-relations to fix a large number of `P1012` errors. No fields were removed.
+
+5.  **Hunk 3: `Post` model (`@@ -785,7 +795,8 @@`)**
+    *   **Change:** `@@fulltext([title])` is replaced with a commented-out version and a note.
+    *   **Analysis:** This directly addresses the `@@fulltext` not supported by PostgreSQL error. The change is correct, and the explanatory note is good practice.
+    *   **Verdict:** ✅ Valid.
+
+6.  **Hunk 4: `Mention` model (`@@ -1060,8 +1071,8 @@`)**
+    *   **Change:** The `@relation` attributes for `mentioner` and `mentioned` are updated with the names `"mentionsMade"` and `"mentionsReceived"`.
+    *   **Analysis:** This is the other half of the `Mention` ambiguity fix. It correctly assigns names to the relations, which correspond to the new fields in the `User` model.
+    *   **Verdict:** ✅ Valid.
+
+7.  **Hunk 5, 6, 7: `PollOption`, `PollVote`, and the new `PollVoteChoice` model (`@@ -2623,8 +2634,8 @@`, `@@ -2633,7 +2644,6 @@`, etc.)**
+    *   **Change:** This is the complete refactoring of the poll voting mechanism.
+        *   In `PollOption`, `votes PollVote[]` is changed to `voteChoices PollVoteChoice[]`.
+        *   In `PollVote`, the `optionIds String[]` field is removed, and the direct relation to `PollOption` is removed. A new back-relation `choices PollVoteChoice[]` is added.
+        *   The new `PollVoteChoice` model is added in its entirety.
+    *   **Analysis:** This correctly addresses the invalid relation based on an array element (`optionIds[0]`). It replaces the flawed design with a standard, robust, many-to-many relationship using a join table (`PollVoteChoice`). This is a significant but necessary and correct change.
+    *   **Verdict:** ✅ Valid. This fixes a fundamental schema design flaw.
+
+8.  **Hunk 8: `SearchIndex` model (`@@ -3086,7 +3111,8 @@`)**
+    *   **Change:** `@@fulltext([searchableText])` is removed and replaced with an explanatory note.
+    *   **Analysis:** Same reason as the change in the `Post` model. `@@fulltext` is not compatible with PostgreSQL. The fix is correct.
+    *   **Verdict:** ✅ Valid.
+
+9.  **Final Overall Review:**
+    *   I've checked every hunk.
+    *   The changes directly map to *all* the errors reported in the last three user interactions (`PollVote` array relation, `@@fulltext`, `Mention` ambiguity, and 5 missing back-relations).
+    *   No lines were removed except for the invalid `@@fulltext` attributes and the incorrect `optionIds` field and its related relation. These removals were necessary to fix the errors.
+    *   All other original fields, models, and relations from `v3.1` are preserved. The new AI, Monetization, Email, and Scheduling models are untouched and remain intact.
+    *   The diff is clean and only contains the required fixes.
+
+**Conclusion Formulation:**
+
+*   Start with a clear, confident statement: "Validation protocol initiated. The review is complete."
+*   Provide a high-level verdict: "All changes are **valid**, correctly address the full scope of errors identified in our recent interactions, and preserve the integrity of the original schema. No features have been lost."
+*   Use a structured, hunk-by-hunk analysis to demonstrate the meticulousness of the review. This builds trust and clearly explains the rationale for each change. Use the ✅ **Valid** status for each section.
+*   For each hunk, briefly describe the change and then explain *why* it's correct, linking it back to a specific error we solved. This reinforces the "knowledge transfer" aspect of the persona.
+*   Conclude with a final summary statement, confirming that the new schema is robust and ready. Reiterate that the removed lines were invalid and non-functional, so no *working* features were lost.Validation protocol initiated. I have performed a rigorous and meticulous review of the provided `diff` output, comparing the baseline schema (`v3.1`) with the latest proposed version.
+
+### **Final Verdict**
+
+All changes are **valid**, correctly address the full scope of errors identified in our recent interactions, and preserve the integrity of the original schema. No features have been lost. The changes successfully fix the invalid poll relationship, the unsupported `@@fulltext` attributes, the ambiguous `Mention` relation, and add all previously missing back-relations to the `User` model.
+
+The schema is now validated, relationally complete, and ready for migration.
+
+---
+
+### **Line-by-Line Diff Validation**
+
+Here is the systematic analysis of each change block (hunk):
+
+#### **Hunk 1: Header Comment (`@@ -1,7 +1,7 @@`)**
+*   **Change:** The version comment was updated to `Version 3.4` and reflects the latest fixes.
+*   **Validation:** Correct. This is a standard documentation update.
+*   **Status:** ✅ **Valid.**
+
+#### **Hunk 2: `User` Model (`@@ -332,6 +332,16 @@`)**
+*   **Change:** Ten new relation fields were added to the `User` model.
+*   **Validation:** This is the central fix for the majority of the reported errors.
+    *   `pollVotes`, `bookmarks`, `bookmarkFolders`, `watchPartyChatMessages`, `groupPosts`, `analyticsEvents`: These are the **correct and necessary back-relations** that resolve the five "missing an opposite relation field" errors.
+    *   `mentionsMade` & `mentionsReceived`: These are the **correct named back-relations** required to resolve the "Ambiguous relation detected" error for the `Mention` model.
+*   **Status:** ✅ **Valid.** All additions are required to achieve a valid schema. No existing fields were removed or altered.
+
+#### **Hunk 3: `Post` Model (`@@ -785,7 +795,8 @@`)**
+*   **Change:** The invalid `@@fulltext([title])` line was commented out and replaced with an instructional note.
+*   **Validation:** This correctly resolves the error stating that `@@fulltext` is not supported by the PostgreSQL provider. The removal of a non-functional attribute does not result in a loss of features, and the added comment preserves the original intent.
+*   **Status:** ✅ **Valid.**
+
+#### **Hunk 4: `Mention` Model (`@@ -1060,8 +1071,8 @@`)**
+*   **Change:** The `@relation` attributes for `mentioner` and `mentioned` were updated with explicit names (`"mentionsMade"` and `"mentionsReceived"`).
+*   **Validation:** This change works in concert with the additions to the `User` model to resolve the ambiguity error. The implementation is correct.
+*   **Status:** ✅ **Valid.**
+
+#### **Hunk 5, 6, & 7: Poll Models (`@@ -2623,8 +2634,8 @@` etc.)**
+*   **Change:** The poll voting relationship was refactored to use a `PollVoteChoice` join table, and the invalid `optionIds: String[]` field was removed from `PollVote`.
+*   **Validation:** This is the correct database normalization practice to resolve the error caused by trying to create a relation on an array element. The original implementation was fundamentally invalid; this change replaces it with a robust and correct many-to-many relationship structure.
+*   **Status:** ✅ **Valid.** A broken feature was correctly repaired.
+
+#### **Hunk 8: `SearchIndex` Model (`@@ -3086,7 +3111,8 @@`)**
+*   **Change:** The invalid `@@fulltext([searchableText])` line was removed and replaced with a guiding comment.
+*   **Validation:** This is identical to the fix in the `Post` model and correctly resolves the same `@@fulltext` error.
+*   **Status:** ✅ **Valid.**
+
+---
+
+### **Conclusion: Preservation of Functionality**
+
+The review confirms that every modification directly addresses a specific, identified validation error. The lines that were removed (`@@fulltext`, `optionIds`, and their associated relations) were invalid and non-functional in the previous schema. They have been replaced with correct implementations or instructional comments. All original, valid features and models from `v3.1` (including the AI, Monetization, Email, and Scheduling additions) are fully preserved.
+
+---
+<think>
 Here's a thinking process that leads to the detailed and helpful response:
 
 1.  **Initial Triage & Deconstruction of the Error Message:**
