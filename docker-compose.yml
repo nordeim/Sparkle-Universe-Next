@@ -1,8 +1,10 @@
+# docker-compose.yml
 version: "3.9"
 
 services:
   db:
-    image: postgres:16-bookworm
+    # The conflicting "image:" key has been removed.
+    # Docker Compose will now exclusively use the image from the "build:" block.
     build:
       context: .
       dockerfile: postgres.Dockerfile
