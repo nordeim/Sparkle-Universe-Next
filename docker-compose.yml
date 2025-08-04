@@ -3,6 +3,9 @@ version: "3.9"
 services:
   db:
     image: postgres:16-bookworm
+    build:
+      context: .
+      dockerfile: postgres.Dockerfile
     container_name: sparkle_universe
     restart: unless-stopped
     environment:
