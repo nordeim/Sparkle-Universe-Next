@@ -253,7 +253,7 @@ services:
 
   # PostgreSQL Replica
   postgres-replica:
-    image: postgres:16.4-bullseye
+    image: postgres:16-bookworm
     container_name: sparkle-postgres-replica
     hostname: postgres-replica
     restart: unless-stopped
