@@ -92,7 +92,7 @@ cd ~/sparkle-universe
 # Create .env file
 cat > .env << EOF
 # Database Configuration
-POSTGRES_VERSION=16.4-bullseye
+POSTGRES_VERSION=16-bookworm
 POSTGRES_DB=sparkle_universe
 POSTGRES_USER=sparkle_admin
 POSTGRES_PASSWORD=$(openssl rand -base64 32)
@@ -218,7 +218,7 @@ version: '3.9'
 services:
   # PostgreSQL Primary
   postgres-primary:
-    image: postgres:16.4-bullseye
+    image: postgres:16-bookworm
     container_name: sparkle-postgres-primary
     hostname: postgres-primary
     restart: unless-stopped
