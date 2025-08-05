@@ -70,8 +70,8 @@ CREATE TYPE "public"."SubscriptionTier" AS ENUM ('FREE', 'SPARKLE_FAN', 'SPARKLE
 -- CreateTable
 CREATE TABLE "public"."users" (
     "id" TEXT NOT NULL,
-    "email" TEXT NOT NULL,
-    "username" TEXT NOT NULL,
+    "email" VARCHAR(255) NOT NULL,
+    "username" VARCHAR(50) NOT NULL,
     "hashedPassword" TEXT,
     "emailVerified" TIMESTAMP(3),
     "phoneNumber" TEXT,
@@ -100,7 +100,7 @@ CREATE TABLE "public"."users" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "deletedAt" TIMESTAMP(3),
-    "creatorRevenueShare" DOUBLE PRECISION NOT NULL DEFAULT 0.7,
+    "creatorRevenueShare" DECIMAL(5,4) NOT NULL DEFAULT 0.7000,
     "totalRevenueEarned" BIGINT NOT NULL DEFAULT 0,
     "lastPayoutDate" TIMESTAMP(3),
 
@@ -262,6 +262,7 @@ CREATE TABLE "public"."security_alerts" (
     "resolved" BOOLEAN NOT NULL DEFAULT false,
     "resolvedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "security_alerts_pkey" PRIMARY KEY ("id")
 );
@@ -305,6 +306,7 @@ CREATE TABLE "public"."blocks" (
     "blockedId" TEXT NOT NULL,
     "reason" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "blocks_pkey" PRIMARY KEY ("id")
 );
@@ -665,6 +667,7 @@ CREATE TABLE "public"."follows" (
     "notifyNewPosts" BOOLEAN NOT NULL DEFAULT true,
     "notifyActivity" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "follows_pkey" PRIMARY KEY ("id")
 );
@@ -722,6 +725,7 @@ CREATE TABLE "public"."notifications" (
     "dismissedAt" TIMESTAMP(3),
     "expiresAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "notifications_pkey" PRIMARY KEY ("id")
 );
@@ -845,6 +849,9 @@ CREATE TABLE "public"."achievements" (
     "maxAchievers" INTEGER,
     "expiresAt" TIMESTAMP(3),
     "metadata" JSONB,
+    "deleted" BOOLEAN NOT NULL DEFAULT false,
+    "deletedAt" TIMESTAMP(3),
+    "deletedBy" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -863,6 +870,9 @@ CREATE TABLE "public"."user_achievements" (
     "showcaseOrder" INTEGER NOT NULL DEFAULT 0,
     "notified" BOOLEAN NOT NULL DEFAULT false,
     "claimedRewards" BOOLEAN NOT NULL DEFAULT false,
+    "deleted" BOOLEAN NOT NULL DEFAULT false,
+    "deletedAt" TIMESTAMP(3),
+    "deletedBy" TEXT,
 
     CONSTRAINT "user_achievements_pkey" PRIMARY KEY ("id")
 );
@@ -1081,6 +1091,10 @@ CREATE TABLE "public"."trades" (
     "completedAt" TIMESTAMP(3),
     "cancelledAt" TIMESTAMP(3),
     "cancelReason" TEXT,
+    "version" INTEGER NOT NULL DEFAULT 0,
+    "deleted" BOOLEAN NOT NULL DEFAULT false,
+    "deletedAt" TIMESTAMP(3),
+    "deletedBy" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -1191,6 +1205,9 @@ CREATE TABLE "public"."youtube_channels" (
     "featured" BOOLEAN NOT NULL DEFAULT false,
     "verified" BOOLEAN NOT NULL DEFAULT false,
     "metadata" JSONB,
+    "deleted" BOOLEAN NOT NULL DEFAULT false,
+    "deletedAt" TIMESTAMP(3),
+    "deletedBy" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -1268,6 +1285,9 @@ CREATE TABLE "public"."watch_parties" (
     "cancelledAt" TIMESTAMP(3),
     "cancelReason" TEXT,
     "metadata" JSONB,
+    "deleted" BOOLEAN NOT NULL DEFAULT false,
+    "deletedAt" TIMESTAMP(3),
+    "deletedBy" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -1415,6 +1435,10 @@ CREATE TABLE "public"."groups" (
     "isVerified" BOOLEAN NOT NULL DEFAULT false,
     "isFeatured" BOOLEAN NOT NULL DEFAULT false,
     "metadata" JSONB,
+    "version" INTEGER NOT NULL DEFAULT 0,
+    "deleted" BOOLEAN NOT NULL DEFAULT false,
+    "deletedAt" TIMESTAMP(3),
+    "deletedBy" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -1521,6 +1545,10 @@ CREATE TABLE "public"."events" (
     "metadata" JSONB,
     "cancelledAt" TIMESTAMP(3),
     "cancelReason" TEXT,
+    "version" INTEGER NOT NULL DEFAULT 0,
+    "deleted" BOOLEAN NOT NULL DEFAULT false,
+    "deletedAt" TIMESTAMP(3),
+    "deletedBy" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -1566,7 +1594,9 @@ CREATE TABLE "public"."conversations" (
     "pinnedMessages" TEXT[],
     "isArchived" BOOLEAN NOT NULL DEFAULT false,
     "archivedAt" TIMESTAMP(3),
+    "deleted" BOOLEAN NOT NULL DEFAULT false,
     "deletedAt" TIMESTAMP(3),
+    "deletedBy" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -1785,7 +1815,7 @@ CREATE TABLE "public"."user_activity" (
     "postsViewed" INTEGER NOT NULL DEFAULT 0,
     "commentsCreated" INTEGER NOT NULL DEFAULT 0,
     "reactionsGiven" INTEGER NOT NULL DEFAULT 0,
-    "messagessSent" INTEGER NOT NULL DEFAULT 0,
+    "messagesSent" INTEGER NOT NULL DEFAULT 0,
     "minutesActive" INTEGER NOT NULL DEFAULT 0,
     "xpEarned" INTEGER NOT NULL DEFAULT 0,
     "pointsEarned" INTEGER NOT NULL DEFAULT 0,
@@ -1826,6 +1856,7 @@ CREATE TABLE "public"."polls" (
     "closeAt" TIMESTAMP(3),
     "finalResults" JSONB,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "polls_pkey" PRIMARY KEY ("id")
 );
@@ -1999,6 +2030,9 @@ CREATE TABLE "public"."reports" (
     "entityType" TEXT NOT NULL,
     "entityId" TEXT NOT NULL,
     "metadata" JSONB,
+    "deleted" BOOLEAN NOT NULL DEFAULT false,
+    "deletedAt" TIMESTAMP(3),
+    "deletedBy" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -2287,7 +2321,7 @@ CREATE INDEX "users_email_idx" ON "public"."users"("email");
 CREATE INDEX "users_username_idx" ON "public"."users"("username");
 
 -- CreateIndex
-CREATE INDEX "users_role_idx" ON "public"."users"("role");
+CREATE INDEX "users_role_status_idx" ON "public"."users"("role", "status");
 
 -- CreateIndex
 CREATE INDEX "users_level_idx" ON "public"."users"("level");
@@ -2471,6 +2505,12 @@ CREATE INDEX "posts_moderationStatus_idx" ON "public"."posts"("moderationStatus"
 
 -- CreateIndex
 CREATE INDEX "posts_deletedAt_idx" ON "public"."posts"("deletedAt");
+
+-- CreateIndex
+CREATE INDEX "posts_authorId_published_publishedAt_idx" ON "public"."posts"("authorId", "published", "publishedAt" DESC);
+
+-- CreateIndex
+CREATE INDEX "posts_categoryId_contentStatus_featured_idx" ON "public"."posts"("categoryId", "contentStatus", "featured");
 
 -- CreateIndex
 CREATE INDEX "scheduled_actions_scheduledFor_status_idx" ON "public"."scheduled_actions"("scheduledFor", "status");
@@ -2710,6 +2750,9 @@ CREATE INDEX "achievements_category_idx" ON "public"."achievements"("category");
 CREATE INDEX "achievements_rarity_idx" ON "public"."achievements"("rarity");
 
 -- CreateIndex
+CREATE INDEX "achievements_deleted_idx" ON "public"."achievements"("deleted");
+
+-- CreateIndex
 CREATE INDEX "user_achievements_userId_idx" ON "public"."user_achievements"("userId");
 
 -- CreateIndex
@@ -2717,6 +2760,9 @@ CREATE INDEX "user_achievements_userId_showcased_idx" ON "public"."user_achievem
 
 -- CreateIndex
 CREATE INDEX "user_achievements_achievementId_idx" ON "public"."user_achievements"("achievementId");
+
+-- CreateIndex
+CREATE INDEX "user_achievements_deleted_idx" ON "public"."user_achievements"("deleted");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "user_achievements_userId_achievementId_key" ON "public"."user_achievements"("userId", "achievementId");
@@ -2809,6 +2855,9 @@ CREATE INDEX "trades_recipientId_status_idx" ON "public"."trades"("recipientId",
 CREATE INDEX "trades_status_idx" ON "public"."trades"("status");
 
 -- CreateIndex
+CREATE INDEX "trades_deleted_idx" ON "public"."trades"("deleted");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "quests_code_key" ON "public"."quests"("code");
 
 -- CreateIndex
@@ -2860,6 +2909,9 @@ CREATE INDEX "youtube_channels_channelId_idx" ON "public"."youtube_channels"("ch
 CREATE INDEX "youtube_channels_featured_idx" ON "public"."youtube_channels"("featured");
 
 -- CreateIndex
+CREATE INDEX "youtube_channels_deleted_idx" ON "public"."youtube_channels"("deleted");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "youtube_videos_videoId_key" ON "public"."youtube_videos"("videoId");
 
 -- CreateIndex
@@ -2891,6 +2943,9 @@ CREATE INDEX "watch_parties_isPublic_scheduledStart_idx" ON "public"."watch_part
 
 -- CreateIndex
 CREATE INDEX "watch_parties_partyCode_idx" ON "public"."watch_parties"("partyCode");
+
+-- CreateIndex
+CREATE INDEX "watch_parties_deleted_idx" ON "public"."watch_parties"("deleted");
 
 -- CreateIndex
 CREATE INDEX "watch_party_participants_partyId_isActive_idx" ON "public"."watch_party_participants"("partyId", "isActive");
@@ -2959,6 +3014,9 @@ CREATE INDEX "groups_visibility_idx" ON "public"."groups"("visibility");
 CREATE INDEX "groups_isFeatured_idx" ON "public"."groups"("isFeatured");
 
 -- CreateIndex
+CREATE INDEX "groups_deleted_idx" ON "public"."groups"("deleted");
+
+-- CreateIndex
 CREATE INDEX "group_members_groupId_role_idx" ON "public"."group_members"("groupId", "role");
 
 -- CreateIndex
@@ -3001,6 +3059,9 @@ CREATE INDEX "events_status_idx" ON "public"."events"("status");
 CREATE INDEX "events_slug_idx" ON "public"."events"("slug");
 
 -- CreateIndex
+CREATE INDEX "events_deleted_idx" ON "public"."events"("deleted");
+
+-- CreateIndex
 CREATE INDEX "event_attendees_eventId_status_idx" ON "public"."event_attendees"("eventId", "status");
 
 -- CreateIndex
@@ -3014,6 +3075,9 @@ CREATE INDEX "conversations_createdBy_idx" ON "public"."conversations"("createdB
 
 -- CreateIndex
 CREATE INDEX "conversations_lastMessageAt_idx" ON "public"."conversations"("lastMessageAt");
+
+-- CreateIndex
+CREATE INDEX "conversations_deleted_idx" ON "public"."conversations"("deleted");
 
 -- CreateIndex
 CREATE INDEX "conversation_participants_conversationId_idx" ON "public"."conversation_participants"("conversationId");
@@ -3196,6 +3260,9 @@ CREATE INDEX "reports_reporterId_idx" ON "public"."reports"("reporterId");
 CREATE INDEX "reports_reportedUserId_idx" ON "public"."reports"("reportedUserId");
 
 -- CreateIndex
+CREATE INDEX "reports_deleted_idx" ON "public"."reports"("deleted");
+
+-- CreateIndex
 CREATE INDEX "ai_moderation_queue_humanReviewRequired_reviewPriority_crea_idx" ON "public"."ai_moderation_queue"("humanReviewRequired", "reviewPriority", "createdAt");
 
 -- CreateIndex
@@ -3361,7 +3428,7 @@ ALTER TABLE "public"."referrals" ADD CONSTRAINT "referrals_referredUserId_fkey" 
 ALTER TABLE "public"."categories" ADD CONSTRAINT "categories_parentId_fkey" FOREIGN KEY ("parentId") REFERENCES "public"."categories"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."posts" ADD CONSTRAINT "posts_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public"."posts" ADD CONSTRAINT "posts_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."posts" ADD CONSTRAINT "posts_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "public"."categories"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -3403,10 +3470,10 @@ ALTER TABLE "public"."post_tags" ADD CONSTRAINT "post_tags_postId_fkey" FOREIGN 
 ALTER TABLE "public"."post_tags" ADD CONSTRAINT "post_tags_tagId_fkey" FOREIGN KEY ("tagId") REFERENCES "public"."tags"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."comments" ADD CONSTRAINT "comments_postId_fkey" FOREIGN KEY ("postId") REFERENCES "public"."posts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public"."comments" ADD CONSTRAINT "comments_postId_fkey" FOREIGN KEY ("postId") REFERENCES "public"."posts"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."comments" ADD CONSTRAINT "comments_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public"."comments" ADD CONSTRAINT "comments_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."comments" ADD CONSTRAINT "comments_parentId_fkey" FOREIGN KEY ("parentId") REFERENCES "public"."comments"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -3577,16 +3644,16 @@ ALTER TABLE "public"."playlist_items" ADD CONSTRAINT "playlist_items_playlistId_
 ALTER TABLE "public"."playlist_items" ADD CONSTRAINT "playlist_items_addedBy_fkey" FOREIGN KEY ("addedBy") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."groups" ADD CONSTRAINT "groups_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public"."groups" ADD CONSTRAINT "groups_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."group_members" ADD CONSTRAINT "group_members_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "public"."groups"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public"."group_members" ADD CONSTRAINT "group_members_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "public"."groups"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."group_members" ADD CONSTRAINT "group_members_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."group_posts" ADD CONSTRAINT "group_posts_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "public"."groups"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public"."group_posts" ADD CONSTRAINT "group_posts_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "public"."groups"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."group_posts" ADD CONSTRAINT "group_posts_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -3595,7 +3662,7 @@ ALTER TABLE "public"."group_posts" ADD CONSTRAINT "group_posts_authorId_fkey" FO
 ALTER TABLE "public"."group_channels" ADD CONSTRAINT "group_channels_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "public"."groups"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."events" ADD CONSTRAINT "events_hostId_fkey" FOREIGN KEY ("hostId") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public"."events" ADD CONSTRAINT "events_hostId_fkey" FOREIGN KEY ("hostId") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."events" ADD CONSTRAINT "events_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "public"."groups"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -3703,7 +3770,16 @@ ALTER TABLE "public"."reports" ADD CONSTRAINT "reports_reporterId_fkey" FOREIGN 
 ALTER TABLE "public"."reports" ADD CONSTRAINT "reports_resolvedBy_fkey" FOREIGN KEY ("resolvedBy") REFERENCES "public"."users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "public"."reports" ADD CONSTRAINT "fk_report_post" FOREIGN KEY ("entityId") REFERENCES "public"."posts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."reports" ADD CONSTRAINT "fk_report_comment" FOREIGN KEY ("entityId") REFERENCES "public"."comments"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "public"."ai_moderation_queue" ADD CONSTRAINT "ai_moderation_queue_reviewedBy_fkey" FOREIGN KEY ("reviewedBy") REFERENCES "public"."users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."ai_moderation_queue" ADD CONSTRAINT "ai_moderation_queue_entityId_fkey" FOREIGN KEY ("entityId") REFERENCES "public"."posts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."media_files" ADD CONSTRAINT "media_files_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;

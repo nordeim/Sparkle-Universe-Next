@@ -8,7 +8,7 @@
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["fullTextSearch", "fullTextIndex", "postgresqlExtensions"]
+  previewFeatures = ["fullTextSearchPostgres", "postgresqlExtensions"]
 }
 
 datasource db {
@@ -235,142 +235,142 @@ enum SubscriptionTier {
 // =====================================================
 
 model User {
-  id                    String               @id @default(cuid())
-  email                 String               @unique @db.VarChar(255)
-  username              String               @unique @db.VarChar(50)
-  hashedPassword        String?
-  emailVerified         DateTime?
-  phoneNumber           String?
-  phoneVerified         DateTime?
-  image                 String?
-  bio                   String?              @db.Text
-  role                  UserRole             @default(USER)
-  status                UserStatus           @default(PENDING_VERIFICATION)
-  verified              Boolean              @default(false)
-  verifiedAt            DateTime?
-  banned                Boolean              @default(false)
-  banReason             String?
-  banExpiresAt          DateTime?
-  experience            Int                  @default(0)
-  level                 Int                  @default(1)
-  sparklePoints         Int                  @default(0)
-  premiumPoints         Int                  @default(0)
-  reputationScore       Int                  @default(0)
-  lastSeenAt            DateTime?
-  onlineStatus          Boolean              @default(false)
-  twoFactorEnabled      Boolean              @default(false)
-  twoFactorSecret       String?
-  preferredLanguage     String               @default("en")
-  timezone              String               @default("UTC")
-  version               Int                  @default(0) // For optimistic locking
-  createdAt             DateTime             @default(now())
-  updatedAt             DateTime             @updatedAt
-  deletedAt             DateTime?
+  id                String     @id @default(cuid())
+  email             String     @unique @db.VarChar(255)
+  username          String     @unique @db.VarChar(50)
+  hashedPassword    String?
+  emailVerified     DateTime?
+  phoneNumber       String?
+  phoneVerified     DateTime?
+  image             String?
+  bio               String?    @db.Text
+  role              UserRole   @default(USER)
+  status            UserStatus @default(PENDING_VERIFICATION)
+  verified          Boolean    @default(false)
+  verifiedAt        DateTime?
+  banned            Boolean    @default(false)
+  banReason         String?
+  banExpiresAt      DateTime?
+  experience        Int        @default(0)
+  level             Int        @default(1)
+  sparklePoints     Int        @default(0)
+  premiumPoints     Int        @default(0)
+  reputationScore   Int        @default(0)
+  lastSeenAt        DateTime?
+  onlineStatus      Boolean    @default(false)
+  twoFactorEnabled  Boolean    @default(false)
+  twoFactorSecret   String?
+  preferredLanguage String     @default("en")
+  timezone          String     @default("UTC")
+  version           Int        @default(0) // For optimistic locking
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  deletedAt         DateTime?
 
   // --- Creator Monetization Fields ---
-  creatorRevenueShare   Decimal @db.Decimal(5,4) @default(0.7000)
-  totalRevenueEarned    BigInt               @default(0)
-  lastPayoutDate        DateTime?
+  creatorRevenueShare Decimal   @default(0.7000) @db.Decimal(5, 4)
+  totalRevenueEarned  BigInt    @default(0)
+  lastPayoutDate      DateTime?
 
   // Relations
-  accounts              Account[]
-  sessions              Session[]
-  profile               Profile?
-  stats                 UserStats?
-  balance               UserBalance?
-  subscription          UserSubscription?
-  posts                 Post[]               @relation("UserPosts")
-  comments              Comment[]            @relation("UserComments")
-  reactions             Reaction[]
-  following             Follow[]             @relation("follower")
-  followers             Follow[]             @relation("following")
-  blockedUsers          Block[]              @relation("blocker")
-  blockedBy             Block[]              @relation("blocked")
-  achievements          UserAchievement[]
-  notifications         Notification[]       @relation("notificationUser")
-  notificationsSent     Notification[]       @relation("notificationActor")
-  notificationPrefs     NotificationPreference?
-  xpLogs                XpLog[]
-  currencyTransactions  CurrencyTransaction[]
-  inventory             UserInventory[]
-  tradesInitiated       Trade[]              @relation("tradeInitiator")
-  tradesReceived        Trade[]              @relation("tradeRecipient")
-  questProgress         UserQuest[]
-  youtubeChannels       YoutubeChannel[]
-  hostedWatchParties    WatchParty[]
-  watchPartyParticipants WatchPartyParticipant[]
-  videoClips            VideoClip[]
-  playlists             Playlist[]
-  playlistItems         PlaylistItem[]
-  groupsOwned           Group[]              @relation("GroupOwner")
-  groupMemberships      GroupMember[]
-  eventsHosted          Event[]              @relation("EventHost")
-  eventAttendances      EventAttendee[]
-  conversationsCreated  Conversation[]       @relation("ConversationCreator")
+  accounts                 Account[]
+  sessions                 Session[]
+  profile                  Profile?
+  stats                    UserStats?
+  balance                  UserBalance?
+  subscription             UserSubscription?
+  posts                    Post[]                    @relation("UserPosts")
+  comments                 Comment[]                 @relation("UserComments")
+  reactions                Reaction[]
+  following                Follow[]                  @relation("follower")
+  followers                Follow[]                  @relation("following")
+  blockedUsers             Block[]                   @relation("blocker")
+  blockedBy                Block[]                   @relation("blocked")
+  achievements             UserAchievement[]
+  notifications            Notification[]            @relation("notificationUser")
+  notificationsSent        Notification[]            @relation("notificationActor")
+  notificationPrefs        NotificationPreference?
+  xpLogs                   XpLog[]
+  currencyTransactions     CurrencyTransaction[]
+  inventory                UserInventory[]
+  tradesInitiated          Trade[]                   @relation("tradeInitiator")
+  tradesReceived           Trade[]                   @relation("tradeRecipient")
+  questProgress            UserQuest[]
+  youtubeChannels          YoutubeChannel[]
+  hostedWatchParties       WatchParty[]
+  watchPartyParticipants   WatchPartyParticipant[]
+  videoClips               VideoClip[]
+  playlists                Playlist[]
+  playlistItems            PlaylistItem[]
+  groupsOwned              Group[]                   @relation("GroupOwner")
+  groupMemberships         GroupMember[]
+  eventsHosted             Event[]                   @relation("EventHost")
+  eventAttendances         EventAttendee[]
+  conversationsCreated     Conversation[]            @relation("ConversationCreator")
   conversationParticipants ConversationParticipant[]
-  messages              Message[]
-  messageReads          MessageRead[]
-  websocketSessions     WebsocketSession[]
-  chatRoomsCreated      ChatRoom[]
-  chatMessages          ChatMessage[]
+  messages                 Message[]
+  messageReads             MessageRead[]
+  websocketSessions        WebsocketSession[]
+  chatRoomsCreated         ChatRoom[]
+  chatMessages             ChatMessage[]
   collaborativeSpacesOwned CollaborativeSpace[]
-  spaceCollaborations   SpaceCollaborator[]
-  activityStreams       ActivityStream[]
-  fanArtSubmissions     FanArtSubmission[]
-  mediaFiles            MediaFile[]
-  experimentAssignments ExperimentAssignment[]
-  moderationReviews     AiModerationQueue[]   @relation("moderationReviewer")
-  reports               Report[]              @relation("reporter")
-  reportsMade           Report[]              @relation("reporterUser")
-  reportResolutions     Report[]              @relation("resolver")
-  siteSettingUpdates    SiteSetting[]
-  postSeries            PostSeries[]
-  auditLogs             AuditLog[]
-  apiKeys               ApiKey[]
-  webhooks              Webhook[]
-  contentRevisions      PostRevision[]
-  searchHistory         SearchHistory[]
-  viewHistory           ViewHistory[]
-  loginHistory          LoginHistory[]
-  securityAlerts        SecurityAlert[]
-  referralCodeUsed      Referral?            @relation("referredUser")
-  referralsMade         Referral[]           @relation("referrer")
-  pollVotes             PollVote[]
-  bookmarks             Bookmark[]
-  bookmarkFolders       BookmarkFolder[]
-  watchPartyChatMessages WatchPartyChat[]
-  groupPosts            GroupPost[]
-  analyticsEvents       AnalyticsEvent[]
+  spaceCollaborations      SpaceCollaborator[]
+  activityStreams          ActivityStream[]
+  fanArtSubmissions        FanArtSubmission[]
+  mediaFiles               MediaFile[]
+  experimentAssignments    ExperimentAssignment[]
+  moderationReviews        AiModerationQueue[]       @relation("moderationReviewer")
+  reports                  Report[]                  @relation("reporter")
+  // reportsMade           Report[]              @relation("reporterUser")
+  reportResolutions        Report[]                  @relation("resolver")
+  siteSettingUpdates       SiteSetting[]
+  postSeries               PostSeries[]
+  auditLogs                AuditLog[]
+  apiKeys                  ApiKey[]
+  webhooks                 Webhook[]
+  contentRevisions         PostRevision[]
+  searchHistory            SearchHistory[]
+  viewHistory              ViewHistory[]
+  loginHistory             LoginHistory[]
+  securityAlerts           SecurityAlert[]
+  referralCodeUsed         Referral?                 @relation("referredUser")
+  referralsMade            Referral[]                @relation("referrer")
+  pollVotes                PollVote[]
+  bookmarks                Bookmark[]
+  bookmarkFolders          BookmarkFolder[]
+  watchPartyChatMessages   WatchPartyChat[]
+  groupPosts               GroupPost[]
+  analyticsEvents          AnalyticsEvent[]
 
   // --- Mention Relations ---
-  mentionsMade          Mention[]            @relation("mentionsMade")
-  mentionsReceived      Mention[]            @relation("mentionsReceived")
+  mentionsMade     Mention[] @relation("mentionsMade")
+  mentionsReceived Mention[] @relation("mentionsReceived")
 
   // --- AI Relations ---
-  aiRecommendations         AiRecommendation[]
-  aiContentSuggestions      AiContentSuggestion[]
-  aiPreference              UserAiPreference?
-  aiAssistantConversations  AiAssistantConversation[]
+  aiRecommendations        AiRecommendation[]
+  aiContentSuggestions     AiContentSuggestion[]
+  aiPreference             UserAiPreference?
+  aiAssistantConversations AiAssistantConversation[]
 
   // --- Creator Monetization Relations ---
-  payouts                   CreatorPayout[]
-  sentFanFunding            FanFunding[]              @relation("sentFanFunding")
-  receivedFanFunding        FanFunding[]              @relation("receivedFanFunding")
-  revenueShares             RevenueShare[]
-  sentTips                  TipTransaction[]          @relation("sentTips")
-  receivedTips              TipTransaction[]          @relation("receivedTips")
+  payouts            CreatorPayout[]
+  sentFanFunding     FanFunding[]     @relation("sentFanFunding")
+  receivedFanFunding FanFunding[]     @relation("receivedFanFunding")
+  revenueShares      RevenueShare[]
+  sentTips           TipTransaction[] @relation("sentTips")
+  receivedTips       TipTransaction[] @relation("receivedTips")
 
   // --- Email Campaign Relations ---
-  createdEmailCampaigns     EmailCampaign[]           @relation("campaignCreator")
-  newsletterSubscription    NewsletterSubscription?
-  createdEmailTemplates     EmailTemplate[]           @relation("templateCreator")
+  createdEmailCampaigns  EmailCampaign[]         @relation("campaignCreator")
+  newsletterSubscription NewsletterSubscription?
+  createdEmailTemplates  EmailTemplate[]         @relation("templateCreator")
 
   // --- Scheduling Relations ---
-  recurringSchedules        RecurringSchedule[]
+  recurringSchedules RecurringSchedule[]
 
   @@index([email])
   @@index([username])
-  @@index([role, status]) 
+  @@index([role, status])
   @@index([level])
   @@index([onlineStatus])
   @@index([sparklePoints])
@@ -410,16 +410,16 @@ model UserStats {
 }
 
 model UserBalance {
-  id                String   @id @default(cuid())
-  userId            String   @unique
-  sparklePoints     Int      @default(0)
-  premiumPoints     Int      @default(0)
-  frozenPoints      Int      @default(0) // Points in pending trades
-  lifetimeEarned    Int      @default(0)
-  lifetimeSpent     Int      @default(0)
-  version           Int      @default(0) // For optimistic locking
+  id                String    @id @default(cuid())
+  userId            String    @unique
+  sparklePoints     Int       @default(0)
+  premiumPoints     Int       @default(0)
+  frozenPoints      Int       @default(0) // Points in pending trades
+  lifetimeEarned    Int       @default(0)
+  lifetimeSpent     Int       @default(0)
+  version           Int       @default(0) // For optimistic locking
   lastTransactionAt DateTime?
-  updatedAt         DateTime @updatedAt
+  updatedAt         DateTime  @updatedAt
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -429,19 +429,19 @@ model UserBalance {
 }
 
 model UserSubscription {
-  id                String           @id @default(cuid())
-  userId            String           @unique
-  tier              SubscriptionTier @default(FREE)
-  status            PaymentStatus    @default(PENDING)
-  startDate         DateTime         @default(now())
-  endDate           DateTime?
-  cancelledAt       DateTime?
-  paymentMethod     String?
-  stripeCustomerId  String?
-  stripeSubId       String?
-  autoRenew         Boolean          @default(true)
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
+  id               String           @id @default(cuid())
+  userId           String           @unique
+  tier             SubscriptionTier @default(FREE)
+  status           PaymentStatus    @default(PENDING)
+  startDate        DateTime         @default(now())
+  endDate          DateTime?
+  cancelledAt      DateTime?
+  paymentMethod    String?
+  stripeCustomerId String?
+  stripeSubId      String?
+  autoRenew        Boolean          @default(true)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -453,36 +453,36 @@ model UserSubscription {
 }
 
 model Profile {
-  id                  String    @id @default(cuid())
-  userId              String    @unique
-  displayName         String?
-  location            String?
-  website             String?
-  twitterUsername     String?
-  instagramUsername   String?
-  tiktokUsername      String?
-  discordUsername     String?
-  youtubeChannelId    String?
-  youtubeChannelUrl   String?
-  youtubeChannelData  Json?
-  bannerImage         String?
-  themePreference     Json?
-  notificationSettings Json     @default("{}")
-  privacySettings     Json     @default("{}")
-  featuredBadges      String[]
-  showcasedPosts      String[]
-  customCss           String?   @db.Text
-  customHtml          String?   @db.Text
-  socialLinks         Json?
-  interests           String[]
-  skills              String[]
-  pronouns            String?
-  birthdate           DateTime?
-  joinedCommunityAt   DateTime  @default(now())
-  profileCompleted    Boolean   @default(false)
-  profileCompleteness Int       @default(0)
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
+  id                   String    @id @default(cuid())
+  userId               String    @unique
+  displayName          String?
+  location             String?
+  website              String?
+  twitterUsername      String?
+  instagramUsername    String?
+  tiktokUsername       String?
+  discordUsername      String?
+  youtubeChannelId     String?
+  youtubeChannelUrl    String?
+  youtubeChannelData   Json?
+  bannerImage          String?
+  themePreference      Json?
+  notificationSettings Json      @default("{}")
+  privacySettings      Json      @default("{}")
+  featuredBadges       String[]
+  showcasedPosts       String[]
+  customCss            String?   @db.Text
+  customHtml           String?   @db.Text
+  socialLinks          Json?
+  interests            String[]
+  skills               String[]
+  pronouns             String?
+  birthdate            DateTime?
+  joinedCommunityAt    DateTime  @default(now())
+  profileCompleted     Boolean   @default(false)
+  profileCompleteness  Int       @default(0)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -494,22 +494,22 @@ model Profile {
 }
 
 model Account {
-  id                String    @id @default(cuid())
+  id                String   @id @default(cuid())
   userId            String
   type              String
   provider          String
   providerAccountId String
-  refreshToken      String?   @db.Text
-  accessToken       String?   @db.Text
+  refreshToken      String?  @db.Text
+  accessToken       String?  @db.Text
   expiresAt         BigInt?
   tokenType         String?
   scope             String?
-  idToken           String?   @db.Text
+  idToken           String?  @db.Text
   sessionState      String?
   oauthTokenSecret  String?
   oauthToken        String?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -539,14 +539,14 @@ model Session {
 }
 
 model LoginHistory {
-  id         String   @id @default(cuid())
-  userId     String
-  ipAddress  String
-  userAgent  String   @db.Text
-  location   String?
-  success    Boolean
-  reason     String?
-  createdAt  DateTime @default(now())
+  id        String   @id @default(cuid())
+  userId    String
+  ipAddress String
+  userAgent String   @db.Text
+  location  String?
+  success   Boolean
+  reason    String?
+  createdAt DateTime @default(now())
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -556,16 +556,16 @@ model LoginHistory {
 }
 
 model SecurityAlert {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   userId      String
   type        String
   severity    String
   title       String
-  description String   @db.Text
-  resolved    Boolean  @default(false)
+  description String    @db.Text
+  resolved    Boolean   @default(false)
   resolvedAt  DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -595,17 +595,17 @@ model ApiKey {
 }
 
 model Webhook {
-  id           String   @id @default(cuid())
-  userId       String
-  name         String
-  url          String
-  secret       String
-  events       String[]
-  active       Boolean  @default(true)
-  failureCount Int      @default(0)
+  id            String    @id @default(cuid())
+  userId        String
+  name          String
+  url           String
+  secret        String
+  events        String[]
+  active        Boolean   @default(true)
+  failureCount  Int       @default(0)
   lastTriggered DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -616,12 +616,12 @@ model Webhook {
 }
 
 model Block {
-  id         String   @id @default(cuid())
-  blockerId  String
-  blockedId  String
-  reason     String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id        String   @id @default(cuid())
+  blockerId String
+  blockedId String
+  reason    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
   blocker User @relation("blocker", fields: [blockerId], references: [id], onDelete: Cascade)
@@ -634,24 +634,24 @@ model Block {
 }
 
 model NotificationPreference {
-  id                    String   @id @default(cuid())
-  userId                String   @unique
-  emailNotifications    Boolean  @default(true)
-  pushNotifications     Boolean  @default(true)
-  smsNotifications      Boolean  @default(false)
-  postLikes             Boolean  @default(true)
-  postComments          Boolean  @default(true)
-  newFollowers          Boolean  @default(true)
-  mentions              Boolean  @default(true)
-  directMessages        Boolean  @default(true)
-  groupInvites          Boolean  @default(true)
-  eventReminders        Boolean  @default(true)
-  marketingEmails       Boolean  @default(false)
-  weeklyDigest          Boolean  @default(true)
-  quietHoursStart       String?  // Format: "HH:MM"
-  quietHoursEnd         String?  // Format: "HH:MM"
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  emailNotifications Boolean  @default(true)
+  pushNotifications  Boolean  @default(true)
+  smsNotifications   Boolean  @default(false)
+  postLikes          Boolean  @default(true)
+  postComments       Boolean  @default(true)
+  newFollowers       Boolean  @default(true)
+  mentions           Boolean  @default(true)
+  directMessages     Boolean  @default(true)
+  groupInvites       Boolean  @default(true)
+  eventReminders     Boolean  @default(true)
+  marketingEmails    Boolean  @default(false)
+  weeklyDigest       Boolean  @default(true)
+  quietHoursStart    String? // Format: "HH:MM"
+  quietHoursEnd      String? // Format: "HH:MM"
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -661,17 +661,17 @@ model NotificationPreference {
 }
 
 model Referral {
-  id               String    @id @default(cuid())
-  referrerId       String
-  referredUserId   String?   @unique
-  referralCode     String    @unique
-  referredEmail    String?
-  status           String    @default("PENDING")
-  rewardClaimed    Boolean   @default(false)
-  rewardAmount     Int       @default(100)
-  expiresAt        DateTime?
-  completedAt      DateTime?
-  createdAt        DateTime  @default(now())
+  id             String    @id @default(cuid())
+  referrerId     String
+  referredUserId String?   @unique
+  referralCode   String    @unique
+  referredEmail  String?
+  status         String    @default("PENDING")
+  rewardClaimed  Boolean   @default(false)
+  rewardAmount   Int       @default(100)
+  expiresAt      DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime  @default(now())
 
   // Relations
   referrer     User  @relation("referrer", fields: [referrerId], references: [id], onDelete: Cascade)
@@ -703,7 +703,7 @@ model Category {
   updatedAt    DateTime @updatedAt
 
   // Relations
-  parent   Category? @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  parent   Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
   children Category[] @relation("CategoryHierarchy")
   posts    Post[]
 
@@ -714,78 +714,78 @@ model Category {
 }
 
 model Post {
-  id                 String         @id @default(cuid())
-  slug               String         @unique
-  title              String         @db.VarChar(500)
+  id                 String           @id @default(cuid())
+  slug               String           @unique
+  title              String           @db.VarChar(500)
   content            Json
-  contentType        ContentType    @default(BLOG)
-  contentStatus      ContentStatus  @default(DRAFT)
-  excerpt            String?        @db.Text
+  contentType        ContentType      @default(BLOG)
+  contentStatus      ContentStatus    @default(DRAFT)
+  excerpt            String?          @db.Text
   coverImage         String?
   coverImageAlt      String?
   authorId           String
   categoryId         String?
   seriesId           String?
   seriesOrder        Int?
-  published          Boolean        @default(false)
-  featured           Boolean        @default(false)
-  editorsPick        Boolean        @default(false)
-  sponsoredContent   Boolean        @default(false)
+  published          Boolean          @default(false)
+  featured           Boolean          @default(false)
+  editorsPick        Boolean          @default(false)
+  sponsoredContent   Boolean          @default(false)
   sponsorInfo        Json?
-  isPinned           Boolean        @default(false)
+  isPinned           Boolean          @default(false)
   pinnedUntil        DateTime?
-  isDraft            Boolean        @default(true)
-  version            Int            @default(1)
+  isDraft            Boolean          @default(true)
+  version            Int              @default(1)
   parentVersionId    String?
-  collaborators      String[]       // User IDs who can edit
+  collaborators      String[] // User IDs who can edit
   youtubeVideoId     String?
   youtubeVideoData   Json?
-  views              Int            @default(0)
-  uniqueViews        Int            @default(0)
-  readingTime        Int?           // In minutes
+  views              Int              @default(0)
+  uniqueViews        Int              @default(0)
+  readingTime        Int? // In minutes
   wordCount          Int?
-  metaTitle          String?        @db.VarChar(160)
-  metaDescription    String?        @db.VarChar(320)
+  metaTitle          String?          @db.VarChar(160)
+  metaDescription    String?          @db.VarChar(320)
   metaKeywords       String[]
   ogImage            String?
   canonicalUrl       String?
-  customSlug         Boolean        @default(false)
-  allowComments      Boolean        @default(true)
+  customSlug         Boolean          @default(false)
+  allowComments      Boolean          @default(true)
   moderationStatus   ModerationStatus @default(PENDING)
-  moderationNotes    String?        @db.Text
+  moderationNotes    String?          @db.Text
   scheduledPublishAt DateTime?
   publishedAt        DateTime?
   lastEditedAt       DateTime?
   archivedAt         DateTime?
   deletedAt          DateTime?
-  createdAt          DateTime       @default(now())
-  updatedAt          DateTime       @updatedAt
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
 
   // --- AI Generated Content Fields ---
-  aiGenerated        Boolean        @default(false)
-  aiModel            String?
-  aiPrompt           String?
-  aiRevisionCount    Int            @default(0)
+  aiGenerated     Boolean @default(false)
+  aiModel         String?
+  aiPrompt        String?
+  aiRevisionCount Int     @default(0)
 
   // Relations - Updated to prevent cascade delete of valuable content
-  author         User             @relation("UserPosts", fields: [authorId], references: [id], onDelete: Restrict)
-  category       Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  series         PostSeries?      @relation(fields: [seriesId], references: [id], onDelete: SetNull)
-  parentVersion  Post?            @relation("PostVersions", fields: [parentVersionId], references: [id], onDelete: SetNull)
-  childVersions  Post[]           @relation("PostVersions")
-  tags           PostTag[]
-  comments       Comment[]        @relation("PostComments")
-  reactions      Reaction[]
-  poll           Poll?
-  fanArtGallery  FanArtGallery?
-  stats          PostStats?
-  revisions      PostRevision[]
-  viewHistory    ViewHistory[]
-  relatedPosts   PostRelation[]   @relation("relatedPost")
-  relatedTo      PostRelation[]   @relation("mainPost")
-  mentions       Mention[]
-  bookmarks      Bookmark[]
-  reports        Report[]         @relation("reportedPost")
+  author              User                @relation("UserPosts", fields: [authorId], references: [id], onDelete: Restrict)
+  category            Category?           @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  series              PostSeries?         @relation(fields: [seriesId], references: [id], onDelete: SetNull)
+  parentVersion       Post?               @relation("PostVersions", fields: [parentVersionId], references: [id], onDelete: SetNull)
+  childVersions       Post[]              @relation("PostVersions")
+  tags                PostTag[]
+  comments            Comment[]           @relation("PostComments")
+  reactions           Reaction[]
+  poll                Poll?
+  fanArtGallery       FanArtGallery?
+  stats               PostStats?
+  revisions           PostRevision[]
+  viewHistory         ViewHistory[]
+  relatedPosts        PostRelation[]      @relation("relatedPost")
+  relatedTo           PostRelation[]      @relation("mainPost")
+  mentions            Mention[]
+  bookmarks           Bookmark[]
+  reports             Report[]            @relation("reportedPost")
   aiModerationEntries AiModerationQueue[] @relation("moderatedPost")
 
   // --- Scheduling Relations ---
@@ -812,20 +812,20 @@ model Post {
 // =====================================================
 
 model ScheduledAction {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   actionType    String // "publish_post", "send_notification", "trigger_event"
   entityType    String // "post", "user", "group"
   entityId      String
   scheduledFor  DateTime
-  status        String   @default("PENDING") // "PENDING", "PROCESSING", "COMPLETED", "FAILED", "CANCELLED"
+  status        String    @default("PENDING") // "PENDING", "PROCESSING", "COMPLETED", "FAILED", "CANCELLED"
   parameters    Json // Action-specific parameters
-  retryCount    Int      @default(0)
-  maxRetries    Int      @default(3)
+  retryCount    Int       @default(0)
+  maxRetries    Int       @default(3)
   lastAttempt   DateTime?
   nextRetry     DateTime?
   failureReason String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   @@index([scheduledFor, status])
   @@index([entityType, entityId])
@@ -833,7 +833,7 @@ model ScheduledAction {
 }
 
 model RecurringSchedule {
-  id             String   @id @default(cuid())
+  id             String    @id @default(cuid())
   userId         String
   entityType     String // "post", "event", "newsletter"
   entityId       String
@@ -843,8 +843,8 @@ model RecurringSchedule {
   lastRun        DateTime?
   nextRun        DateTime
   parameters     Json
-  isActive       Boolean  @default(true)
-  createdAt      DateTime @default(now())
+  isActive       Boolean   @default(true)
+  createdAt      DateTime  @default(now())
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -855,14 +855,14 @@ model RecurringSchedule {
 }
 
 model PublishQueue {
-  id           String   @id @default(cuid())
-  postId       String   @unique
+  id           String    @id @default(cuid())
+  postId       String    @unique
   scheduledFor DateTime
-  status       String   @default("SCHEDULED") // "SCHEDULED", "PUBLISHED", "FAILED"
-  attempts     Int      @default(0)
+  status       String    @default("SCHEDULED") // "SCHEDULED", "PUBLISHED", "FAILED"
+  attempts     Int       @default(0)
   error        String?
   processedAt  DateTime?
-  createdAt    DateTime @default(now())
+  createdAt    DateTime  @default(now())
 
   // Relations
   post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
@@ -870,7 +870,6 @@ model PublishQueue {
   @@index([scheduledFor, status])
   @@map("publish_queue")
 }
-
 
 model PostStats {
   id                 String   @id @default(cuid())
@@ -939,19 +938,19 @@ model PostRelation {
 }
 
 model PostSeries {
-  id           String   @id @default(cuid())
-  title        String
-  slug         String   @unique
-  description  String?  @db.Text
-  authorId     String
-  coverImage   String?
-  bannerImage  String?
-  totalParts   Int      @default(0)
-  completed    Boolean  @default(false)
-  featured     Boolean  @default(false)
-  metadata     Json?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  description String?  @db.Text
+  authorId    String
+  coverImage  String?
+  bannerImage String?
+  totalParts  Int      @default(0)
+  completed   Boolean  @default(false)
+  featured    Boolean  @default(false)
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   // Relations
   author User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
@@ -1003,28 +1002,28 @@ model PostTag {
 }
 
 model Comment {
-  id                String           @id @default(cuid())
-  content           String           @db.Text
-  postId            String
-  authorId          String
-  parentId          String?
-  youtubeTimestamp  Int?
-  quotedTimestamp   String? // For quoting specific video moments
-  edited            Boolean          @default(false)
-  editedAt          DateTime?
-  editHistory       Json[] // Store previous versions
-  deleted           Boolean          @default(false)
-  deletedAt         DateTime?
-  deletedBy         String?
-  pinned            Boolean          @default(false)
-  featured          Boolean          @default(false)
-  moderationStatus  ModerationStatus @default(AUTO_APPROVED)
-  moderationNotes   String?
-  ipAddress         String?
-  userAgent         String?
-  version           Int              @default(0)
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
+  id               String           @id @default(cuid())
+  content          String           @db.Text
+  postId           String
+  authorId         String
+  parentId         String?
+  youtubeTimestamp Int?
+  quotedTimestamp  String? // For quoting specific video moments
+  edited           Boolean          @default(false)
+  editedAt         DateTime?
+  editHistory      Json[] // Store previous versions
+  deleted          Boolean          @default(false)
+  deletedAt        DateTime?
+  deletedBy        String?
+  pinned           Boolean          @default(false)
+  featured         Boolean          @default(false)
+  moderationStatus ModerationStatus @default(AUTO_APPROVED)
+  moderationNotes  String?
+  ipAddress        String?
+  userAgent        String?
+  version          Int              @default(0)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
 
   // Relations - Updated to prevent cascade delete
   post      Post       @relation("PostComments", fields: [postId], references: [id], onDelete: Restrict)
@@ -1112,16 +1111,16 @@ model Bookmark {
 }
 
 model BookmarkFolder {
-  id          String     @id @default(cuid())
+  id          String   @id @default(cuid())
   userId      String
   name        String
   description String?
   color       String?
   icon        String?
-  isPublic    Boolean    @default(false)
-  sortOrder   Int        @default(0)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  isPublic    Boolean  @default(false)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   // Relations
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -1133,13 +1132,13 @@ model BookmarkFolder {
 }
 
 model Follow {
-  id             String    @id @default(cuid())
+  id             String   @id @default(cuid())
   followerId     String
   followingId    String
-  notifyNewPosts Boolean   @default(true)
-  notifyActivity Boolean   @default(false)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  notifyNewPosts Boolean  @default(true)
+  notifyActivity Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   // Relations
   follower  User @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
@@ -1152,14 +1151,14 @@ model Follow {
 }
 
 model ViewHistory {
-  id           String    @id @default(cuid())
+  id           String   @id @default(cuid())
   userId       String
   postId       String
-  viewDuration Int       @default(0) // In seconds
-  scrollDepth  Float     @default(0) // Percentage
+  viewDuration Int      @default(0) // In seconds
+  scrollDepth  Float    @default(0) // Percentage
   referrer     String?
   deviceType   String?
-  createdAt    DateTime  @default(now())
+  createdAt    DateTime @default(now())
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -1232,19 +1231,19 @@ model Notification {
 }
 
 model NotificationQueue {
-  id           String   @id @default(cuid())
+  id           String    @id @default(cuid())
   userId       String
   type         String
   channel      String // "email", "push", "sms"
   payload      Json
-  priority     Int      @default(0)
-  attempts     Int      @default(0)
-  maxAttempts  Int      @default(3)
-  scheduledFor DateTime @default(now())
+  priority     Int       @default(0)
+  attempts     Int       @default(0)
+  maxAttempts  Int       @default(3)
+  scheduledFor DateTime  @default(now())
   processedAt  DateTime?
   failedAt     DateTime?
-  error        String?  @db.Text
-  createdAt    DateTime @default(now())
+  error        String?   @db.Text
+  createdAt    DateTime  @default(now())
 
   @@index([scheduledFor, processedAt])
   @@index([userId])
@@ -1273,8 +1272,8 @@ model EmailCampaign {
   updatedAt       DateTime  @updatedAt
 
   // Relations
-  creator  User          @relation("campaignCreator", fields: [createdBy], references: [id], onDelete: Cascade)
-  template EmailTemplate @relation(fields: [templateId], references: [id], onDelete: Restrict)
+  creator   User             @relation("campaignCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  template  EmailTemplate    @relation(fields: [templateId], references: [id], onDelete: Restrict)
   sendQueue EmailSendQueue[]
 
   @@index([status, scheduledFor])
@@ -1283,14 +1282,14 @@ model EmailCampaign {
 }
 
 model NewsletterSubscription {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  subscribed Boolean  @default(true)
-  frequency String   @default("weekly") // "daily", "weekly", "monthly"
-  topics    String[] // ["trending", "creator", "gaming", "news"]
-  lastSent  DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String    @id @default(cuid())
+  userId     String    @unique
+  subscribed Boolean   @default(true)
+  frequency  String    @default("weekly") // "daily", "weekly", "monthly"
+  topics     String[] // ["trending", "creator", "gaming", "news"]
+  lastSent   DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -1324,17 +1323,17 @@ model EmailTemplate {
 }
 
 model EmailSendQueue {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   campaignId String?
   recipient  String
   templateId String
   variables  Json
-  status     String   @default("PENDING") // "PENDING", "SENT", "FAILED", "BOUNCED"
-  attempts   Int      @default(0)
+  status     String    @default("PENDING") // "PENDING", "SENT", "FAILED", "BOUNCED"
+  attempts   Int       @default(0)
   sentAt     DateTime?
   failedAt   DateTime?
   error      String?
-  createdAt  DateTime @default(now())
+  createdAt  DateTime  @default(now())
 
   // Relations
   campaign EmailCampaign? @relation(fields: [campaignId], references: [id], onDelete: Cascade)
@@ -1393,17 +1392,17 @@ model Achievement {
 }
 
 model UserAchievement {
-  id             String   @id @default(cuid())
+  id             String    @id @default(cuid())
   userId         String
   achievementId  String
-  progress       Float    @default(0) // 0 to 1
+  progress       Float     @default(0) // 0 to 1
   progressData   Json?
-  unlockedAt     DateTime @default(now())
-  showcased      Boolean  @default(false)
-  showcaseOrder  Int      @default(0)
-  notified       Boolean  @default(false)
-  claimedRewards Boolean  @default(false)
-  deleted        Boolean  @default(false)
+  unlockedAt     DateTime  @default(now())
+  showcased      Boolean   @default(false)
+  showcaseOrder  Int       @default(0)
+  notified       Boolean   @default(false)
+  claimedRewards Boolean   @default(false)
+  deleted        Boolean   @default(false)
   deletedAt      DateTime?
   deletedBy      String?
 
@@ -1481,22 +1480,22 @@ model CurrencyTransaction {
 }
 
 model CreatorPayout {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   userId        String
   periodStart   DateTime
   periodEnd     DateTime
-  totalRevenue  BigInt   @default(0)
-  platformFee   BigInt   @default(0)
-  creatorShare  BigInt   @default(0)
-  taxWithheld   BigInt   @default(0)
-  finalAmount   BigInt   @default(0)
+  totalRevenue  BigInt    @default(0)
+  platformFee   BigInt    @default(0)
+  creatorShare  BigInt    @default(0)
+  taxWithheld   BigInt    @default(0)
+  finalAmount   BigInt    @default(0)
   payoutMethod  String // "stripe", "paypal", "bank_transfer"
-  payoutStatus  String   @default("PENDING") // "PENDING", "PROCESSING", "COMPLETED", "FAILED"
+  payoutStatus  String    @default("PENDING") // "PENDING", "PROCESSING", "COMPLETED", "FAILED"
   transactionId String?
   failureReason String?
   scheduledDate DateTime
   processedDate DateTime?
-  createdAt     DateTime @default(now())
+  createdAt     DateTime  @default(now())
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -1534,15 +1533,15 @@ model FanFunding {
 }
 
 model RevenueShare {
-  id             String   @id @default(cuid())
+  id             String    @id @default(cuid())
   contentType    String // "post", "video", "stream"
   contentId      String
   creatorId      String
-  totalRevenue   BigInt   @default(0)
-  platformShare  BigInt   @default(0)
-  creatorShare   BigInt   @default(0)
-  affiliateShare BigInt   @default(0)
-  calculatedAt   DateTime @default(now())
+  totalRevenue   BigInt    @default(0)
+  platformShare  BigInt    @default(0)
+  creatorShare   BigInt    @default(0)
+  affiliateShare BigInt    @default(0)
+  calculatedAt   DateTime  @default(now())
   paidAt         DateTime?
 
   // Relations
@@ -1576,10 +1575,10 @@ model TipTransaction {
 }
 
 model StoreItem {
-  id                   String    @id @default(cuid())
-  sku                  String    @unique
+  id                   String      @id @default(cuid())
+  sku                  String      @unique
   name                 String
-  description          String?   @db.Text
+  description          String?     @db.Text
   shortDescription     String?
   category             String
   subcategory          String?
@@ -1589,22 +1588,22 @@ model StoreItem {
   pricePremium         Int?
   originalPriceSparkle Int?
   originalPricePremium Int?
-  discountPercentage   Int       @default(0)
+  discountPercentage   Int         @default(0)
   previewUrl           String?
   thumbnailUrl         String?
   images               String[]
   data                 Json? // Item-specific data
   requirements         Json? // Level, achievement requirements
-  limitedEdition       Boolean   @default(false)
+  limitedEdition       Boolean     @default(false)
   stockRemaining       Int?
   maxPerUser           Int?
-  featured             Boolean   @default(false)
-  new                  Boolean   @default(false)
+  featured             Boolean     @default(false)
+  new                  Boolean     @default(false)
   availableFrom        DateTime?
   availableUntil       DateTime?
   metadata             Json?
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
 
   // Relations
   inventory UserInventory[]
@@ -1617,17 +1616,17 @@ model StoreItem {
 }
 
 model StoreBundle {
-  id                 String    @id @default(cuid())
+  id                 String      @id @default(cuid())
   name               String
   description        String?
   priceSparkle       Int?
   pricePremium       Int?
-  discountPercentage Int       @default(0)
+  discountPercentage Int         @default(0)
   items              StoreItem[] @relation("BundleItems")
   availableFrom      DateTime?
   availableUntil     DateTime?
   maxPurchases       Int?
-  createdAt          DateTime  @default(now())
+  createdAt          DateTime    @default(now())
 
   @@index([availableFrom, availableUntil])
   @@map("store_bundles")
@@ -1823,7 +1822,7 @@ model YoutubeChannel {
   updatedAt            DateTime  @updatedAt
 
   // Relations
-  user   User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user   User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
   videos YoutubeVideo[]
 
   @@index([userId])
@@ -1891,34 +1890,34 @@ model VideoAnalytics {
 }
 
 model WatchParty {
-  id                  String       @id @default(cuid())
+  id                  String    @id @default(cuid())
   hostId              String
   title               String
-  description         String?      @db.Text
+  description         String?   @db.Text
   youtubeVideoId      String
   youtubeVideoUrl     String?
   scheduledStart      DateTime
   actualStart         DateTime?
   endedAt             DateTime?
-  maxParticipants     Int          @default(50)
-  currentParticipants Int          @default(0)
-  isPublic            Boolean      @default(true)
-  requiresApproval    Boolean      @default(false)
-  chatEnabled         Boolean      @default(true)
-  syncPlayback        Boolean      @default(true)
-  allowGuestChat      Boolean      @default(false)
-  recordChat          Boolean      @default(true)
+  maxParticipants     Int       @default(50)
+  currentParticipants Int       @default(0)
+  isPublic            Boolean   @default(true)
+  requiresApproval    Boolean   @default(false)
+  chatEnabled         Boolean   @default(true)
+  syncPlayback        Boolean   @default(true)
+  allowGuestChat      Boolean   @default(false)
+  recordChat          Boolean   @default(true)
   tags                String[]
   customEmotes        Json?
-  partyCode           String?      @unique
+  partyCode           String?   @unique
   cancelledAt         DateTime?
   cancelReason        String?
   metadata            Json?
-  deleted             Boolean      @default(false)
+  deleted             Boolean   @default(false)
   deletedAt           DateTime?
   deletedBy           String?
-  createdAt           DateTime     @default(now())
-  updatedAt           DateTime     @updatedAt
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   // Relations
   host         User                    @relation(fields: [hostId], references: [id], onDelete: Cascade)
@@ -2118,10 +2117,10 @@ model Group {
   updatedAt        DateTime        @updatedAt
 
   // Relations - Updated to prevent cascade delete
-  owner    User          @relation("GroupOwner", fields: [ownerId], references: [id], onDelete: Restrict)
-  members  GroupMember[] @relation("GroupMembers")
+  owner    User           @relation("GroupOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  members  GroupMember[]  @relation("GroupMembers")
   events   Event[]
-  posts    GroupPost[]   @relation("GroupPosts")
+  posts    GroupPost[]    @relation("GroupPosts")
   channels GroupChannel[]
 
   @@index([slug])
@@ -2202,13 +2201,13 @@ model GroupChannel {
 }
 
 model Event {
-  id               String       @id @default(cuid())
+  id               String      @id @default(cuid())
   title            String
-  slug             String       @unique
-  description      String?      @db.Text
+  slug             String      @unique
+  description      String?     @db.Text
   shortDescription String?
   type             EventType
-  status           EventStatus  @default(SCHEDULED)
+  status           EventStatus @default(SCHEDULED)
   hostId           String
   cohostIds        String[]
   groupId          String?
@@ -2216,21 +2215,21 @@ model Event {
   locationUrl      String?
   locationAddress  String?
   locationCoords   Json? // {lat, lng}
-  isVirtual        Boolean      @default(false)
+  isVirtual        Boolean     @default(false)
   virtualPlatform  String? // "zoom", "discord", "youtube", etc.
   virtualLink      String?
   bannerImage      String?
   thumbnailImage   String?
   startTime        DateTime
   endTime          DateTime
-  timezone         String       @default("UTC")
+  timezone         String      @default("UTC")
   recurrence       Json? // Recurrence rules
   maxAttendees     Int?
-  currentAttendees Int          @default(0)
+  currentAttendees Int         @default(0)
   minAttendees     Int?
-  isPublic         Boolean      @default(true)
-  requiresApproval Boolean      @default(false)
-  requiresPayment  Boolean      @default(false)
+  isPublic         Boolean     @default(true)
+  requiresApproval Boolean     @default(false)
+  requiresPayment  Boolean     @default(false)
   price            Int?
   currency         String?
   tags             String[]
@@ -2246,12 +2245,12 @@ model Event {
   metadata         Json?
   cancelledAt      DateTime?
   cancelReason     String?
-  version          Int          @default(0) // For optimistic locking
-  deleted          Boolean      @default(false)
+  version          Int         @default(0) // For optimistic locking
+  deleted          Boolean     @default(false)
   deletedAt        DateTime?
   deletedBy        String?
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
 
   // Relations - Updated to prevent cascade delete
   host      User            @relation("EventHost", fields: [hostId], references: [id], onDelete: Restrict)
@@ -2302,25 +2301,25 @@ model EventAttendee {
 // =====================================================
 
 model Conversation {
-  id               String   @id @default(cuid())
-  isGroup          Boolean  @default(false)
-  title            String?
-  description      String?
-  icon             String?
-  encryptedKey     String?  @db.Text
-  lastMessageId    String?
-  lastMessageAt    DateTime?
-  messageCount     Int      @default(0)
-  createdBy        String
-  settings         Json     @default("{}")
-  pinnedMessages   String[]
-  isArchived       Boolean  @default(false)
-  archivedAt       DateTime?
-  deleted          Boolean  @default(false)
-  deletedAt        DateTime?
-  deletedBy        String?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id             String    @id @default(cuid())
+  isGroup        Boolean   @default(false)
+  title          String?
+  description    String?
+  icon           String?
+  encryptedKey   String?   @db.Text
+  lastMessageId  String?
+  lastMessageAt  DateTime?
+  messageCount   Int       @default(0)
+  createdBy      String
+  settings       Json      @default("{}")
+  pinnedMessages String[]
+  isArchived     Boolean   @default(false)
+  archivedAt     DateTime?
+  deleted        Boolean   @default(false)
+  deletedAt      DateTime?
+  deletedBy      String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   // Relations
   creator      User                      @relation("ConversationCreator", fields: [createdBy], references: [id], onDelete: Cascade)
@@ -2386,10 +2385,10 @@ model Message {
   createdAt        DateTime      @default(now())
 
   // Relations
-  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  sender       User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
-  replyTo      Message?     @relation("MessageReplies", fields: [replyToId], references: [id], onDelete: SetNull)
-  replies      Message[]    @relation("MessageReplies")
+  conversation Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User          @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  replyTo      Message?      @relation("MessageReplies", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies      Message[]     @relation("MessageReplies")
   reads        MessageRead[]
 
   @@index([conversationId, createdAt(sort: Desc)])
@@ -2436,29 +2435,29 @@ model WebsocketSession {
 }
 
 model ChatRoom {
-  id              String   @id @default(cuid())
-  name            String
-  slug            String   @unique
-  description     String?  @db.Text
-  topic           String?
-  tags            String[]
-  isPublic        Boolean  @default(true)
-  isModerated     Boolean  @default(false)
-  isPersistent    Boolean  @default(true) // False for temporary rooms
-  maxUsers        Int      @default(100)
-  activeUsers     Int      @default(0)
-  totalMessages   Int      @default(0)
-  slowMode        Int      @default(0) // Seconds between messages
-  customEmojis    Json?
-  rules           String?  @db.Text
-  welcomeMessage  String?
-  pinnedMessage   String?
-  blockedWords    String[]
-  createdBy       String
-  moderatorIds    String[]
-  expiresAt       DateTime? // For temporary rooms
-  lastActiveAt    DateTime @default(now())
-  createdAt       DateTime @default(now())
+  id             String    @id @default(cuid())
+  name           String
+  slug           String    @unique
+  description    String?   @db.Text
+  topic          String?
+  tags           String[]
+  isPublic       Boolean   @default(true)
+  isModerated    Boolean   @default(false)
+  isPersistent   Boolean   @default(true) // False for temporary rooms
+  maxUsers       Int       @default(100)
+  activeUsers    Int       @default(0)
+  totalMessages  Int       @default(0)
+  slowMode       Int       @default(0) // Seconds between messages
+  customEmojis   Json?
+  rules          String?   @db.Text
+  welcomeMessage String?
+  pinnedMessage  String?
+  blockedWords   String[]
+  createdBy      String
+  moderatorIds   String[]
+  expiresAt      DateTime? // For temporary rooms
+  lastActiveAt   DateTime  @default(now())
+  createdAt      DateTime  @default(now())
 
   // Relations
   creator  User          @relation(fields: [createdBy], references: [id], onDelete: Cascade)
@@ -2491,9 +2490,9 @@ model ChatMessage {
   createdAt     DateTime  @default(now())
 
   // Relations
-  room    ChatRoom    @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  replyTo ChatMessage? @relation("ChatMessageReplies", fields: [replyToId], references: [id], onDelete: SetNull)
+  room    ChatRoom      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  replyTo ChatMessage?  @relation("ChatMessageReplies", fields: [replyToId], references: [id], onDelete: SetNull)
   replies ChatMessage[] @relation("ChatMessageReplies")
 
   @@index([roomId, createdAt(sort: Desc)])
@@ -2668,14 +2667,14 @@ model Poll {
 }
 
 model PollOption {
-  id           String   @id @default(cuid())
+  id           String  @id @default(cuid())
   pollId       String
-  optionText   String   @db.Text
+  optionText   String  @db.Text
   description  String?
   imageUrl     String?
   displayOrder Int
-  voteCount    Int      @default(0)
-  percentage   Float    @default(0)
+  voteCount    Int     @default(0)
+  percentage   Float   @default(0)
   metadata     Json?
 
   // Relations
@@ -2707,7 +2706,7 @@ model PollVote {
 }
 
 model PollVoteChoice {
-  id           String   @id @default(cuid())
+  id           String @id @default(cuid())
   pollVoteId   String
   pollOptionId String
 
@@ -2787,7 +2786,7 @@ model FanArtSubmission {
 // =====================================================
 
 model AiRecommendation {
-  id                 String   @id @default(cuid())
+  id                 String    @id @default(cuid())
   userId             String
   recommendationType String // "post", "user", "video", "creator"
   entityType         String // "post", "user", "video"
@@ -2795,11 +2794,11 @@ model AiRecommendation {
   score              Float // AI confidence score
   reason             String? // Why this was recommended
   context            Json? // User context at time of recommendation
-  clicked            Boolean  @default(false)
+  clicked            Boolean   @default(false)
   clickedAt          DateTime?
-  dismissed          Boolean  @default(false)
+  dismissed          Boolean   @default(false)
   expiresAt          DateTime
-  createdAt          DateTime @default(now())
+  createdAt          DateTime  @default(now())
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -2811,15 +2810,15 @@ model AiRecommendation {
 }
 
 model AiContentSuggestion {
-  id            String   @id @default(cuid())
-  userId        String
+  id             String   @id @default(cuid())
+  userId         String
   suggestionType String // "title", "hashtag", "content", "image"
-  content       String   @db.Text
-  context       Json? // Original content context
-  used          Boolean  @default(false)
-  usedContent   String? // What user actually used
-  feedback      Int? // 1-5 rating from user
-  createdAt     DateTime @default(now())
+  content        String   @db.Text
+  context        Json? // Original content context
+  used           Boolean  @default(false)
+  usedContent    String? // What user actually used
+  feedback       Int? // 1-5 rating from user
+  createdAt      DateTime @default(now())
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -2844,15 +2843,15 @@ model UserAiPreference {
 }
 
 model AiAssistantConversation {
-  id        String   @id @default(cuid())
-  userId    String
-  sessionId String   @unique
-  messages  Json[] // Array of {role, content, timestamp}
-  context   Json? // Conversation context
-  model     String   @default("gpt-4")
-  tokensUsed Int     @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(cuid())
+  userId     String
+  sessionId  String   @unique
+  messages   Json[] // Array of {role, content, timestamp}
+  context    Json? // Conversation context
+  model      String   @default("gpt-4")
+  tokensUsed Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -2860,7 +2859,6 @@ model AiAssistantConversation {
   @@index([userId, updatedAt])
   @@map("ai_assistant_conversations")
 }
-
 
 // =====================================================
 // MODERATION & SAFETY MODELS
@@ -2891,11 +2889,11 @@ model Report {
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
 
-  // Relations
-  reporter User  @relation("reporter", fields: [reporterId], references: [id], onDelete: Cascade)
-  resolver User? @relation("resolver", fields: [resolvedBy], references: [id], onDelete: SetNull)
-  post     Post? @relation("reportedPost", fields: [entityId], references: [id], onDelete: Cascade)
-  comment  Comment? @relation("reportedComment", fields: [entityId], references: [id], onDelete: Cascade)
+  // Relations with explicit constraint names
+  reporter User     @relation("reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  resolver User?    @relation("resolver", fields: [resolvedBy], references: [id], onDelete: SetNull)
+  post     Post?    @relation("reportedPost", fields: [entityId], references: [id], onDelete: Cascade, map: "fk_report_post")
+  comment  Comment? @relation("reportedComment", fields: [entityId], references: [id], onDelete: Cascade, map: "fk_report_comment")
 
   @@index([status, priority])
   @@index([entityType, entityId])
@@ -2938,7 +2936,7 @@ model AiModerationQueue {
 }
 
 model ModerationAction {
-  id              String   @id @default(cuid())
+  id              String    @id @default(cuid())
   moderatorId     String
   targetUserId    String?
   targetContentId String?
@@ -2946,14 +2944,14 @@ model ModerationAction {
   action          String // "warn", "mute", "ban", "delete", etc.
   duration        Int? // In hours
   reason          String
-  details         String?  @db.Text
+  details         String?   @db.Text
   evidence        Json?
-  automated       Boolean  @default(false)
+  automated       Boolean   @default(false)
   reversedBy      String?
   reversedAt      DateTime?
   reverseReason   String?
   expiresAt       DateTime?
-  createdAt       DateTime @default(now())
+  createdAt       DateTime  @default(now())
 
   @@index([targetUserId])
   @@index([targetType, targetContentId])
@@ -2963,18 +2961,18 @@ model ModerationAction {
 }
 
 model ContentFilter {
-  id        String   @id @default(cuid())
-  filterType String  // "keyword", "regex", "ai_category"
-  pattern   String
-  action    String // "block", "flag", "shadow_ban"
-  severity  Int      @default(1) // 1-5
-  category  String? // "spam", "hate", "nsfw", etc.
-  isActive  Boolean  @default(true)
-  hitCount  Int      @default(0)
-  lastHitAt DateTime?
-  createdBy String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String    @id @default(cuid())
+  filterType String // "keyword", "regex", "ai_category"
+  pattern    String
+  action     String // "block", "flag", "shadow_ban"
+  severity   Int       @default(1) // 1-5
+  category   String? // "spam", "hate", "nsfw", etc.
+  isActive   Boolean   @default(true)
+  hitCount   Int       @default(0)
+  lastHitAt  DateTime?
+  createdBy  String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
   @@index([filterType, isActive])
   @@index([pattern])
@@ -2986,7 +2984,7 @@ model ContentFilter {
 // =====================================================
 
 model MediaFile {
-  id              String   @id @default(cuid())
+  id              String    @id @default(cuid())
   userId          String
   fileType        String // "image", "video", "audio", "document"
   fileSize        BigInt
@@ -3001,10 +2999,10 @@ model MediaFile {
   metadata        Json? // EXIF data, video metadata, etc.
   processedAt     DateTime?
   processingError String?
-  isPublic        Boolean  @default(true)
-  accessCount     Int      @default(0)
+  isPublic        Boolean   @default(true)
+  accessCount     Int       @default(0)
   lastAccessedAt  DateTime?
-  createdAt       DateTime @default(now())
+  createdAt       DateTime  @default(now())
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -3016,23 +3014,23 @@ model MediaFile {
 }
 
 model Experiment {
-  id                String   @id @default(cuid())
-  name              String   @unique
-  description       String?  @db.Text
-  hypothesis        String?  @db.Text
+  id                String    @id @default(cuid())
+  name              String    @unique
+  description       String?   @db.Text
+  hypothesis        String?   @db.Text
   variants          Json // Array of variant configurations
   control           String // Control variant name
   metrics           Json // Metrics to track
   targetingRules    Json? // User targeting criteria
-  trafficPercentage Int      @default(100)
-  status            String   @default("DRAFT") // "DRAFT", "RUNNING", "PAUSED", "COMPLETED"
+  trafficPercentage Int       @default(100)
+  status            String    @default("DRAFT") // "DRAFT", "RUNNING", "PAUSED", "COMPLETED"
   results           Json? // Experiment results
   winner            String? // Winning variant
   startedAt         DateTime?
   endedAt           DateTime?
   createdBy         String
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
   // Relations
   assignments ExperimentAssignment[]
@@ -3043,13 +3041,13 @@ model Experiment {
 }
 
 model ExperimentAssignment {
-  id             String   @id @default(cuid())
+  id             String    @id @default(cuid())
   experimentId   String
   userId         String
   variant        String
-  converted      Boolean  @default(false)
+  converted      Boolean   @default(false)
   conversionData Json?
-  assignedAt     DateTime @default(now())
+  assignedAt     DateTime  @default(now())
   convertedAt    DateTime?
 
   // Relations
@@ -3148,18 +3146,18 @@ model AnalyticsEvent {
 }
 
 model SearchIndex {
-  id            String   @id @default(cuid())
-  entityType    String // "post", "user", "comment", etc.
-  entityId      String
-  searchableText String  @db.Text
-  title         String?
-  description   String?
-  tags          String[]
-  boost         Float    @default(1) // Search ranking boost
-  locale        String   @default("en")
-  isPublic      Boolean  @default(true)
-  lastIndexedAt DateTime @default(now())
-  metadata      Json?
+  id             String   @id @default(cuid())
+  entityType     String // "post", "user", "comment", etc.
+  entityId       String
+  searchableText String   @db.Text
+  title          String?
+  description    String?
+  tags           String[]
+  boost          Float    @default(1) // Search ranking boost
+  locale         String   @default("en")
+  isPublic       Boolean  @default(true)
+  lastIndexedAt  DateTime @default(now())
+  metadata       Json?
 
   @@unique([entityType, entityId])
   @@index([entityType])
