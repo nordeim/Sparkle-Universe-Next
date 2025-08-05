@@ -1,7 +1,7 @@
 // prisma/schema.prisma
 // =====================================================
 // Sparkle Universe Complete Prisma Schema
-// Version 3.7 - Precision Fix Release
+// Version 3.8 - Precision Fix Release
 // Changes: Standardized soft deletes, updated cascade behaviors, 
 //          added missing timestamps, enhanced data integrity
 // =====================================================
@@ -268,7 +268,7 @@ model User {
   deletedAt             DateTime?
 
   // --- Creator Monetization Fields ---
-  creatorRevenueShare   Float                @default(0.7)
+  creatorRevenueShare   Decimal @db.Decimal(5,4) @default(0.7000)
   totalRevenueEarned    BigInt               @default(0)
   lastPayoutDate        DateTime?
 
