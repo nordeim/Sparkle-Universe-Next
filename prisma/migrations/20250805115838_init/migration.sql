@@ -97,9 +97,10 @@ CREATE TABLE "public"."users" (
     "preferredLanguage" TEXT NOT NULL DEFAULT 'en',
     "timezone" TEXT NOT NULL DEFAULT 'UTC',
     "version" INTEGER NOT NULL DEFAULT 0,
+    "deleted" BOOLEAN NOT NULL DEFAULT false,
+    "deletedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "deletedAt" TIMESTAMP(3),
     "creatorRevenueShare" DECIMAL(5,4) NOT NULL DEFAULT 0.7000,
     "totalRevenueEarned" BIGINT NOT NULL DEFAULT 0,
     "lastPayoutDate" TIMESTAMP(3),
@@ -365,6 +366,9 @@ CREATE TABLE "public"."categories" (
     "displayOrder" INTEGER NOT NULL DEFAULT 0,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "metadata" JSONB,
+    "deleted" BOOLEAN NOT NULL DEFAULT false,
+    "deletedAt" TIMESTAMP(3),
+    "deletedBy" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -382,7 +386,8 @@ CREATE TABLE "public"."posts" (
     "excerpt" TEXT,
     "coverImage" TEXT,
     "coverImageAlt" TEXT,
-    "authorId" TEXT NOT NULL,
+    "authorId" TEXT,
+    "authorName" TEXT,
     "categoryId" TEXT,
     "seriesId" TEXT,
     "seriesOrder" INTEGER,
@@ -416,7 +421,9 @@ CREATE TABLE "public"."posts" (
     "publishedAt" TIMESTAMP(3),
     "lastEditedAt" TIMESTAMP(3),
     "archivedAt" TIMESTAMP(3),
+    "deleted" BOOLEAN NOT NULL DEFAULT false,
     "deletedAt" TIMESTAMP(3),
+    "deletedBy" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "aiGenerated" BOOLEAN NOT NULL DEFAULT false,
@@ -534,13 +541,17 @@ CREATE TABLE "public"."post_series" (
     "title" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
     "description" TEXT,
-    "authorId" TEXT NOT NULL,
+    "authorId" TEXT,
+    "authorName" TEXT,
     "coverImage" TEXT,
     "bannerImage" TEXT,
     "totalParts" INTEGER NOT NULL DEFAULT 0,
     "completed" BOOLEAN NOT NULL DEFAULT false,
     "featured" BOOLEAN NOT NULL DEFAULT false,
     "metadata" JSONB,
+    "deleted" BOOLEAN NOT NULL DEFAULT false,
+    "deletedAt" TIMESTAMP(3),
+    "deletedBy" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -559,6 +570,9 @@ CREATE TABLE "public"."tags" (
     "featured" BOOLEAN NOT NULL DEFAULT false,
     "category" TEXT,
     "synonyms" TEXT[],
+    "deleted" BOOLEAN NOT NULL DEFAULT false,
+    "deletedAt" TIMESTAMP(3),
+    "deletedBy" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "tags_pkey" PRIMARY KEY ("id")
@@ -579,7 +593,8 @@ CREATE TABLE "public"."comments" (
     "id" TEXT NOT NULL,
     "content" TEXT NOT NULL,
     "postId" TEXT NOT NULL,
-    "authorId" TEXT NOT NULL,
+    "authorId" TEXT,
+    "authorName" TEXT,
     "parentId" TEXT,
     "youtubeTimestamp" INTEGER,
     "quotedTimestamp" TEXT,
@@ -1418,7 +1433,8 @@ CREATE TABLE "public"."groups" (
     "bannerImage" TEXT,
     "icon" TEXT,
     "coverImage" TEXT,
-    "ownerId" TEXT NOT NULL,
+    "ownerId" TEXT,
+    "ownerName" TEXT,
     "visibility" "public"."GroupVisibility" NOT NULL DEFAULT 'PUBLIC',
     "joinApproval" BOOLEAN NOT NULL DEFAULT false,
     "memberCount" INTEGER NOT NULL DEFAULT 1,
@@ -1508,7 +1524,8 @@ CREATE TABLE "public"."events" (
     "shortDescription" TEXT,
     "type" "public"."EventType" NOT NULL,
     "status" "public"."EventStatus" NOT NULL DEFAULT 'SCHEDULED',
-    "hostId" TEXT NOT NULL,
+    "hostId" TEXT,
+    "hostName" TEXT,
     "cohostIds" TEXT[],
     "groupId" TEXT,
     "locationName" TEXT,
@@ -1855,6 +1872,9 @@ CREATE TABLE "public"."polls" (
     "maxChoices" INTEGER NOT NULL DEFAULT 1,
     "closeAt" TIMESTAMP(3),
     "finalResults" JSONB,
+    "deleted" BOOLEAN NOT NULL DEFAULT false,
+    "deletedAt" TIMESTAMP(3),
+    "deletedBy" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -2015,6 +2035,8 @@ CREATE TABLE "public"."reports" (
     "id" TEXT NOT NULL,
     "reporterId" TEXT NOT NULL,
     "reportedUserId" TEXT,
+    "reportedPostId" TEXT,
+    "reportedCommentId" TEXT,
     "reason" "public"."ReportReason" NOT NULL,
     "subreason" TEXT,
     "description" TEXT,
@@ -2028,7 +2050,6 @@ CREATE TABLE "public"."reports" (
     "resolutionNote" TEXT,
     "appealable" BOOLEAN NOT NULL DEFAULT true,
     "entityType" TEXT NOT NULL,
-    "entityId" TEXT NOT NULL,
     "metadata" JSONB,
     "deleted" BOOLEAN NOT NULL DEFAULT false,
     "deletedAt" TIMESTAMP(3),
@@ -2342,7 +2363,7 @@ CREATE INDEX "users_createdAt_idx" ON "public"."users"("createdAt");
 CREATE INDEX "users_lastSeenAt_idx" ON "public"."users"("lastSeenAt");
 
 -- CreateIndex
-CREATE INDEX "users_deletedAt_idx" ON "public"."users"("deletedAt");
+CREATE INDEX "users_deleted_status_idx" ON "public"."users"("deleted", "status");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "user_stats_userId_key" ON "public"."user_stats"("userId");
@@ -2468,7 +2489,7 @@ CREATE INDEX "categories_slug_idx" ON "public"."categories"("slug");
 CREATE INDEX "categories_parentId_idx" ON "public"."categories"("parentId");
 
 -- CreateIndex
-CREATE INDEX "categories_isActive_idx" ON "public"."categories"("isActive");
+CREATE INDEX "categories_isActive_deleted_idx" ON "public"."categories"("isActive", "deleted");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "posts_slug_key" ON "public"."posts"("slug");
@@ -2477,40 +2498,22 @@ CREATE UNIQUE INDEX "posts_slug_key" ON "public"."posts"("slug");
 CREATE INDEX "posts_slug_idx" ON "public"."posts"("slug");
 
 -- CreateIndex
-CREATE INDEX "posts_authorId_idx" ON "public"."posts"("authorId");
-
--- CreateIndex
-CREATE INDEX "posts_categoryId_idx" ON "public"."posts"("categoryId");
-
--- CreateIndex
-CREATE INDEX "posts_seriesId_idx" ON "public"."posts"("seriesId");
-
--- CreateIndex
-CREATE INDEX "posts_published_publishedAt_idx" ON "public"."posts"("published", "publishedAt" DESC);
-
--- CreateIndex
-CREATE INDEX "posts_featured_idx" ON "public"."posts"("featured");
-
--- CreateIndex
-CREATE INDEX "posts_contentType_idx" ON "public"."posts"("contentType");
-
--- CreateIndex
-CREATE INDEX "posts_scheduledPublishAt_idx" ON "public"."posts"("scheduledPublishAt");
-
--- CreateIndex
-CREATE INDEX "posts_contentStatus_idx" ON "public"."posts"("contentStatus");
-
--- CreateIndex
-CREATE INDEX "posts_moderationStatus_idx" ON "public"."posts"("moderationStatus");
-
--- CreateIndex
-CREATE INDEX "posts_deletedAt_idx" ON "public"."posts"("deletedAt");
-
--- CreateIndex
 CREATE INDEX "posts_authorId_published_publishedAt_idx" ON "public"."posts"("authorId", "published", "publishedAt" DESC);
 
 -- CreateIndex
 CREATE INDEX "posts_categoryId_contentStatus_featured_idx" ON "public"."posts"("categoryId", "contentStatus", "featured");
+
+-- CreateIndex
+CREATE INDEX "posts_published_featured_publishedAt_idx" ON "public"."posts"("published", "featured", "publishedAt" DESC);
+
+-- CreateIndex
+CREATE INDEX "posts_contentType_published_idx" ON "public"."posts"("contentType", "published");
+
+-- CreateIndex
+CREATE INDEX "posts_deleted_published_publishedAt_idx" ON "public"."posts"("deleted", "published", "publishedAt" DESC);
+
+-- CreateIndex
+CREATE INDEX "posts_moderationStatus_createdAt_idx" ON "public"."posts"("moderationStatus", "createdAt" DESC);
 
 -- CreateIndex
 CREATE INDEX "scheduled_actions_scheduledFor_status_idx" ON "public"."scheduled_actions"("scheduledFor", "status");
@@ -2570,7 +2573,7 @@ CREATE INDEX "post_series_authorId_idx" ON "public"."post_series"("authorId");
 CREATE INDEX "post_series_slug_idx" ON "public"."post_series"("slug");
 
 -- CreateIndex
-CREATE INDEX "post_series_featured_idx" ON "public"."post_series"("featured");
+CREATE INDEX "post_series_featured_deleted_idx" ON "public"."post_series"("featured", "deleted");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "tags_name_key" ON "public"."tags"("name");
@@ -2585,10 +2588,10 @@ CREATE INDEX "tags_name_idx" ON "public"."tags"("name");
 CREATE INDEX "tags_slug_idx" ON "public"."tags"("slug");
 
 -- CreateIndex
-CREATE INDEX "tags_featured_idx" ON "public"."tags"("featured");
+CREATE INDEX "tags_featured_deleted_idx" ON "public"."tags"("featured", "deleted");
 
 -- CreateIndex
-CREATE INDEX "tags_postCount_idx" ON "public"."tags"("postCount");
+CREATE INDEX "tags_postCount_idx" ON "public"."tags"("postCount" DESC);
 
 -- CreateIndex
 CREATE INDEX "post_tags_postId_idx" ON "public"."post_tags"("postId");
@@ -2597,7 +2600,7 @@ CREATE INDEX "post_tags_postId_idx" ON "public"."post_tags"("postId");
 CREATE INDEX "post_tags_tagId_idx" ON "public"."post_tags"("tagId");
 
 -- CreateIndex
-CREATE INDEX "comments_postId_idx" ON "public"."comments"("postId");
+CREATE INDEX "comments_postId_deleted_createdAt_idx" ON "public"."comments"("postId", "deleted", "createdAt" DESC);
 
 -- CreateIndex
 CREATE INDEX "comments_authorId_idx" ON "public"."comments"("authorId");
@@ -2609,10 +2612,7 @@ CREATE INDEX "comments_parentId_idx" ON "public"."comments"("parentId");
 CREATE INDEX "comments_youtubeTimestamp_idx" ON "public"."comments"("youtubeTimestamp");
 
 -- CreateIndex
-CREATE INDEX "comments_moderationStatus_idx" ON "public"."comments"("moderationStatus");
-
--- CreateIndex
-CREATE INDEX "comments_deleted_idx" ON "public"."comments"("deleted");
+CREATE INDEX "comments_moderationStatus_deleted_idx" ON "public"."comments"("moderationStatus", "deleted");
 
 -- CreateIndex
 CREATE INDEX "reactions_postId_idx" ON "public"."reactions"("postId");
@@ -2753,9 +2753,6 @@ CREATE INDEX "achievements_rarity_idx" ON "public"."achievements"("rarity");
 CREATE INDEX "achievements_deleted_idx" ON "public"."achievements"("deleted");
 
 -- CreateIndex
-CREATE INDEX "user_achievements_userId_idx" ON "public"."user_achievements"("userId");
-
--- CreateIndex
 CREATE INDEX "user_achievements_userId_showcased_idx" ON "public"."user_achievements"("userId", "showcased");
 
 -- CreateIndex
@@ -2834,9 +2831,6 @@ CREATE INDEX "store_items_availableFrom_availableUntil_idx" ON "public"."store_i
 CREATE INDEX "store_bundles_availableFrom_availableUntil_idx" ON "public"."store_bundles"("availableFrom", "availableUntil");
 
 -- CreateIndex
-CREATE INDEX "user_inventory_userId_idx" ON "public"."user_inventory"("userId");
-
--- CreateIndex
 CREATE INDEX "user_inventory_userId_equipped_idx" ON "public"."user_inventory"("userId", "equipped");
 
 -- CreateIndex
@@ -2870,10 +2864,7 @@ CREATE INDEX "quests_availableFrom_availableUntil_idx" ON "public"."quests"("ava
 CREATE INDEX "user_quests_userId_status_idx" ON "public"."user_quests"("userId", "status");
 
 -- CreateIndex
-CREATE INDEX "user_quests_questId_idx" ON "public"."user_quests"("questId");
-
--- CreateIndex
-CREATE INDEX "user_quests_status_idx" ON "public"."user_quests"("status");
+CREATE INDEX "user_quests_questId_status_idx" ON "public"."user_quests"("questId", "status");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "user_quests_userId_questId_key" ON "public"."user_quests"("userId", "questId");
@@ -2906,10 +2897,7 @@ CREATE INDEX "youtube_channels_userId_idx" ON "public"."youtube_channels"("userI
 CREATE INDEX "youtube_channels_channelId_idx" ON "public"."youtube_channels"("channelId");
 
 -- CreateIndex
-CREATE INDEX "youtube_channels_featured_idx" ON "public"."youtube_channels"("featured");
-
--- CreateIndex
-CREATE INDEX "youtube_channels_deleted_idx" ON "public"."youtube_channels"("deleted");
+CREATE INDEX "youtube_channels_featured_deleted_idx" ON "public"."youtube_channels"("featured", "deleted");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "youtube_videos_videoId_key" ON "public"."youtube_videos"("videoId");
@@ -3008,13 +2996,10 @@ CREATE INDEX "groups_slug_idx" ON "public"."groups"("slug");
 CREATE INDEX "groups_ownerId_idx" ON "public"."groups"("ownerId");
 
 -- CreateIndex
-CREATE INDEX "groups_visibility_idx" ON "public"."groups"("visibility");
+CREATE INDEX "groups_visibility_deleted_idx" ON "public"."groups"("visibility", "deleted");
 
 -- CreateIndex
-CREATE INDEX "groups_isFeatured_idx" ON "public"."groups"("isFeatured");
-
--- CreateIndex
-CREATE INDEX "groups_deleted_idx" ON "public"."groups"("deleted");
+CREATE INDEX "groups_isFeatured_deleted_idx" ON "public"."groups"("isFeatured", "deleted");
 
 -- CreateIndex
 CREATE INDEX "group_members_groupId_role_idx" ON "public"."group_members"("groupId", "role");
@@ -3026,7 +3011,7 @@ CREATE INDEX "group_members_userId_idx" ON "public"."group_members"("userId");
 CREATE UNIQUE INDEX "group_members_groupId_userId_key" ON "public"."group_members"("groupId", "userId");
 
 -- CreateIndex
-CREATE INDEX "group_posts_groupId_createdAt_idx" ON "public"."group_posts"("groupId", "createdAt" DESC);
+CREATE INDEX "group_posts_groupId_isPinned_createdAt_idx" ON "public"."group_posts"("groupId", "isPinned", "createdAt" DESC);
 
 -- CreateIndex
 CREATE INDEX "group_posts_authorId_idx" ON "public"."group_posts"("authorId");
@@ -3047,13 +3032,10 @@ CREATE INDEX "events_hostId_idx" ON "public"."events"("hostId");
 CREATE INDEX "events_groupId_idx" ON "public"."events"("groupId");
 
 -- CreateIndex
-CREATE INDEX "events_startTime_idx" ON "public"."events"("startTime");
+CREATE INDEX "events_startTime_isPublic_idx" ON "public"."events"("startTime", "isPublic");
 
 -- CreateIndex
-CREATE INDEX "events_isPublic_startTime_idx" ON "public"."events"("isPublic", "startTime");
-
--- CreateIndex
-CREATE INDEX "events_status_idx" ON "public"."events"("status");
+CREATE INDEX "events_status_startTime_idx" ON "public"."events"("status", "startTime");
 
 -- CreateIndex
 CREATE INDEX "events_slug_idx" ON "public"."events"("slug");
@@ -3081,9 +3063,6 @@ CREATE INDEX "conversations_deleted_idx" ON "public"."conversations"("deleted");
 
 -- CreateIndex
 CREATE INDEX "conversation_participants_conversationId_idx" ON "public"."conversation_participants"("conversationId");
-
--- CreateIndex
-CREATE INDEX "conversation_participants_userId_idx" ON "public"."conversation_participants"("userId");
 
 -- CreateIndex
 CREATE INDEX "conversation_participants_userId_isPinned_idx" ON "public"."conversation_participants"("userId", "isPinned");
@@ -3188,6 +3167,9 @@ CREATE UNIQUE INDEX "polls_postId_key" ON "public"."polls"("postId");
 CREATE INDEX "polls_postId_idx" ON "public"."polls"("postId");
 
 -- CreateIndex
+CREATE INDEX "polls_deleted_idx" ON "public"."polls"("deleted");
+
+-- CreateIndex
 CREATE INDEX "poll_options_pollId_idx" ON "public"."poll_options"("pollId");
 
 -- CreateIndex
@@ -3251,13 +3233,19 @@ CREATE INDEX "ai_assistant_conversations_userId_updatedAt_idx" ON "public"."ai_a
 CREATE INDEX "reports_status_priority_idx" ON "public"."reports"("status", "priority");
 
 -- CreateIndex
-CREATE INDEX "reports_entityType_entityId_idx" ON "public"."reports"("entityType", "entityId");
+CREATE INDEX "reports_entityType_idx" ON "public"."reports"("entityType");
 
 -- CreateIndex
 CREATE INDEX "reports_reporterId_idx" ON "public"."reports"("reporterId");
 
 -- CreateIndex
 CREATE INDEX "reports_reportedUserId_idx" ON "public"."reports"("reportedUserId");
+
+-- CreateIndex
+CREATE INDEX "reports_reportedPostId_idx" ON "public"."reports"("reportedPostId");
+
+-- CreateIndex
+CREATE INDEX "reports_reportedCommentId_idx" ON "public"."reports"("reportedCommentId");
 
 -- CreateIndex
 CREATE INDEX "reports_deleted_idx" ON "public"."reports"("deleted");
@@ -3428,7 +3416,7 @@ ALTER TABLE "public"."referrals" ADD CONSTRAINT "referrals_referredUserId_fkey" 
 ALTER TABLE "public"."categories" ADD CONSTRAINT "categories_parentId_fkey" FOREIGN KEY ("parentId") REFERENCES "public"."categories"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."posts" ADD CONSTRAINT "posts_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "public"."posts" ADD CONSTRAINT "posts_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "public"."users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."posts" ADD CONSTRAINT "posts_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "public"."categories"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -3461,7 +3449,7 @@ ALTER TABLE "public"."post_relations" ADD CONSTRAINT "post_relations_postId_fkey
 ALTER TABLE "public"."post_relations" ADD CONSTRAINT "post_relations_relatedPostId_fkey" FOREIGN KEY ("relatedPostId") REFERENCES "public"."posts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."post_series" ADD CONSTRAINT "post_series_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public"."post_series" ADD CONSTRAINT "post_series_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "public"."users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."post_tags" ADD CONSTRAINT "post_tags_postId_fkey" FOREIGN KEY ("postId") REFERENCES "public"."posts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -3470,10 +3458,10 @@ ALTER TABLE "public"."post_tags" ADD CONSTRAINT "post_tags_postId_fkey" FOREIGN 
 ALTER TABLE "public"."post_tags" ADD CONSTRAINT "post_tags_tagId_fkey" FOREIGN KEY ("tagId") REFERENCES "public"."tags"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."comments" ADD CONSTRAINT "comments_postId_fkey" FOREIGN KEY ("postId") REFERENCES "public"."posts"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "public"."comments" ADD CONSTRAINT "comments_postId_fkey" FOREIGN KEY ("postId") REFERENCES "public"."posts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."comments" ADD CONSTRAINT "comments_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "public"."comments" ADD CONSTRAINT "comments_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "public"."users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."comments" ADD CONSTRAINT "comments_parentId_fkey" FOREIGN KEY ("parentId") REFERENCES "public"."comments"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -3644,16 +3632,16 @@ ALTER TABLE "public"."playlist_items" ADD CONSTRAINT "playlist_items_playlistId_
 ALTER TABLE "public"."playlist_items" ADD CONSTRAINT "playlist_items_addedBy_fkey" FOREIGN KEY ("addedBy") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."groups" ADD CONSTRAINT "groups_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "public"."groups" ADD CONSTRAINT "groups_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "public"."users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."group_members" ADD CONSTRAINT "group_members_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "public"."groups"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "public"."group_members" ADD CONSTRAINT "group_members_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "public"."groups"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."group_members" ADD CONSTRAINT "group_members_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."group_posts" ADD CONSTRAINT "group_posts_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "public"."groups"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "public"."group_posts" ADD CONSTRAINT "group_posts_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "public"."groups"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."group_posts" ADD CONSTRAINT "group_posts_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -3662,7 +3650,7 @@ ALTER TABLE "public"."group_posts" ADD CONSTRAINT "group_posts_authorId_fkey" FO
 ALTER TABLE "public"."group_channels" ADD CONSTRAINT "group_channels_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "public"."groups"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."events" ADD CONSTRAINT "events_hostId_fkey" FOREIGN KEY ("hostId") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "public"."events" ADD CONSTRAINT "events_hostId_fkey" FOREIGN KEY ("hostId") REFERENCES "public"."users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."events" ADD CONSTRAINT "events_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "public"."groups"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -3770,10 +3758,10 @@ ALTER TABLE "public"."reports" ADD CONSTRAINT "reports_reporterId_fkey" FOREIGN 
 ALTER TABLE "public"."reports" ADD CONSTRAINT "reports_resolvedBy_fkey" FOREIGN KEY ("resolvedBy") REFERENCES "public"."users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."reports" ADD CONSTRAINT "fk_report_post" FOREIGN KEY ("entityId") REFERENCES "public"."posts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public"."reports" ADD CONSTRAINT "reports_reportedPostId_fkey" FOREIGN KEY ("reportedPostId") REFERENCES "public"."posts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."reports" ADD CONSTRAINT "fk_report_comment" FOREIGN KEY ("entityId") REFERENCES "public"."comments"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public"."reports" ADD CONSTRAINT "reports_reportedCommentId_fkey" FOREIGN KEY ("reportedCommentId") REFERENCES "public"."comments"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."ai_moderation_queue" ADD CONSTRAINT "ai_moderation_queue_reviewedBy_fkey" FOREIGN KEY ("reviewedBy") REFERENCES "public"."users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
