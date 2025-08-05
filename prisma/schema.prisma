@@ -1,8 +1,9 @@
 // prisma/schema.prisma
 // =====================================================
 // Sparkle Universe Complete Prisma Schema
-// Version 3.6 - Precision Fix Release
-// Critical fixes: typo corrections, missing back-relations, enhanced indexing
+// Version 3.7 - Precision Fix Release
+// Changes: Standardized soft deletes, updated cascade behaviors, 
+//          added missing timestamps, enhanced data integrity
 // =====================================================
 
 generator client {
@@ -235,8 +236,8 @@ enum SubscriptionTier {
 
 model User {
   id                    String               @id @default(cuid())
-  email                 String               @unique
-  username              String               @unique
+  email                 String               @unique @db.VarChar(255)
+  username              String               @unique @db.VarChar(50)
   hashedPassword        String?
   emailVerified         DateTime?
   phoneNumber           String?
@@ -278,8 +279,8 @@ model User {
   stats                 UserStats?
   balance               UserBalance?
   subscription          UserSubscription?
-  posts                 Post[]
-  comments              Comment[]
+  posts                 Post[]               @relation("UserPosts")
+  comments              Comment[]            @relation("UserComments")
   reactions             Reaction[]
   following             Follow[]             @relation("follower")
   followers             Follow[]             @relation("following")
@@ -301,11 +302,11 @@ model User {
   videoClips            VideoClip[]
   playlists             Playlist[]
   playlistItems         PlaylistItem[]
-  groupsOwned           Group[]
+  groupsOwned           Group[]              @relation("GroupOwner")
   groupMemberships      GroupMember[]
-  eventsHosted          Event[]
+  eventsHosted          Event[]              @relation("EventHost")
   eventAttendances      EventAttendee[]
-  conversationsCreated  Conversation[]
+  conversationsCreated  Conversation[]       @relation("ConversationCreator")
   conversationParticipants ConversationParticipant[]
   messages              Message[]
   messageReads          MessageRead[]
@@ -341,7 +342,7 @@ model User {
   groupPosts            GroupPost[]
   analyticsEvents       AnalyticsEvent[]
 
-  // --- Mention Relations (FIXED) ---
+  // --- Mention Relations ---
   mentionsMade          Mention[]            @relation("mentionsMade")
   mentionsReceived      Mention[]            @relation("mentionsReceived")
 
@@ -369,7 +370,7 @@ model User {
 
   @@index([email])
   @@index([username])
-  @@index([role, status]) // Enhanced composite index
+  @@index([role, status]) 
   @@index([level])
   @@index([onlineStatus])
   @@index([sparklePoints])
@@ -564,6 +565,7 @@ model SecurityAlert {
   resolved    Boolean  @default(false)
   resolvedAt  DateTime?
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -619,6 +621,7 @@ model Block {
   blockedId  String
   reason     String?
   createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   // Relations
   blocker User @relation("blocker", fields: [blockerId], references: [id], onDelete: Cascade)
@@ -764,14 +767,14 @@ model Post {
   aiPrompt           String?
   aiRevisionCount    Int            @default(0)
 
-  // Relations
-  author         User             @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  // Relations - Updated to prevent cascade delete of valuable content
+  author         User             @relation("UserPosts", fields: [authorId], references: [id], onDelete: Restrict)
   category       Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   series         PostSeries?      @relation(fields: [seriesId], references: [id], onDelete: SetNull)
   parentVersion  Post?            @relation("PostVersions", fields: [parentVersionId], references: [id], onDelete: SetNull)
   childVersions  Post[]           @relation("PostVersions")
   tags           PostTag[]
-  comments       Comment[]
+  comments       Comment[]        @relation("PostComments")
   reactions      Reaction[]
   poll           Poll?
   fanArtGallery  FanArtGallery?
@@ -799,8 +802,8 @@ model Post {
   @@index([contentStatus])
   @@index([moderationStatus])
   @@index([deletedAt])
-  @@index([authorId, published, publishedAt(sort: Desc)]) // Enhanced composite index
-  @@index([categoryId, contentStatus, featured]) // Performance index
+  @@index([authorId, published, publishedAt(sort: Desc)])
+  @@index([categoryId, contentStatus, featured])
   @@map("posts")
 }
 
@@ -1023,9 +1026,9 @@ model Comment {
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt
 
-  // Relations
-  post      Post       @relation(fields: [postId], references: [id], onDelete: Cascade)
-  author    User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  // Relations - Updated to prevent cascade delete
+  post      Post       @relation("PostComments", fields: [postId], references: [id], onDelete: Restrict)
+  author    User       @relation("UserComments", fields: [authorId], references: [id], onDelete: Restrict)
   parent    Comment?   @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
   replies   Comment[]  @relation("CommentReplies")
   reactions Reaction[]
@@ -1136,6 +1139,7 @@ model Follow {
   notifyNewPosts Boolean   @default(true)
   notifyActivity Boolean   @default(false)
   createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   // Relations
   follower  User @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
@@ -1213,6 +1217,7 @@ model Notification {
   dismissedAt DateTime?
   expiresAt   DateTime?
   createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
 
   // Relations
   user  User  @relation("notificationUser", fields: [userId], references: [id], onDelete: Cascade)
@@ -1371,6 +1376,9 @@ model Achievement {
   maxAchievers        Int? // For limited edition
   expiresAt           DateTime?
   metadata            Json?
+  deleted             Boolean     @default(false)
+  deletedAt           DateTime?
+  deletedBy           String?
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @updatedAt
 
@@ -1380,6 +1388,7 @@ model Achievement {
   @@index([code])
   @@index([category])
   @@index([rarity])
+  @@index([deleted])
   @@map("achievements")
 }
 
@@ -1394,6 +1403,9 @@ model UserAchievement {
   showcaseOrder  Int      @default(0)
   notified       Boolean  @default(false)
   claimedRewards Boolean  @default(false)
+  deleted        Boolean  @default(false)
+  deletedAt      DateTime?
+  deletedBy      String?
 
   // Relations
   user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -1403,6 +1415,7 @@ model UserAchievement {
   @@index([userId])
   @@index([userId, showcased])
   @@index([achievementId])
+  @@index([deleted])
   @@map("user_achievements")
 }
 
@@ -1663,6 +1676,10 @@ model Trade {
   completedAt     DateTime?
   cancelledAt     DateTime?
   cancelReason    String?
+  version         Int         @default(0) // For optimistic locking
+  deleted         Boolean     @default(false)
+  deletedAt       DateTime?
+  deletedBy       String?
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
@@ -1673,6 +1690,7 @@ model Trade {
   @@index([initiatorId, status])
   @@index([recipientId, status])
   @@index([status])
+  @@index([deleted])
   @@map("trades")
 }
 
@@ -1798,6 +1816,9 @@ model YoutubeChannel {
   featured             Boolean   @default(false)
   verified             Boolean   @default(false)
   metadata             Json?
+  deleted              Boolean   @default(false)
+  deletedAt            DateTime?
+  deletedBy            String?
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
 
@@ -1808,6 +1829,7 @@ model YoutubeChannel {
   @@index([userId])
   @@index([channelId])
   @@index([featured])
+  @@index([deleted])
   @@map("youtube_channels")
 }
 
@@ -1892,6 +1914,9 @@ model WatchParty {
   cancelledAt         DateTime?
   cancelReason        String?
   metadata            Json?
+  deleted             Boolean      @default(false)
+  deletedAt           DateTime?
+  deletedBy           String?
   createdAt           DateTime     @default(now())
   updatedAt           DateTime     @updatedAt
 
@@ -1905,6 +1930,7 @@ model WatchParty {
   @@index([scheduledStart])
   @@index([isPublic, scheduledStart])
   @@index([partyCode])
+  @@index([deleted])
   @@map("watch_parties")
 }
 
@@ -2084,20 +2110,25 @@ model Group {
   isVerified       Boolean         @default(false)
   isFeatured       Boolean         @default(false)
   metadata         Json?
+  version          Int             @default(0) // For optimistic locking
+  deleted          Boolean         @default(false)
+  deletedAt        DateTime?
+  deletedBy        String?
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
 
-  // Relations
-  owner    User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  members  GroupMember[]
+  // Relations - Updated to prevent cascade delete
+  owner    User          @relation("GroupOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  members  GroupMember[] @relation("GroupMembers")
   events   Event[]
-  posts    GroupPost[]
+  posts    GroupPost[]   @relation("GroupPosts")
   channels GroupChannel[]
 
   @@index([slug])
   @@index([ownerId])
   @@index([visibility])
   @@index([isFeatured])
+  @@index([deleted])
   @@map("groups")
 }
 
@@ -2117,8 +2148,8 @@ model GroupMember {
   lastActiveAt  DateTime        @default(now())
   notifications Boolean         @default(true)
 
-  // Relations
-  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  // Relations - Updated to prevent cascade delete
+  group Group @relation("GroupMembers", fields: [groupId], references: [id], onDelete: Restrict)
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([groupId, userId])
@@ -2143,8 +2174,8 @@ model GroupPost {
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
-  // Relations
-  group  Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  // Relations - Updated to prevent cascade delete
+  group  Group @relation("GroupPosts", fields: [groupId], references: [id], onDelete: Restrict)
   author User  @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   @@index([groupId, createdAt(sort: Desc)])
@@ -2215,11 +2246,15 @@ model Event {
   metadata         Json?
   cancelledAt      DateTime?
   cancelReason     String?
+  version          Int          @default(0) // For optimistic locking
+  deleted          Boolean      @default(false)
+  deletedAt        DateTime?
+  deletedBy        String?
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
 
-  // Relations
-  host      User            @relation(fields: [hostId], references: [id], onDelete: Cascade)
+  // Relations - Updated to prevent cascade delete
+  host      User            @relation("EventHost", fields: [hostId], references: [id], onDelete: Restrict)
   group     Group?          @relation(fields: [groupId], references: [id], onDelete: SetNull)
   attendees EventAttendee[]
 
@@ -2229,6 +2264,7 @@ model Event {
   @@index([isPublic, startTime])
   @@index([status])
   @@index([slug])
+  @@index([deleted])
   @@map("events")
 }
 
@@ -2280,17 +2316,20 @@ model Conversation {
   pinnedMessages   String[]
   isArchived       Boolean  @default(false)
   archivedAt       DateTime?
+  deleted          Boolean  @default(false)
   deletedAt        DateTime?
+  deletedBy        String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
   // Relations
-  creator      User                      @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  creator      User                      @relation("ConversationCreator", fields: [createdBy], references: [id], onDelete: Cascade)
   participants ConversationParticipant[]
   messages     Message[]
 
   @@index([createdBy])
   @@index([lastMessageAt])
+  @@index([deleted])
   @@map("conversations")
 }
 
@@ -2569,7 +2608,7 @@ model UserActivity {
   postsViewed          Int      @default(0)
   commentsCreated      Int      @default(0)
   reactionsGiven       Int      @default(0)
-  messagesSent         Int      @default(0) // FIXED: Corrected typo from 'messagessSent'
+  messagesSent         Int      @default(0)
   minutesActive        Int      @default(0)
   xpEarned             Int      @default(0)
   pointsEarned         Int      @default(0)
@@ -2617,6 +2656,7 @@ model Poll {
   closeAt         DateTime?
   finalResults    Json? // Cached final results
   createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   // Relations
   post    Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
@@ -2845,6 +2885,9 @@ model Report {
   entityType     String // "user", "post", "comment", etc.
   entityId       String
   metadata       Json?
+  deleted        Boolean          @default(false)
+  deletedAt      DateTime?
+  deletedBy      String?
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
 
@@ -2858,6 +2901,7 @@ model Report {
   @@index([entityType, entityId])
   @@index([reporterId])
   @@index([reportedUserId])
+  @@index([deleted])
   @@map("reports")
 }
 
