@@ -6,4 +6,9 @@ Awesome meticulous review and thorough and systematic evaluation and analysis in
 Now, please use the same rigorous and meticulous approach to think deeply and thoroughly to explore carefully and systematically for the best implementation option to re-imagine a precision fix for the priority 1 issues you have identified. first carefully review the entire code for the `schema.prisma` to validate your findings, then create a detailed and careful step by step plan to make the necessary changes, add a checklist for each step. review your step-by-sep execution plan for correctness and accuracy before processing. create a complete working replacement file for `schema.prisma` with version 3.5. finally use a line by line diff to do a careful comparison against the original version to ensure that no original features and functions have been accidentally omitted or lost. thank you and good luck!
 
 ---
+Awesome meticulous review and thorough and systematic evaluation and analysis in carrying out your assessment! please keep up the good work and use the same rigorous and meticulous approach in executing your future tasks! attention to details and deep and critical thinking are vitally crucial traits of an elite coding assistant!
+
+Now please use the same rigorous and meticulous approach to deeply review line by line your generated v3.9 `schema.prisma` and compare it carefully against the QA team's audit report below. Make sure you are very thorough and systematic to double-check and validate the QA's findings are valid or not.
+
+---
 awesome job! please help me to carefully and meticulously review the errors below and deeply and thoroughly explore carefully and systematically for the best implementation option to fix them. please review the `schema.prisma` v3.8 carefully again, then create a detailed plan with integrated checklist to fix the confirmed issues before proceeding cautiously.
