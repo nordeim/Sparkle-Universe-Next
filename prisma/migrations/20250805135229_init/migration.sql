@@ -72,9 +72,11 @@ CREATE TABLE "public"."users" (
     "id" TEXT NOT NULL,
     "email" VARCHAR(255) NOT NULL,
     "username" VARCHAR(50) NOT NULL,
-    "hashedPassword" TEXT,
+    "hashedPassword" TEXT NOT NULL DEFAULT '',
+    "authProvider" TEXT NOT NULL DEFAULT 'local',
     "emailVerified" TIMESTAMP(3),
     "phoneNumber" TEXT,
+    "phoneNumberHash" TEXT,
     "phoneVerified" TIMESTAMP(3),
     "image" TEXT,
     "bio" TEXT,
@@ -94,11 +96,22 @@ CREATE TABLE "public"."users" (
     "onlineStatus" BOOLEAN NOT NULL DEFAULT false,
     "twoFactorEnabled" BOOLEAN NOT NULL DEFAULT false,
     "twoFactorSecret" TEXT,
+    "twoFactorBackupCodes" TEXT[],
+    "resetPasswordToken" TEXT,
+    "resetPasswordExpires" TIMESTAMP(3),
+    "emailVerificationToken" TEXT,
+    "emailVerificationExpires" TIMESTAMP(3),
+    "accountLockoutAttempts" INTEGER NOT NULL DEFAULT 0,
+    "accountLockedUntil" TIMESTAMP(3),
+    "lastPasswordChangedAt" TIMESTAMP(3),
+    "lastFailedLoginAt" TIMESTAMP(3),
+    "failedLoginAttempts" INTEGER NOT NULL DEFAULT 0,
     "preferredLanguage" TEXT NOT NULL DEFAULT 'en',
     "timezone" TEXT NOT NULL DEFAULT 'UTC',
     "version" INTEGER NOT NULL DEFAULT 0,
     "deleted" BOOLEAN NOT NULL DEFAULT false,
     "deletedAt" TIMESTAMP(3),
+    "deletedBy" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "creatorRevenueShare" DECIMAL(5,4) NOT NULL DEFAULT 0.7000,
@@ -950,11 +963,11 @@ CREATE TABLE "public"."creator_payouts" (
     "userId" TEXT NOT NULL,
     "periodStart" TIMESTAMP(3) NOT NULL,
     "periodEnd" TIMESTAMP(3) NOT NULL,
-    "totalRevenue" BIGINT NOT NULL DEFAULT 0,
-    "platformFee" BIGINT NOT NULL DEFAULT 0,
-    "creatorShare" BIGINT NOT NULL DEFAULT 0,
-    "taxWithheld" BIGINT NOT NULL DEFAULT 0,
-    "finalAmount" BIGINT NOT NULL DEFAULT 0,
+    "totalRevenue" DECIMAL(19,4) NOT NULL DEFAULT 0,
+    "platformFee" DECIMAL(19,4) NOT NULL DEFAULT 0,
+    "creatorShare" DECIMAL(19,4) NOT NULL DEFAULT 0,
+    "taxWithheld" DECIMAL(19,4) NOT NULL DEFAULT 0,
+    "finalAmount" DECIMAL(19,4) NOT NULL DEFAULT 0,
     "payoutMethod" TEXT NOT NULL,
     "payoutStatus" TEXT NOT NULL DEFAULT 'PENDING',
     "transactionId" TEXT,
@@ -971,12 +984,12 @@ CREATE TABLE "public"."fan_funding" (
     "id" TEXT NOT NULL,
     "senderId" TEXT NOT NULL,
     "recipientId" TEXT NOT NULL,
-    "amount" INTEGER NOT NULL,
+    "amount" DECIMAL(19,4) NOT NULL,
     "currency" TEXT NOT NULL DEFAULT 'USD',
     "message" TEXT,
     "isAnonymous" BOOLEAN NOT NULL DEFAULT false,
-    "platformFee" INTEGER NOT NULL DEFAULT 0,
-    "creatorAmount" INTEGER NOT NULL DEFAULT 0,
+    "platformFee" DECIMAL(19,4) NOT NULL DEFAULT 0,
+    "creatorAmount" DECIMAL(19,4) NOT NULL DEFAULT 0,
     "paymentMethod" TEXT NOT NULL,
     "paymentStatus" TEXT NOT NULL DEFAULT 'PENDING',
     "transactionId" TEXT,
@@ -992,10 +1005,10 @@ CREATE TABLE "public"."revenue_shares" (
     "contentType" TEXT NOT NULL,
     "contentId" TEXT NOT NULL,
     "creatorId" TEXT NOT NULL,
-    "totalRevenue" BIGINT NOT NULL DEFAULT 0,
-    "platformShare" BIGINT NOT NULL DEFAULT 0,
-    "creatorShare" BIGINT NOT NULL DEFAULT 0,
-    "affiliateShare" BIGINT NOT NULL DEFAULT 0,
+    "totalRevenue" DECIMAL(19,4) NOT NULL DEFAULT 0,
+    "platformShare" DECIMAL(19,4) NOT NULL DEFAULT 0,
+    "creatorShare" DECIMAL(19,4) NOT NULL DEFAULT 0,
+    "affiliateShare" DECIMAL(19,4) NOT NULL DEFAULT 0,
     "calculatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "paidAt" TIMESTAMP(3),
 
@@ -1007,7 +1020,7 @@ CREATE TABLE "public"."tip_transactions" (
     "id" TEXT NOT NULL,
     "senderId" TEXT NOT NULL,
     "recipientId" TEXT NOT NULL,
-    "amount" INTEGER NOT NULL,
+    "amount" DECIMAL(19,4) NOT NULL,
     "currency" TEXT NOT NULL,
     "message" TEXT,
     "contentType" TEXT,
@@ -1029,10 +1042,10 @@ CREATE TABLE "public"."store_items" (
     "subcategory" TEXT,
     "itemType" TEXT NOT NULL,
     "rarity" "public"."BadgeRarity" NOT NULL DEFAULT 'COMMON',
-    "priceSparkle" INTEGER,
-    "pricePremium" INTEGER,
-    "originalPriceSparkle" INTEGER,
-    "originalPricePremium" INTEGER,
+    "priceSparkle" DECIMAL(19,4),
+    "pricePremium" DECIMAL(19,4),
+    "originalPriceSparkle" DECIMAL(19,4),
+    "originalPricePremium" DECIMAL(19,4),
     "discountPercentage" INTEGER NOT NULL DEFAULT 0,
     "previewUrl" TEXT,
     "thumbnailUrl" TEXT,
@@ -1547,7 +1560,7 @@ CREATE TABLE "public"."events" (
     "isPublic" BOOLEAN NOT NULL DEFAULT true,
     "requiresApproval" BOOLEAN NOT NULL DEFAULT false,
     "requiresPayment" BOOLEAN NOT NULL DEFAULT false,
-    "price" INTEGER,
+    "price" DECIMAL(19,4),
     "currency" TEXT,
     "tags" TEXT[],
     "categories" TEXT[],
@@ -2322,6 +2335,34 @@ CREATE TABLE "public"."rate_limit_tracker" (
 );
 
 -- CreateTable
+CREATE TABLE "public"."encryption_keys" (
+    "id" TEXT NOT NULL,
+    "keyName" TEXT NOT NULL,
+    "keyVersion" INTEGER NOT NULL DEFAULT 1,
+    "algorithm" TEXT NOT NULL DEFAULT 'AES-256-GCM',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "rotatedAt" TIMESTAMP(3),
+    "expiresAt" TIMESTAMP(3),
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+
+    CONSTRAINT "encryption_keys_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."data_retention_policies" (
+    "id" TEXT NOT NULL,
+    "entityType" TEXT NOT NULL,
+    "retentionDays" INTEGER NOT NULL,
+    "anonymizeDays" INTEGER,
+    "hardDeleteDays" INTEGER NOT NULL,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "data_retention_policies_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "public"."_BundleItems" (
     "A" TEXT NOT NULL,
     "B" TEXT NOT NULL,
@@ -2336,6 +2377,15 @@ CREATE UNIQUE INDEX "users_email_key" ON "public"."users"("email");
 CREATE UNIQUE INDEX "users_username_key" ON "public"."users"("username");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "users_phoneNumberHash_key" ON "public"."users"("phoneNumberHash");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "users_resetPasswordToken_key" ON "public"."users"("resetPasswordToken");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "users_emailVerificationToken_key" ON "public"."users"("emailVerificationToken");
+
+-- CreateIndex
 CREATE INDEX "users_email_idx" ON "public"."users"("email");
 
 -- CreateIndex
@@ -2348,12 +2398,6 @@ CREATE INDEX "users_role_status_idx" ON "public"."users"("role", "status");
 CREATE INDEX "users_level_idx" ON "public"."users"("level");
 
 -- CreateIndex
-CREATE INDEX "users_onlineStatus_idx" ON "public"."users"("onlineStatus");
-
--- CreateIndex
-CREATE INDEX "users_sparklePoints_idx" ON "public"."users"("sparklePoints");
-
--- CreateIndex
 CREATE INDEX "users_status_idx" ON "public"."users"("status");
 
 -- CreateIndex
@@ -2364,6 +2408,12 @@ CREATE INDEX "users_lastSeenAt_idx" ON "public"."users"("lastSeenAt");
 
 -- CreateIndex
 CREATE INDEX "users_deleted_status_idx" ON "public"."users"("deleted", "status");
+
+-- CreateIndex
+CREATE INDEX "users_status_role_createdAt_idx" ON "public"."users"("status", "role", "createdAt" DESC);
+
+-- CreateIndex
+CREATE INDEX "users_deleted_status_lastSeenAt_idx" ON "public"."users"("deleted", "status", "lastSeenAt" DESC);
 
 -- CreateIndex
 CREATE UNIQUE INDEX "user_stats_userId_key" ON "public"."user_stats"("userId");
@@ -3363,6 +3413,15 @@ CREATE INDEX "rate_limit_tracker_windowStart_idx" ON "public"."rate_limit_tracke
 
 -- CreateIndex
 CREATE UNIQUE INDEX "rate_limit_tracker_identifier_endpoint_windowStart_key" ON "public"."rate_limit_tracker"("identifier", "endpoint", "windowStart");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "encryption_keys_keyName_key" ON "public"."encryption_keys"("keyName");
+
+-- CreateIndex
+CREATE INDEX "encryption_keys_keyName_isActive_idx" ON "public"."encryption_keys"("keyName", "isActive");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "data_retention_policies_entityType_key" ON "public"."data_retention_policies"("entityType");
 
 -- CreateIndex
 CREATE INDEX "_BundleItems_B_index" ON "public"."_BundleItems"("B");

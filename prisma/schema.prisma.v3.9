@@ -1,7 +1,7 @@
 // prisma/schema.prisma
 // =====================================================
 // Sparkle Universe Complete Prisma Schema
-// Version 4.0 - Priority Issues Fix Release
+// Version 3.9 - Priority Issues Fix Release
 // Changes: Fixed cascade behaviors, standardized soft deletes,
 //          fixed Report model relations, optimized indexes
 // =====================================================
@@ -230,12 +230,6 @@ enum SubscriptionTier {
   SPARKLE_LEGEND
 }
 
-// Currency Configuration
-// All monetary values use Decimal(19,4) for precision:
-// - 19 total digits
-// - 4 decimal places
-// - Supports values up to 999,999,999,999,999.9999
-
 // =====================================================
 // CORE MODELS
 // =====================================================
@@ -244,11 +238,9 @@ model User {
   id                String     @id @default(cuid())
   email             String     @unique @db.VarChar(255)
   username          String     @unique @db.VarChar(50)
-  hashedPassword    String     @default("")
-  authProvider      String     @default("local") // "local", "google", "github", etc.
+  hashedPassword    String?
   emailVerified     DateTime?
-  phoneNumber       String?  // Will be encrypted at application level
-  phoneNumberHash   String?  @unique // For lookups
+  phoneNumber       String?
   phoneVerified     DateTime?
   image             String?
   bio               String?    @db.Text
@@ -267,24 +259,12 @@ model User {
   lastSeenAt        DateTime?
   onlineStatus      Boolean    @default(false)
   twoFactorEnabled  Boolean    @default(false)
-  twoFactorSecret   String?  // Will be encrypted at application level
-  twoFactorBackupCodes String[] // Encrypted backup codes
-  // Security & Authentication Fields
-  resetPasswordToken       String?   @unique
-  resetPasswordExpires     DateTime?
-  emailVerificationToken   String?   @unique
-  emailVerificationExpires DateTime?
-  accountLockoutAttempts   Int       @default(0)
-  accountLockedUntil       DateTime?
-  lastPasswordChangedAt    DateTime?
-  lastFailedLoginAt        DateTime?
-  failedLoginAttempts      Int       @default(0)
+  twoFactorSecret   String?
   preferredLanguage String     @default("en")
   timezone          String     @default("UTC")
   version           Int        @default(0) // For optimistic locking
   deleted           Boolean    @default(false)
   deletedAt         DateTime?
-  deletedBy         String?
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
 
@@ -392,12 +372,12 @@ model User {
   @@index([username])
   @@index([role, status])
   @@index([level])
+  @@index([onlineStatus])
+  @@index([sparklePoints])
   @@index([status])
   @@index([createdAt])
   @@index([lastSeenAt])
   @@index([deleted, status])
-  @@index([status, role, createdAt(sort: Desc)])
-  @@index([deleted, status, lastSeenAt(sort: Desc)])
   @@map("users")
 }
 
@@ -1510,11 +1490,11 @@ model CreatorPayout {
   userId        String
   periodStart   DateTime
   periodEnd     DateTime
-  totalRevenue  Decimal   @default(0) @db.Decimal(19, 4)
-  platformFee   Decimal   @default(0) @db.Decimal(19, 4)
-  creatorShare  Decimal   @default(0) @db.Decimal(19, 4)
-  taxWithheld   Decimal   @default(0) @db.Decimal(19, 4)
-  finalAmount   Decimal   @default(0) @db.Decimal(19, 4)
+  totalRevenue  BigInt    @default(0)
+  platformFee   BigInt    @default(0)
+  creatorShare  BigInt    @default(0)
+  taxWithheld   BigInt    @default(0)
+  finalAmount   BigInt    @default(0)
   payoutMethod  String // "stripe", "paypal", "bank_transfer"
   payoutStatus  String    @default("PENDING") // "PENDING", "PROCESSING", "COMPLETED", "FAILED"
   transactionId String?
@@ -1536,12 +1516,12 @@ model FanFunding {
   id            String   @id @default(cuid())
   senderId      String
   recipientId   String
-  amount        Decimal  @db.Decimal(19, 4) // In base currency units
+  amount        Int // In cents
   currency      String   @default("USD")
   message       String?  @db.Text
   isAnonymous   Boolean  @default(false)
-  platformFee   Decimal  @default(0) @db.Decimal(19, 4)
-  creatorAmount Decimal  @default(0) @db.Decimal(19, 4)
+  platformFee   Int      @default(0)
+  creatorAmount Int      @default(0)
   paymentMethod String // "stripe", "paypal"
   paymentStatus String   @default("PENDING")
   transactionId String?
@@ -1563,10 +1543,10 @@ model RevenueShare {
   contentType    String // "post", "video", "stream"
   contentId      String
   creatorId      String
-  totalRevenue   Decimal   @default(0) @db.Decimal(19, 4)
-  platformShare  Decimal   @default(0) @db.Decimal(19, 4)
-  creatorShare   Decimal   @default(0) @db.Decimal(19, 4)
-  affiliateShare Decimal   @default(0) @db.Decimal(19, 4)
+  totalRevenue   BigInt    @default(0)
+  platformShare  BigInt    @default(0)
+  creatorShare   BigInt    @default(0)
+  affiliateShare BigInt    @default(0)
   calculatedAt   DateTime  @default(now())
   paidAt         DateTime?
 
@@ -1582,7 +1562,7 @@ model TipTransaction {
   id          String   @id @default(cuid())
   senderId    String
   recipientId String
-  amount      Decimal  @db.Decimal(19, 4) // In currency units
+  amount      Int // In sparkle points or premium points
   currency    String // "sparkle", "premium"
   message     String?  @db.Text
   contentType String? // "post", "comment", "video"
@@ -1610,10 +1590,10 @@ model StoreItem {
   subcategory          String?
   itemType             String // "avatar", "badge", "theme", "reaction", etc.
   rarity               BadgeRarity @default(COMMON)
-  priceSparkle         Decimal? @db.Decimal(19, 4)
-  pricePremium         Decimal? @db.Decimal(19, 4)
-  originalPriceSparkle Decimal? @db.Decimal(19, 4)
-  originalPricePremium Decimal? @db.Decimal(19, 4)
+  priceSparkle         Int?
+  pricePremium         Int?
+  originalPriceSparkle Int?
+  originalPricePremium Int?
   discountPercentage   Int         @default(0)
   previewUrl           String?
   thumbnailUrl         String?
@@ -2254,7 +2234,7 @@ model Event {
   isPublic         Boolean     @default(true)
   requiresApproval Boolean     @default(false)
   requiresPayment  Boolean     @default(false)
-  price            Decimal? @db.Decimal(19, 4)
+  price            Int?
   currency         String?
   tags             String[]
   categories       String[]
@@ -3244,33 +3224,6 @@ model RateLimitTracker {
   @@map("rate_limit_tracker")
 }
 
-model EncryptionKey {
-  id          String   @id @default(cuid())
-  keyName     String   @unique
-  keyVersion  Int      @default(1)
-  algorithm   String   @default("AES-256-GCM")
-  createdAt   DateTime @default(now())
-  rotatedAt   DateTime?
-  expiresAt   DateTime?
-  isActive    Boolean  @default(true)
-  
-  @@index([keyName, isActive])
-  @@map("encryption_keys")
-}
-
-model DataRetentionPolicy {
-  id              String   @id @default(cuid())
-  entityType      String   @unique // "user", "post", "message", etc.
-  retentionDays   Int      // Days to retain after soft delete
-  anonymizeDays   Int?     // Days until PII anonymization
-  hardDeleteDays  Int      // Days until permanent deletion
-  isActive        Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  @@map("data_retention_policies")
-}
-
 // Note: The following cannot be directly represented in Prisma but should be implemented:
 // 
 // 1. Database Views for:
@@ -3314,15 +3267,3 @@ model DataRetentionPolicy {
 //      CREATE INDEX idx_post_content_search ON posts USING GIN (to_tsvector('english', content::text));
 //
 // These should be implemented via raw SQL migrations or database management tools.
-// Migration Note: JSON Performance Optimization
-// The following GIN indexes should be created via raw SQL migration:
-// 
-// CREATE INDEX idx_user_theme_preference ON profiles USING GIN (themePreference);
-// CREATE INDEX idx_user_notification_settings ON profiles USING GIN (notificationSettings);
-// CREATE INDEX idx_post_content ON posts USING GIN (content);
-// CREATE INDEX idx_group_guidelines ON groups USING GIN (guidelines);
-// CREATE INDEX idx_event_agenda ON events USING GIN (agenda);
-// 
-// For frequently queried JSON paths, create specific indexes:
-// CREATE INDEX idx_post_content_type ON posts ((content->>'type'));
-// CREATE INDEX idx_user_settings_language ON profiles ((notificationSettings->>'language'));
