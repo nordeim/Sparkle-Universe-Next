@@ -25,3 +25,6 @@ Below is "diff" command output comparing the current version 4.1 with your gener
 awesome rigorous and meticulous job! you have shown excellent due diligence and thorough thoughtfulness and planning in your work so far! please keep up the good work!
 
 Below is "diff" command output comparing the previous version with your latest generated version. Please double-check and validate that the changes are valid and that no other original features or functions are lost (omitted). use the same rigorous and meticulous approach to review the diff output below.
+
+---
+awesome job! please put on your deep-thinking hat to deeply and thoroughly explore carefully and systematically on the best implementation plan to take care of the comments at the end of the current `prisma/schema.prisma` file. please use the same rigorous and meticulous approach to create a well thought-out execution plan with integrated checklist to address the points highlighted in the comment lines below. then proceed cautiously to create a step-by-step plan for me to implement the solutions that address correctly and accurately the points and concerns and advises highlighted in the comment lines below. please think, plan and execute very carefully to give me a solution plan. thank you and good luck my very best coding assistant in the world!
