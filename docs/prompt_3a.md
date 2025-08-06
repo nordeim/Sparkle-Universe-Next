@@ -40,3 +40,6 @@ I told my Dev team that you are taking the QA role in assessment their database 
 
 ---
 awesome job! please use the same rigorous and meticulous approach to create the complete updated fully working replacement file for each of your phased migration files that need updating to incorporate the confirmed critical issues. please be very careful and thorough in comparison, validation before creating a detailed implementation plan with integrated checklist before proceeding cautiously to create complete updated replacement files for those migration files that need updating. thank you and good luck!
+
+---
+awesome job! the Dev team has taken your final feedback and verdict to "re-work" their database enhancement migration plan. please use the same rigorous and meticulous approach to deeply and thoroughly review the "re-worked" migration plan below. give me your detailed comprehensive assessment on the updated migration plan below after very careful and systematic review and validation using very thorough line by line code review.
