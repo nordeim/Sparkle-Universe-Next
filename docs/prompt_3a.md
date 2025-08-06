@@ -31,3 +31,6 @@ awesome job! please put on your deep-thinking hat to deeply and thoroughly explo
 
 ---
 awesome job! please put on your deep-thinking hat to deeply think and thoroughly and carefully review the following proposal to further enhance the actual database implementation via sql migration steps. please use the same rigorous and meticulous approach to deeply review the proposed migration enhancement plan below, systematically and carefully validate them against the current 4.2 version of the `schema.prisma` file for correctness and accuracy. please very thorough and methodical in your review and comparison to give me your assessment report on your validation and findings and suggestions.
+
+---
+awesome job! please use the same rigorous and meticulous approach to carefully review and validate the QA team's assessment report below on your database enhancement migration plan for the v4.2 `prisma/schema.prisma`. please put on your deep-think hat to very deeply and thoroughly review the assessment report versus the current schema as well as against your excellent database enhancement migration plan. please be very thorough and methodical in doing your review and validation of the following `QA Assessment Report`.
