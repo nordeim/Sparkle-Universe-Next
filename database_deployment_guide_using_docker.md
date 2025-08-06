@@ -1,4 +1,5 @@
 ```bash
+# first time bringing up the postgres container
 # docker-compose up --build -d
 
 $ prisma validate
@@ -56,7 +57,7 @@ Prisma schema loaded from prisma/schema.prisma
 Prisma Studio is up on http://localhost:5555
 Prisma schema loaded from prisma/schema.prisma
 ```
-# File: docker-compose.yml
+## File: docker-compose.yml
 ```yml
 version: "3.9"
 
@@ -89,7 +90,7 @@ volumes:
     driver: local
 ```
 
-# File: postgres.Dockerfile
+## File: postgres.Dockerfile
 ```txt
 # postgres.Dockerfile
 # /Home1/project/Sparkle-Universe-Next/postgres.Dockerfile
