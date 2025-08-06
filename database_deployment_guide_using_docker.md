@@ -1,3 +1,115 @@
+```bash
+# docker-compose up --build -d
+
+$ prisma validate
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+
+Prisma schema warnings:
+- The `onDelete` referential action of a relation should not be set to `SetNull` when a referenced field is required. We recommend either to choose another referential action, or to make the referenced fields optional. Read more at https://pris.ly/d/postgres-set-null 
+- The `onDelete` referential action of a relation should not be set to `SetNull` when a referenced field is required. We recommend either to choose another referential action, or to make the referenced fields optional. Read more at https://pris.ly/d/postgres-set-null 
+The schema at prisma/schema.prisma is valid 🚀
+
+$ docker-compose down
+Stopping sparkle_universe ... done
+Removing sparkle_universe ... done
+Removing network sparkle-universe-next_default
+
+$ rm -rf prisma/migrations/*
+
+$ docker-compose up -d
+Creating network "sparkle-universe-next_default" with the default driver
+Creating sparkle_universe ... done
+
+$ prisma migrate reset
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "sparkle_db", schema "public" at "localhost:5433"
+
+✔ Are you sure you want to reset your database? All data will be lost. … yes
+
+Database reset successful
+
+
+Running generate... (Use --skip-generate to skip the generators)
+
+$ prisma migrate dev --name init
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "sparkle_db", schema "public" at "localhost:5433"
+
+Applying migration `20250806051951_init`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma/migrations/
+  └─ 20250806051951_init/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+
+$ prisma studio
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+Prisma Studio is up on http://localhost:5555
+Prisma schema loaded from prisma/schema.prisma
+```
+# File: docker-compose.yml
+```yml
+version: "3.9"
+
+services:
+  db:
+    # The conflicting "image:" key has been removed.
+    # Docker Compose will now exclusively use the image from the "build:" block.
+    build:
+      context: .
+      dockerfile: postgres.Dockerfile
+    container_name: sparkle_universe
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sparkle_user
+      POSTGRES_PASSWORD: StrongPass1234
+      POSTGRES_DB: sparkle_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  postgres_data:
+    driver: local
+```
+
+# File: postgres.Dockerfile
+```txt
+# postgres.Dockerfile
+# /Home1/project/Sparkle-Universe-Next/postgres.Dockerfile
+
+FROM postgres:16-bookworm
+
+USER root
+
+# Install postgresql-contrib-16 which contains uuid-ossp
+RUN apt-get update && \
+    apt-get install -y postgresql-contrib-16 && \
+    rm -rf /var/lib/apt/lists/*
+
+# Create initialization script to ensure extensions are created
+RUN echo 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp";' > /docker-entrypoint-initdb.d/10-extensions.sql
+
+USER postgres
+```
+
+---
 # 🚀 Deployment Guide: Prisma Schema on Dockerized PostgreSQL
 
 This guide provides a comprehensive walkthrough for deploying the `LuxeVerse-Quantum` project's Prisma schema to a PostgreSQL 16 database running inside a Docker container.
