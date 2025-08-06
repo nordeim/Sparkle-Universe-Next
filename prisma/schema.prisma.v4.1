@@ -3221,4 +3221,201 @@ model AnalyticsEvent {
 
   @@index([eventName, timestamp(sort: Desc)])
   @@index([userId])
+  @@index([sessionId])
+  @@index([timestamp])
+  @@map("analytics_events")
+}
+
+model SearchIndex {
+  id             String   @id @default(cuid())
+  entityType     String // "post", "user", "comment", etc.
+  entityId       String
+  searchableText String   @db.Text
+  title          String?
+  description    String?
+  tags           String[]
+  boost          Float    @default(1) // Search ranking boost
+  locale         String   @default("en")
+  isPublic       Boolean  @default(true)
+  lastIndexedAt  DateTime @default(now())
+  metadata       Json?
+
+  @@unique([entityType, entityId])
+  @@index([entityType])
+  // Note: Full-text search for PostgreSQL must be implemented via raw SQL migrations.
+  // Example: CREATE INDEX "SearchIndex_searchableText_idx" ON "search_index" USING GIN (to_tsvector('english', "searchableText"));
+  @@map("search_index")
+}
+
+model CacheEntry {
+  key            String    @id
+  value          Json
+  type           CacheType
+  tags           String[]
+  expiresAt      DateTime
+  accessCount    Int       @default(0)
+  lastAccessedAt DateTime  @default(now())
+  createdAt      DateTime  @default(now())
+
+  @@index([type])
+  @@index([expiresAt])
+  @@index([tags])
+  @@map("cache_entries")
+}
+
+model SystemHealth {
+  id           String   @id @default(cuid())
+  service      String // "api", "websocket", "worker", etc.
+  status       String // "healthy", "degraded", "down"
+  responseTime Float? // In ms
+  errorRate    Float? // Percentage
+  throughput   Float? // Requests per second
+  cpuUsage     Float?
+  memoryUsage  Float?
+  diskUsage    Float?
+  activeUsers  Int?
+  queueDepth   Int?
+  metadata     Json?
+  checkedAt    DateTime @default(now())
+
+  @@index([service, checkedAt])
+  @@map("system_health")
+}
+
+model RateLimitTracker {
+  id          String   @id @default(cuid())
+  identifier  String // IP, userId, apiKey
+  endpoint    String
+  windowStart DateTime
+  requests    Int      @default(1)
+  blocked     Boolean  @default(false)
+
+  @@unique([identifier, endpoint, windowStart])
+  @@index([identifier])
+  @@index([windowStart])
+  @@map("rate_limit_tracker")
+}
+
+model EncryptionKey {
+  id          String   @id @default(cuid())
+  keyName     String   @unique
+  keyVersion  Int      @default(1)
+  algorithm   String   @default("AES-256-GCM")
+  createdAt   DateTime @default(now())
+  rotatedAt   DateTime?
+  expiresAt   DateTime?
+  isActive    Boolean  @default(true)
   
+  @@index([keyName, isActive])
+  @@map("encryption_keys")
+}
+
+model DataRetentionPolicy {
+  id              String   @id @default(cuid())
+  entityType      String   @unique // "user", "post", "message", etc.
+  retentionDays   Int      // Days to retain after soft delete
+  anonymizeDays   Int?     // Days until PII anonymization
+  hardDeleteDays  Int      // Days until permanent deletion
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@map("data_retention_policies")
+}
+
+// =====================================================
+// v4.1 MIGRATION NOTES
+// =====================================================
+// 
+// Version 4.1 introduces the following improvements:
+// 
+// 1. Optimistic Locking:
+//    - Added version fields to: Conversation, Message, ChatRoom, 
+//      CollaborativeSpace, Poll, Event, Group
+//    - Prevents concurrent update conflicts
+// 
+// 2. Extracted JSON Fields:
+//    - Profile: profileVisibility, contentVisibility, allowDirectMessages
+//    - NotificationPreference: emailDigestFrequency, pushEnabled
+//    - Event: recurrenceType, recurrenceInterval, recurrenceEndDate
+//    - Group: autoApproveMembers, allowGuestViewing, requirePostApproval
+// 
+// 3. New Performance Indexes:
+//    - User: role+verified+deleted, level+experience+deleted, status+onlineStatus+lastSeenAt
+//    - Post: authorId+contentStatus+deleted, categoryId+published+views, featured+published+createdAt
+//    - Comment: postId+parentId+createdAt, authorId+deleted+createdAt
+//    - Conversation: isArchived+lastMessageAt
+//    - ConversationParticipant: userId+unreadCount+lastReadAt
+//    - Message: conversationId+status+createdAt
+// 
+// 4. Query Optimization Documentation:
+//    - Added performance notes for User model
+//    - Recommended selective field queries
+//    - Best practices for handling 70+ relations
+// 
+// =====================================================
+// DATABASE IMPLEMENTATION NOTES
+// =====================================================
+// 
+// The following cannot be directly represented in Prisma but should be implemented:
+// 
+// 1. Database Views for:
+//    - trending_posts (materialized view)
+//    - top_creators (materialized view)
+//    - active_groups (materialized view)
+//    - user_reputation_scores (view)
+//
+// 2. Database Functions for:
+//    - calculate_user_level(experience INT)
+//    - calculate_engagement_rate(post_id UUID)
+//    - update_post_stats(post_id UUID)
+//    - calculate_reputation_score(user_id UUID)
+//
+// 3. Database Triggers for:
+//    - Auto-update timestamps
+//    - Update denormalized counts
+//    - Level progression checks
+//    - Achievement progress tracking
+//
+// 4. Indexes for Performance:
+//    - Composite indexes for complex queries
+//    - Partial indexes for filtered queries
+//    - GIN indexes for JSON/Array searches
+//
+// 5. Partitioning Strategy:
+//    - Time-based partitioning for analytics_events
+//    - Time-based partitioning for activity_streams
+//    - List partitioning for audit_logs by action type
+//
+// 6. Database Extensions:
+//    - pg_trgm for fuzzy text search
+//    - pgcrypto for encryption
+//    - uuid-ossp for UUID generation
+//
+// 7. Full-text Search Implementation:
+//    - Create tsvector columns for searchable content
+//    - GIN indexes for full-text search
+//    - Example SQL migration needed:
+//      CREATE INDEX idx_post_title_search ON posts USING GIN (to_tsvector('english', title));
+//      CREATE INDEX idx_post_content_search ON posts USING GIN (to_tsvector('english', content::text));
+//
+// 8. JSON Performance Optimization:
+//    The following GIN indexes should be created via raw SQL migration:
+//    
+//    CREATE INDEX idx_user_theme_preference ON profiles USING GIN (themePreference);
+//    CREATE INDEX idx_user_notification_settings ON profiles USING GIN (notificationSettings);
+//    CREATE INDEX idx_post_content ON posts USING GIN (content);
+//    CREATE INDEX idx_group_guidelines ON groups USING GIN (guidelines);
+//    CREATE INDEX idx_event_agenda ON events USING GIN (agenda);
+//    
+//    For frequently queried JSON paths, create specific indexes:
+//    CREATE INDEX idx_post_content_type ON posts ((content->>'type'));
+//    CREATE INDEX idx_user_settings_language ON profiles ((notificationSettings->>'language'));
+//
+// 9. v4.1 Specific Optimizations:
+//    - Use covering indexes for common query patterns
+//    - Implement query result caching for hot paths
+//    - Consider read replicas for analytics queries
+//    - Monitor slow query logs and adjust indexes accordingly
+//
+// These should be implemented via raw SQL migrations or database management tools.
