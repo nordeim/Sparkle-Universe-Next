@@ -67,13 +67,16 @@ CREATE TYPE "public"."PaymentStatus" AS ENUM ('PENDING', 'PROCESSING', 'COMPLETE
 -- CreateEnum
 CREATE TYPE "public"."SubscriptionTier" AS ENUM ('FREE', 'SPARKLE_FAN', 'SPARKLE_CREATOR', 'SPARKLE_LEGEND');
 
+-- CreateEnum
+CREATE TYPE "public"."AuthProvider" AS ENUM ('LOCAL', 'GOOGLE', 'GITHUB', 'TWITTER', 'DISCORD');
+
 -- CreateTable
 CREATE TABLE "public"."users" (
     "id" TEXT NOT NULL,
     "email" VARCHAR(255) NOT NULL,
     "username" VARCHAR(50) NOT NULL,
     "hashedPassword" TEXT NOT NULL DEFAULT '',
-    "authProvider" TEXT NOT NULL DEFAULT 'local',
+    "authProvider" "public"."AuthProvider" NOT NULL DEFAULT 'LOCAL',
     "emailVerified" TIMESTAMP(3),
     "phoneNumber" TEXT,
     "phoneNumberHash" TEXT,
@@ -374,7 +377,7 @@ CREATE TABLE "public"."referrals" (
 -- CreateTable
 CREATE TABLE "public"."categories" (
     "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
+    "name" VARCHAR(255) NOT NULL,
     "slug" TEXT NOT NULL,
     "description" TEXT,
     "icon" TEXT,
@@ -579,8 +582,8 @@ CREATE TABLE "public"."post_series" (
 -- CreateTable
 CREATE TABLE "public"."tags" (
     "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "slug" TEXT NOT NULL,
+    "name" VARCHAR(255) NOT NULL,
+    "slug" VARCHAR(255) NOT NULL,
     "description" TEXT,
     "color" TEXT,
     "icon" TEXT,
@@ -785,7 +788,7 @@ CREATE TABLE "public"."notification_queue" (
 -- CreateTable
 CREATE TABLE "public"."email_campaigns" (
     "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
+    "name" VARCHAR(255) NOT NULL,
     "subject" TEXT NOT NULL,
     "templateId" TEXT NOT NULL,
     "segment" TEXT NOT NULL,
@@ -823,7 +826,7 @@ CREATE TABLE "public"."newsletter_subscriptions" (
 -- CreateTable
 CREATE TABLE "public"."email_templates" (
     "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
+    "name" VARCHAR(255) NOT NULL,
     "subject" TEXT NOT NULL,
     "htmlContent" TEXT NOT NULL,
     "textContent" TEXT,
@@ -859,7 +862,7 @@ CREATE TABLE "public"."email_send_queue" (
 CREATE TABLE "public"."achievements" (
     "id" TEXT NOT NULL,
     "code" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
+    "name" VARCHAR(255) NOT NULL,
     "description" TEXT,
     "shortDescription" TEXT,
     "icon" TEXT,
@@ -1138,7 +1141,7 @@ CREATE TABLE "public"."trades" (
 CREATE TABLE "public"."quests" (
     "id" TEXT NOT NULL,
     "code" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
+    "name" VARCHAR(255) NOT NULL,
     "description" TEXT,
     "shortDescription" TEXT,
     "icon" TEXT,
@@ -1297,7 +1300,7 @@ CREATE TABLE "public"."video_analytics" (
 CREATE TABLE "public"."watch_parties" (
     "id" TEXT NOT NULL,
     "hostId" TEXT NOT NULL,
-    "title" TEXT NOT NULL,
+    "title" VARCHAR(500) NOT NULL,
     "description" TEXT,
     "youtubeVideoId" TEXT NOT NULL,
     "youtubeVideoUrl" TEXT,
@@ -1369,7 +1372,7 @@ CREATE TABLE "public"."video_clips" (
     "id" TEXT NOT NULL,
     "youtubeVideoId" TEXT NOT NULL,
     "creatorId" TEXT NOT NULL,
-    "title" TEXT NOT NULL,
+    "title" VARCHAR(500) NOT NULL,
     "description" TEXT,
     "startTime" INTEGER NOT NULL,
     "endTime" INTEGER NOT NULL,
@@ -1389,8 +1392,8 @@ CREATE TABLE "public"."video_clips" (
 -- CreateTable
 CREATE TABLE "public"."playlists" (
     "id" TEXT NOT NULL,
-    "title" TEXT NOT NULL,
-    "slug" TEXT NOT NULL,
+    "title" VARCHAR(500) NOT NULL,
+    "slug" VARCHAR(255) NOT NULL,
     "description" TEXT,
     "ownerId" TEXT NOT NULL,
     "isCollaborative" BOOLEAN NOT NULL DEFAULT false,
@@ -1444,8 +1447,8 @@ CREATE TABLE "public"."youtube_api_quota" (
 -- CreateTable
 CREATE TABLE "public"."groups" (
     "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "slug" TEXT NOT NULL,
+    "name" VARCHAR(255) NOT NULL,
+    "slug" VARCHAR(255) NOT NULL,
     "description" TEXT,
     "shortDescription" TEXT,
     "bannerImage" TEXT,
@@ -1526,7 +1529,7 @@ CREATE TABLE "public"."group_posts" (
 CREATE TABLE "public"."group_channels" (
     "id" TEXT NOT NULL,
     "groupId" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
+    "name" VARCHAR(255) NOT NULL,
     "description" TEXT,
     "type" TEXT NOT NULL,
     "position" INTEGER NOT NULL DEFAULT 0,
@@ -1539,8 +1542,8 @@ CREATE TABLE "public"."group_channels" (
 -- CreateTable
 CREATE TABLE "public"."events" (
     "id" TEXT NOT NULL,
-    "title" TEXT NOT NULL,
-    "slug" TEXT NOT NULL,
+    "title" VARCHAR(500) NOT NULL,
+    "slug" VARCHAR(255) NOT NULL,
     "description" TEXT,
     "shortDescription" TEXT,
     "type" "public"."EventType" NOT NULL,
@@ -1723,8 +1726,8 @@ CREATE TABLE "public"."websocket_sessions" (
 -- CreateTable
 CREATE TABLE "public"."chat_rooms" (
     "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "slug" TEXT NOT NULL,
+    "name" VARCHAR(255) NOT NULL,
+    "slug" VARCHAR(255) NOT NULL,
     "description" TEXT,
     "topic" TEXT,
     "tags" TEXT[],
@@ -1778,7 +1781,7 @@ CREATE TABLE "public"."chat_messages" (
 CREATE TABLE "public"."collaborative_spaces" (
     "id" TEXT NOT NULL,
     "type" TEXT NOT NULL,
-    "title" TEXT NOT NULL,
+    "title" VARCHAR(500) NOT NULL,
     "description" TEXT,
     "ownerId" TEXT NOT NULL,
     "content" JSONB,
@@ -1973,7 +1976,7 @@ CREATE TABLE "public"."fan_art_submissions" (
     "id" TEXT NOT NULL,
     "galleryId" TEXT NOT NULL,
     "artistId" TEXT NOT NULL,
-    "title" TEXT NOT NULL,
+    "title" VARCHAR(500) NOT NULL,
     "description" TEXT,
     "imageUrl" TEXT NOT NULL,
     "thumbnailUrl" TEXT,
@@ -2182,7 +2185,7 @@ CREATE TABLE "public"."media_files" (
 -- CreateTable
 CREATE TABLE "public"."experiments" (
     "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
+    "name" VARCHAR(255) NOT NULL,
     "description" TEXT,
     "hypothesis" TEXT,
     "variants" JSONB NOT NULL,
@@ -2220,7 +2223,7 @@ CREATE TABLE "public"."experiment_assignments" (
 CREATE TABLE "public"."feature_flags" (
     "id" TEXT NOT NULL,
     "flag" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
+    "name" VARCHAR(255) NOT NULL,
     "description" TEXT,
     "enabled" BOOLEAN NOT NULL DEFAULT false,
     "rolloutPercentage" INTEGER NOT NULL DEFAULT 0,
@@ -2407,37 +2410,16 @@ CREATE INDEX "users_email_idx" ON "public"."users"("email");
 CREATE INDEX "users_username_idx" ON "public"."users"("username");
 
 -- CreateIndex
-CREATE INDEX "users_role_status_idx" ON "public"."users"("role", "status");
+CREATE INDEX "users_deleted_status_role_lastSeenAt_idx" ON "public"."users"("deleted", "status", "role", "lastSeenAt" DESC);
 
 -- CreateIndex
-CREATE INDEX "users_level_idx" ON "public"."users"("level");
+CREATE INDEX "users_deleted_level_experience_idx" ON "public"."users"("deleted", "level", "experience" DESC);
 
 -- CreateIndex
-CREATE INDEX "users_status_idx" ON "public"."users"("status");
+CREATE INDEX "users_status_onlineStatus_lastSeenAt_idx" ON "public"."users"("status", "onlineStatus", "lastSeenAt" DESC);
 
 -- CreateIndex
 CREATE INDEX "users_createdAt_idx" ON "public"."users"("createdAt");
-
--- CreateIndex
-CREATE INDEX "users_lastSeenAt_idx" ON "public"."users"("lastSeenAt");
-
--- CreateIndex
-CREATE INDEX "users_deleted_status_idx" ON "public"."users"("deleted", "status");
-
--- CreateIndex
-CREATE INDEX "users_status_role_createdAt_idx" ON "public"."users"("status", "role", "createdAt" DESC);
-
--- CreateIndex
-CREATE INDEX "users_deleted_status_lastSeenAt_idx" ON "public"."users"("deleted", "status", "lastSeenAt" DESC);
-
--- CreateIndex
-CREATE INDEX "users_role_verified_deleted_idx" ON "public"."users"("role", "verified", "deleted");
-
--- CreateIndex
-CREATE INDEX "users_level_experience_deleted_idx" ON "public"."users"("level", "experience", "deleted");
-
--- CreateIndex
-CREATE INDEX "users_status_onlineStatus_lastSeenAt_idx" ON "public"."users"("status", "onlineStatus", "lastSeenAt");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "user_stats_userId_key" ON "public"."user_stats"("userId");
@@ -2813,6 +2795,9 @@ CREATE INDEX "email_campaigns_status_scheduledFor_idx" ON "public"."email_campai
 
 -- CreateIndex
 CREATE INDEX "email_campaigns_createdBy_idx" ON "public"."email_campaigns"("createdBy");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "email_campaigns_createdBy_name_key" ON "public"."email_campaigns"("createdBy", "name");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "newsletter_subscriptions_userId_key" ON "public"."newsletter_subscriptions"("userId");

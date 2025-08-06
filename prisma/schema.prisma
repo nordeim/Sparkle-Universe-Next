@@ -1,10 +1,11 @@
 // prisma/schema.prisma
 // =====================================================
 // Sparkle Universe Complete Prisma Schema
-// Version 4.1 - Performance & Optimization Release
-// Changes: Added optimistic locking, extracted JSON fields,
-//          optimized indexes, added performance documentation
-// Previous: v4.0 - Fixed cascade behaviors, standardized soft deletes
+// Version 4.2 - Index Optimization & Standardization Release
+// Changes: Consolidated User indexes from 13 to 6,
+//          standardized string lengths, added business constraints,
+//          converted authProvider to enum
+// Previous: v4.1 - Added optimistic locking, extracted JSON fields
 // =====================================================
 
 generator client {
@@ -231,6 +232,14 @@ enum SubscriptionTier {
   SPARKLE_LEGEND
 }
 
+enum AuthProvider {
+  LOCAL
+  GOOGLE
+  GITHUB
+  TWITTER
+  DISCORD
+}
+
 // Currency Configuration
 // All monetary values use Decimal(19,4) for precision:
 // - 19 total digits
@@ -249,7 +258,7 @@ model User {
   email             String     @unique @db.VarChar(255)
   username          String     @unique @db.VarChar(50)
   hashedPassword    String     @default("")
-  authProvider      String     @default("local") // "local", "google", "github", etc.
+  authProvider      AuthProvider @default(LOCAL)
   emailVerified     DateTime?
   phoneNumber       String?  // Will be encrypted at application level
   phoneNumberHash   String?  @unique // For lookups
@@ -395,18 +404,11 @@ model User {
   // Optimized indexes for common query patterns
   @@index([email])
   @@index([username])
-  @@index([role, status])
-  @@index([level])
-  @@index([status])
+  @@index([deleted, status, role, lastSeenAt(sort: Desc)])
+  @@index([deleted, level, experience(sort: Desc)])
+  @@index([status, onlineStatus, lastSeenAt(sort: Desc)])
   @@index([createdAt])
-  @@index([lastSeenAt])
-  @@index([deleted, status])
-  @@index([status, role, createdAt(sort: Desc)])
-  @@index([deleted, status, lastSeenAt(sort: Desc)])
-  // New performance indexes for v4.1
-  @@index([role, verified, deleted]) // Creator queries
-  @@index([level, experience, deleted]) // Leaderboard queries
-  @@index([status, onlineStatus, lastSeenAt]) // Active user queries
+  // Reduced from 13 to 6 strategic indexes in v4.2
   @@map("users")
 }
 
@@ -731,7 +733,7 @@ model Referral {
 
 model Category {
   id           String    @id @default(cuid())
-  name         String
+  name         String    @db.VarChar(255)
   slug         String    @unique
   description  String?   @db.Text
   icon         String?
@@ -1014,8 +1016,8 @@ model PostSeries {
 
 model Tag {
   id          String    @id @default(cuid())
-  name        String    @unique
-  slug        String    @unique
+  name        String    @unique @db.VarChar(255)
+  slug        String    @unique @db.VarChar(255)
   description String?   @db.Text
   color       String?
   icon        String?
@@ -1309,7 +1311,7 @@ model NotificationQueue {
 
 model EmailCampaign {
   id              String    @id @default(cuid())
-  name            String
+  name            String    @db.VarChar(255)
   subject         String
   templateId      String
   segment         String // Target audience segment
@@ -1332,6 +1334,7 @@ model EmailCampaign {
   template  EmailTemplate    @relation(fields: [templateId], references: [id], onDelete: Restrict)
   sendQueue EmailSendQueue[]
 
+  @@unique([createdBy, name]) // v4.2: Prevent duplicate campaign names per creator
   @@index([status, scheduledFor])
   @@index([createdBy])
   @@map("email_campaigns")
@@ -1356,7 +1359,7 @@ model NewsletterSubscription {
 
 model EmailTemplate {
   id          String   @id @default(cuid())
-  name        String   @unique
+  name        String   @unique @db.VarChar(255)
   subject     String
   htmlContent String   @db.Text
   textContent String?  @db.Text
@@ -1408,7 +1411,7 @@ model EmailSendQueue {
 model Achievement {
   id                  String      @id @default(cuid())
   code                String      @unique
-  name                String
+  name                String      @db.VarChar(255)
   description         String?     @db.Text
   shortDescription    String?
   icon                String?
@@ -1750,7 +1753,7 @@ model Trade {
 model Quest {
   id               String    @id @default(cuid())
   code             String    @unique
-  name             String
+  name             String    @db.VarChar(255)
   description      String?   @db.Text
   shortDescription String?
   icon             String?
@@ -1944,7 +1947,7 @@ model VideoAnalytics {
 model WatchParty {
   id                  String    @id @default(cuid())
   hostId              String
-  title               String
+  title               String    @db.VarChar(500)
   description         String?   @db.Text
   youtubeVideoId      String
   youtubeVideoUrl     String?
@@ -2039,7 +2042,7 @@ model VideoClip {
   id             String   @id @default(cuid())
   youtubeVideoId String
   creatorId      String
-  title          String
+  title          String   @db.VarChar(500)
   description    String?  @db.Text
   startTime      Int // In seconds
   endTime        Int // In seconds
@@ -2065,8 +2068,8 @@ model VideoClip {
 
 model Playlist {
   id              String   @id @default(cuid())
-  title           String
-  slug            String   @unique
+  title           String   @db.VarChar(500)
+  slug            String   @unique @db.VarChar(255)
   description     String?  @db.Text
   ownerId         String
   isCollaborative Boolean  @default(false)
@@ -2137,8 +2140,8 @@ model YouTubeApiQuota {
 
 model Group {
   id               String          @id @default(cuid())
-  name             String
-  slug             String          @unique
+  name             String          @db.VarChar(255)
+  slug             String          @unique @db.VarChar(255)
   description      String?         @db.Text
   shortDescription String?
   bannerImage      String?
@@ -2244,7 +2247,7 @@ model GroupPost {
 model GroupChannel {
   id          String   @id @default(cuid())
   groupId     String
-  name        String
+  name        String   @db.VarChar(255)
   description String?
   type        String // "text", "voice", "announcement"
   position    Int      @default(0)
@@ -2261,8 +2264,8 @@ model GroupChannel {
 
 model Event {
   id               String      @id @default(cuid())
-  title            String
-  slug             String      @unique
+  title            String      @db.VarChar(500)
+  slug             String      @unique @db.VarChar(255)
   description      String?     @db.Text
   shortDescription String?
   type             EventType
@@ -2508,8 +2511,8 @@ model WebsocketSession {
 
 model ChatRoom {
   id             String    @id @default(cuid())
-  name           String
-  slug           String    @unique
+  name           String    @db.VarChar(255)
+  slug           String    @unique @db.VarChar(255)
   description    String?   @db.Text
   topic          String?
   tags           String[]
@@ -2576,7 +2579,7 @@ model ChatMessage {
 model CollaborativeSpace {
   id               String   @id @default(cuid())
   type             String // "document", "whiteboard", "code", "canvas"
-  title            String
+  title            String   @db.VarChar(500)
   description      String?  @db.Text
   ownerId          String
   content          Json?
@@ -2828,7 +2831,7 @@ model FanArtSubmission {
   id               String           @id @default(cuid())
   galleryId        String
   artistId         String
-  title            String
+  title            String           @db.VarChar(500)
   description      String?          @db.Text
   imageUrl         String
   thumbnailUrl     String?
@@ -3096,7 +3099,7 @@ model MediaFile {
 
 model Experiment {
   id                String    @id @default(cuid())
-  name              String    @unique
+  name              String    @unique @db.VarChar(255)
   description       String?   @db.Text
   hypothesis        String?   @db.Text
   variants          Json // Array of variant configurations
@@ -3144,7 +3147,7 @@ model ExperimentAssignment {
 model FeatureFlag {
   id                String   @id @default(cuid())
   flag              String   @unique
-  name              String
+  name              String   @db.VarChar(255)
   description       String?  @db.Text
   enabled           Boolean  @default(false)
   rolloutPercentage Int      @default(0)
