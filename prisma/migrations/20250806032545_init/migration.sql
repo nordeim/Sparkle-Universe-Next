@@ -197,6 +197,9 @@ CREATE TABLE "public"."profiles" (
     "themePreference" JSONB,
     "notificationSettings" JSONB NOT NULL DEFAULT '{}',
     "privacySettings" JSONB NOT NULL DEFAULT '{}',
+    "profileVisibility" TEXT NOT NULL DEFAULT 'public',
+    "contentVisibility" TEXT NOT NULL DEFAULT 'public',
+    "allowDirectMessages" BOOLEAN NOT NULL DEFAULT true,
     "featuredBadges" TEXT[],
     "showcasedPosts" TEXT[],
     "customCss" TEXT,
@@ -332,6 +335,8 @@ CREATE TABLE "public"."notification_preferences" (
     "emailNotifications" BOOLEAN NOT NULL DEFAULT true,
     "pushNotifications" BOOLEAN NOT NULL DEFAULT true,
     "smsNotifications" BOOLEAN NOT NULL DEFAULT false,
+    "emailDigestFrequency" TEXT NOT NULL DEFAULT 'weekly',
+    "pushEnabled" BOOLEAN NOT NULL DEFAULT true,
     "postLikes" BOOLEAN NOT NULL DEFAULT true,
     "postComments" BOOLEAN NOT NULL DEFAULT true,
     "newFollowers" BOOLEAN NOT NULL DEFAULT true,
@@ -1450,6 +1455,9 @@ CREATE TABLE "public"."groups" (
     "ownerName" TEXT,
     "visibility" "public"."GroupVisibility" NOT NULL DEFAULT 'PUBLIC',
     "joinApproval" BOOLEAN NOT NULL DEFAULT false,
+    "autoApproveMembers" BOOLEAN NOT NULL DEFAULT false,
+    "allowGuestViewing" BOOLEAN NOT NULL DEFAULT true,
+    "requirePostApproval" BOOLEAN NOT NULL DEFAULT false,
     "memberCount" INTEGER NOT NULL DEFAULT 1,
     "postCount" INTEGER NOT NULL DEFAULT 0,
     "onlineCount" INTEGER NOT NULL DEFAULT 0,
@@ -1554,6 +1562,9 @@ CREATE TABLE "public"."events" (
     "endTime" TIMESTAMP(3) NOT NULL,
     "timezone" TEXT NOT NULL DEFAULT 'UTC',
     "recurrence" JSONB,
+    "recurrenceType" TEXT,
+    "recurrenceInterval" INTEGER,
+    "recurrenceEndDate" TIMESTAMP(3),
     "maxAttendees" INTEGER,
     "currentAttendees" INTEGER NOT NULL DEFAULT 0,
     "minAttendees" INTEGER,
@@ -1624,6 +1635,7 @@ CREATE TABLE "public"."conversations" (
     "pinnedMessages" TEXT[],
     "isArchived" BOOLEAN NOT NULL DEFAULT false,
     "archivedAt" TIMESTAMP(3),
+    "version" INTEGER NOT NULL DEFAULT 0,
     "deleted" BOOLEAN NOT NULL DEFAULT false,
     "deletedAt" TIMESTAMP(3),
     "deletedBy" TEXT,
@@ -1677,6 +1689,7 @@ CREATE TABLE "public"."messages" (
     "status" "public"."MessageStatus" NOT NULL DEFAULT 'SENT',
     "deliveredAt" TIMESTAMP(3),
     "errorMessage" TEXT,
+    "version" INTEGER NOT NULL DEFAULT 0,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "messages_pkey" PRIMARY KEY ("id")
@@ -1731,6 +1744,7 @@ CREATE TABLE "public"."chat_rooms" (
     "moderatorIds" TEXT[],
     "expiresAt" TIMESTAMP(3),
     "lastActiveAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "version" INTEGER NOT NULL DEFAULT 0,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "chat_rooms_pkey" PRIMARY KEY ("id")
@@ -1885,6 +1899,7 @@ CREATE TABLE "public"."polls" (
     "maxChoices" INTEGER NOT NULL DEFAULT 1,
     "closeAt" TIMESTAMP(3),
     "finalResults" JSONB,
+    "version" INTEGER NOT NULL DEFAULT 0,
     "deleted" BOOLEAN NOT NULL DEFAULT false,
     "deletedAt" TIMESTAMP(3),
     "deletedBy" TEXT,
@@ -2416,6 +2431,15 @@ CREATE INDEX "users_status_role_createdAt_idx" ON "public"."users"("status", "ro
 CREATE INDEX "users_deleted_status_lastSeenAt_idx" ON "public"."users"("deleted", "status", "lastSeenAt" DESC);
 
 -- CreateIndex
+CREATE INDEX "users_role_verified_deleted_idx" ON "public"."users"("role", "verified", "deleted");
+
+-- CreateIndex
+CREATE INDEX "users_level_experience_deleted_idx" ON "public"."users"("level", "experience", "deleted");
+
+-- CreateIndex
+CREATE INDEX "users_status_onlineStatus_lastSeenAt_idx" ON "public"."users"("status", "onlineStatus", "lastSeenAt");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "user_stats_userId_key" ON "public"."user_stats"("userId");
 
 -- CreateIndex
@@ -2456,6 +2480,12 @@ CREATE INDEX "profiles_youtubeChannelId_idx" ON "public"."profiles"("youtubeChan
 
 -- CreateIndex
 CREATE INDEX "profiles_profileCompleted_idx" ON "public"."profiles"("profileCompleted");
+
+-- CreateIndex
+CREATE INDEX "profiles_profileVisibility_idx" ON "public"."profiles"("profileVisibility");
+
+-- CreateIndex
+CREATE INDEX "profiles_contentVisibility_idx" ON "public"."profiles"("contentVisibility");
 
 -- CreateIndex
 CREATE INDEX "accounts_userId_idx" ON "public"."accounts"("userId");
@@ -2515,6 +2545,12 @@ CREATE UNIQUE INDEX "notification_preferences_userId_key" ON "public"."notificat
 CREATE INDEX "notification_preferences_userId_idx" ON "public"."notification_preferences"("userId");
 
 -- CreateIndex
+CREATE INDEX "notification_preferences_emailDigestFrequency_idx" ON "public"."notification_preferences"("emailDigestFrequency");
+
+-- CreateIndex
+CREATE INDEX "notification_preferences_pushEnabled_idx" ON "public"."notification_preferences"("pushEnabled");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "referrals_referredUserId_key" ON "public"."referrals"("referredUserId");
 
 -- CreateIndex
@@ -2564,6 +2600,15 @@ CREATE INDEX "posts_deleted_published_publishedAt_idx" ON "public"."posts"("dele
 
 -- CreateIndex
 CREATE INDEX "posts_moderationStatus_createdAt_idx" ON "public"."posts"("moderationStatus", "createdAt" DESC);
+
+-- CreateIndex
+CREATE INDEX "posts_authorId_contentStatus_deleted_idx" ON "public"."posts"("authorId", "contentStatus", "deleted");
+
+-- CreateIndex
+CREATE INDEX "posts_categoryId_published_views_idx" ON "public"."posts"("categoryId", "published", "views" DESC);
+
+-- CreateIndex
+CREATE INDEX "posts_featured_published_createdAt_idx" ON "public"."posts"("featured", "published", "createdAt" DESC);
 
 -- CreateIndex
 CREATE INDEX "scheduled_actions_scheduledFor_status_idx" ON "public"."scheduled_actions"("scheduledFor", "status");
@@ -2663,6 +2708,12 @@ CREATE INDEX "comments_youtubeTimestamp_idx" ON "public"."comments"("youtubeTime
 
 -- CreateIndex
 CREATE INDEX "comments_moderationStatus_deleted_idx" ON "public"."comments"("moderationStatus", "deleted");
+
+-- CreateIndex
+CREATE INDEX "comments_postId_parentId_createdAt_idx" ON "public"."comments"("postId", "parentId", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "comments_authorId_deleted_createdAt_idx" ON "public"."comments"("authorId", "deleted", "createdAt" DESC);
 
 -- CreateIndex
 CREATE INDEX "reactions_postId_idx" ON "public"."reactions"("postId");
@@ -3052,6 +3103,12 @@ CREATE INDEX "groups_visibility_deleted_idx" ON "public"."groups"("visibility", 
 CREATE INDEX "groups_isFeatured_deleted_idx" ON "public"."groups"("isFeatured", "deleted");
 
 -- CreateIndex
+CREATE INDEX "groups_autoApproveMembers_idx" ON "public"."groups"("autoApproveMembers");
+
+-- CreateIndex
+CREATE INDEX "groups_requirePostApproval_idx" ON "public"."groups"("requirePostApproval");
+
+-- CreateIndex
 CREATE INDEX "group_members_groupId_role_idx" ON "public"."group_members"("groupId", "role");
 
 -- CreateIndex
@@ -3094,6 +3151,9 @@ CREATE INDEX "events_slug_idx" ON "public"."events"("slug");
 CREATE INDEX "events_deleted_idx" ON "public"."events"("deleted");
 
 -- CreateIndex
+CREATE INDEX "events_recurrenceType_idx" ON "public"."events"("recurrenceType");
+
+-- CreateIndex
 CREATE INDEX "event_attendees_eventId_status_idx" ON "public"."event_attendees"("eventId", "status");
 
 -- CreateIndex
@@ -3112,10 +3172,16 @@ CREATE INDEX "conversations_lastMessageAt_idx" ON "public"."conversations"("last
 CREATE INDEX "conversations_deleted_idx" ON "public"."conversations"("deleted");
 
 -- CreateIndex
+CREATE INDEX "conversations_isArchived_lastMessageAt_idx" ON "public"."conversations"("isArchived", "lastMessageAt" DESC);
+
+-- CreateIndex
 CREATE INDEX "conversation_participants_conversationId_idx" ON "public"."conversation_participants"("conversationId");
 
 -- CreateIndex
 CREATE INDEX "conversation_participants_userId_isPinned_idx" ON "public"."conversation_participants"("userId", "isPinned");
+
+-- CreateIndex
+CREATE INDEX "conversation_participants_userId_unreadCount_lastReadAt_idx" ON "public"."conversation_participants"("userId", "unreadCount", "lastReadAt");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "conversation_participants_conversationId_userId_key" ON "public"."conversation_participants"("conversationId", "userId");
@@ -3125,6 +3191,9 @@ CREATE INDEX "messages_conversationId_createdAt_idx" ON "public"."messages"("con
 
 -- CreateIndex
 CREATE INDEX "messages_senderId_idx" ON "public"."messages"("senderId");
+
+-- CreateIndex
+CREATE INDEX "messages_conversationId_status_createdAt_idx" ON "public"."messages"("conversationId", "status", "createdAt");
 
 -- CreateIndex
 CREATE INDEX "message_reads_userId_idx" ON "public"."message_reads"("userId");
