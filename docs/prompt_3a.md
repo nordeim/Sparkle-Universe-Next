@@ -17,6 +17,11 @@ awesome job! please help me to carefully and meticulously review and validate th
 awesome job! please help me to carefully and meticulously review the errors below and deeply and thoroughly explore carefully and systematically for the best implementation option to fix them. please review the `schema.prisma` v3.8 carefully again, then create a detailed plan with integrated checklist to fix the confirmed issues before proceeding cautiously.
 
 ---
+awesome job! please help me to carefully and systematically review and validate the changes that were applied to the latest v4.2 release of the `prisma/schema.prisma` file.
+
+Below is "diff" command output comparing the current version 4.1 with your generated version 4.0. Please double-check and validate that the changes are valid and that no other original features or functions are lost (omitted). use the same rigorous and meticulous approach to review the diff output below.
+
+---
 awesome rigorous and meticulous job! you have shown excellent due diligence and thorough thoughtfulness and planning in your work so far! please keep up the good work!
 
 Below is "diff" command output comparing the previous version with your latest generated version. Please double-check and validate that the changes are valid and that no other original features or functions are lost (omitted). use the same rigorous and meticulous approach to review the diff output below.
