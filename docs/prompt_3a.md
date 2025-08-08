@@ -43,3 +43,6 @@ awesome job! please use the same rigorous and meticulous approach to create the 
 
 ---
 awesome job! the Dev team has taken your final feedback and verdict to "re-work" their database enhancement migration plan. please use the same rigorous and meticulous approach to deeply and thoroughly review the "re-worked" migration plan below. give me your detailed comprehensive assessment on the updated migration plan below after very careful and systematic review and validation using very thorough line by line code review.
+
+---
+awesome job! please use the same rigorous and meticulous approach to put on your deep-thinking hat to deeply review and thoroughly explore carefully and systematically for the best implementation option to fix the following errors. please carefully and methodically validate the errors against the current schema and the migration scripts, think and explore deeply for a solution, then create a detailed execution plan before proceeding cautiously according to the plan.
