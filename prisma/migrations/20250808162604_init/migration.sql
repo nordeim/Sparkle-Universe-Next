@@ -117,7 +117,7 @@ CREATE TABLE "public"."users" (
     "deletedBy" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "creatorRevenueShare" DECIMAL(5,4) NOT NULL DEFAULT 0.7000,
+    "creatorRevenueShare" DECIMAL(19,4) NOT NULL DEFAULT 0.7000,
     "totalRevenueEarned" BIGINT NOT NULL DEFAULT 0,
     "lastPayoutDate" TIMESTAMP(3),
 
@@ -1519,6 +1519,7 @@ CREATE TABLE "public"."group_posts" (
     "reactionCount" INTEGER NOT NULL DEFAULT 0,
     "commentCount" INTEGER NOT NULL DEFAULT 0,
     "moderationStatus" "public"."ModerationStatus" NOT NULL DEFAULT 'AUTO_APPROVED',
+    "version" INTEGER NOT NULL DEFAULT 0,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -2425,7 +2426,7 @@ CREATE INDEX "users_createdAt_idx" ON "public"."users"("createdAt");
 CREATE INDEX "users_role_verified_createdAt_idx" ON "public"."users"("role", "verified", "createdAt" DESC);
 
 -- CreateIndex
-CREATE INDEX "users_deleted_status_lastSeenAt_onlineStatus_idx" ON "public"."users"("deleted", "status", "lastSeenAt", "onlineStatus");
+CREATE INDEX "users_deleted_status_onlineStatus_lastSeenAt_idx" ON "public"."users"("deleted", "status", "onlineStatus", "lastSeenAt" DESC);
 
 -- CreateIndex
 CREATE UNIQUE INDEX "user_stats_userId_key" ON "public"."user_stats"("userId");
@@ -2812,6 +2813,9 @@ CREATE INDEX "notifications_userId_priority_read_createdAt_idx" ON "public"."not
 CREATE INDEX "notifications_userId_type_createdAt_idx" ON "public"."notifications"("userId", "type", "createdAt" DESC);
 
 -- CreateIndex
+CREATE INDEX "notifications_expiresAt_dismissed_idx" ON "public"."notifications"("expiresAt", "dismissed");
+
+-- CreateIndex
 CREATE INDEX "notification_queue_scheduledFor_processedAt_idx" ON "public"."notification_queue"("scheduledFor", "processedAt");
 
 -- CreateIndex
@@ -2966,6 +2970,9 @@ CREATE INDEX "trades_status_idx" ON "public"."trades"("status");
 
 -- CreateIndex
 CREATE INDEX "trades_deleted_idx" ON "public"."trades"("deleted");
+
+-- CreateIndex
+CREATE INDEX "trades_status_expiresAt_idx" ON "public"."trades"("status", "expiresAt");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "quests_code_key" ON "public"."quests"("code");
@@ -3917,6 +3924,9 @@ ALTER TABLE "public"."ai_assistant_conversations" ADD CONSTRAINT "ai_assistant_c
 
 -- AddForeignKey
 ALTER TABLE "public"."reports" ADD CONSTRAINT "reports_reporterId_fkey" FOREIGN KEY ("reporterId") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."reports" ADD CONSTRAINT "reports_reportedUserId_fkey" FOREIGN KEY ("reportedUserId") REFERENCES "public"."users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."reports" ADD CONSTRAINT "reports_resolvedBy_fkey" FOREIGN KEY ("resolvedBy") REFERENCES "public"."users"("id") ON DELETE SET NULL ON UPDATE CASCADE;

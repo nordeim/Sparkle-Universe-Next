@@ -1,7 +1,8 @@
 // prisma/schema.prisma
 // =====================================================
 // Sparkle Universe Complete Prisma Schema
-// Version 4.3 - Performance Optimization & Query Strategy Release
+// Fixes for confirmed issues from comprehensive review
+// Version 4.4 - Performance Optimization & Query Strategy Release
 // Changes: Added strategic composite indexes for common query patterns,
 //          Enhanced User model documentation with query strategies,
 //          Added JSON GIN index requirements documentation,
@@ -325,7 +326,7 @@ model User {
   updatedAt         DateTime   @updatedAt
 
   // --- Creator Monetization Fields ---
-  creatorRevenueShare Decimal   @default(0.7000) @db.Decimal(5, 4)
+  creatorRevenueShare Decimal   @default(0.7000) @db.Decimal(19, 4)  // FIXED: Standardized precision
   totalRevenueEarned  BigInt    @default(0)
   lastPayoutDate      DateTime?
 
@@ -378,6 +379,7 @@ model User {
   experimentAssignments    ExperimentAssignment[]
   moderationReviews        AiModerationQueue[]       @relation("moderationReviewer")
   reports                  Report[]                  @relation("reporter")
+  reportedReports          Report[]                  @relation("reportedUser")  // NEW
   reportResolutions        Report[]                  @relation("resolver")
   siteSettingUpdates       SiteSetting[]
   postSeries               PostSeries[]
@@ -424,16 +426,17 @@ model User {
   // --- Scheduling Relations ---
   recurringSchedules RecurringSchedule[]
 
-  // v4.3: Enhanced indexes for common query patterns
+  // OPTIMIZED INDEXES - Remove redundant, combine where possible
   @@index([email])
   @@index([username])
-  @@index([deleted, status, role, lastSeenAt(sort: Desc)])
+  @@index([deleted, status, role, lastSeenAt(sort: Desc)])  // Keep most comprehensive
+  // REMOVED: @@index([deleted, status, lastSeenAt, onlineStatus]) // Redundant with above
   @@index([deleted, level, experience(sort: Desc)])
   @@index([status, onlineStatus, lastSeenAt(sort: Desc)])
   @@index([createdAt])
-  // v4.3: New composite indexes for specific features
-  @@index([role, verified, createdAt(sort: Desc)]) // Creator discovery
-  @@index([deleted, status, lastSeenAt, onlineStatus]) // Active users
+  @@index([role, verified, createdAt(sort: Desc)])
+  // OPTIMIZED: Combine related indexes
+  @@index([deleted, status, onlineStatus, lastSeenAt(sort: Desc)])  // NEW: Combined index
   @@map("users")
 }
 
@@ -1365,6 +1368,8 @@ model Notification {
   // v4.3: Additional composite indexes
   @@index([userId, priority, read, createdAt(sort: Desc)]) // Priority unread
   @@index([userId, type, createdAt(sort: Desc)]) // By type queries
+  // NEW: Add index for cleanup operations
+  @@index([expiresAt, dismissed])
   @@map("notifications")
 }
 
@@ -1827,6 +1832,8 @@ model Trade {
   @@index([recipientId, status])
   @@index([status])
   @@index([deleted])
+  // NEW: Add index for active trades
+  @@index([status, expiresAt])
   @@map("trades")
 }
 
@@ -2094,20 +2101,21 @@ model WatchPartyParticipant {
   @@map("watch_party_participants")
 }
 
+// FIX: Ensure relation names are properly defined
 model WatchPartyChat {
   id        String    @id @default(cuid())
   partyId   String
   userId    String
   message   String    @db.Text
-  timestamp Int // Video timestamp when message was sent
+  timestamp Int
   replyToId String?
-  reactions Json? // Quick reactions to messages
+  reactions Json?
   deleted   Boolean   @default(false)
   deletedAt DateTime?
   deletedBy String?
   createdAt DateTime  @default(now())
 
-  // Relations
+  // Relations - FIXED: Consistent relation naming
   party   WatchParty       @relation(fields: [partyId], references: [id], onDelete: Cascade)
   user    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   replyTo WatchPartyChat?  @relation("WatchPartyChatReplies", fields: [replyToId], references: [id], onDelete: SetNull)
@@ -2321,6 +2329,7 @@ model GroupPost {
   reactionCount    Int              @default(0)
   commentCount     Int              @default(0)
   moderationStatus ModerationStatus @default(AUTO_APPROVED)
+  version          Int              @default(0)  // NEW: Add optimistic locking
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
@@ -3072,10 +3081,10 @@ model AiAssistantConversation {
 // =====================================================
 
 model Report {
-  id              String           @id @default(cuid())
-  reporterId      String
-  reportedUserId  String?
-  reportedPostId  String?
+  id                String           @id @default(cuid())
+  reporterId        String
+  reportedUserId    String?
+  reportedPostId    String?
   reportedCommentId String?
   reason          ReportReason
   subreason       String?
@@ -3097,11 +3106,12 @@ model Report {
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
 
-  // Relations - Fixed to use separate fields
-  reporter User     @relation("reporter", fields: [reporterId], references: [id], onDelete: Cascade)
-  resolver User?    @relation("resolver", fields: [resolvedBy], references: [id], onDelete: SetNull)
-  post     Post?    @relation("reportedPost", fields: [reportedPostId], references: [id], onDelete: Cascade)
-  comment  Comment? @relation("reportedComment", fields: [reportedCommentId], references: [id], onDelete: Cascade)
+  // Relations - FIXED: Added missing reportedUser relation
+  reporter     User     @relation("reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  reportedUser User?    @relation("reportedUser", fields: [reportedUserId], references: [id], onDelete: SetNull)  // NEW
+  resolver     User?    @relation("resolver", fields: [resolvedBy], references: [id], onDelete: SetNull)
+  post         Post?    @relation("reportedPost", fields: [reportedPostId], references: [id], onDelete: Cascade)
+  comment      Comment? @relation("reportedComment", fields: [reportedCommentId], references: [id], onDelete: Cascade)
 
   @@index([status, priority])
   @@index([entityType])
