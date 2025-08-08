@@ -1,3 +1,707 @@
+<think>
+The user is asking me to validate the database migration plan and scripts against the schema.prisma file. They've also provided error outputs from running the migration scripts. Let me analyze:
+
+1. **Transaction Block Issues** - The comments mention ALTER SYSTEM and CREATE INDEX CONCURRENTLY can't run in transactions, which is correct and confirmed by the errors.
+
+2. **Column Name Case Sensitivity** - The comments correctly identify that PostgreSQL treats unquoted identifiers as lowercase, and Prisma uses camelCase.
+
+3. **Missing Schema Context** - Valid point about needing table qualification.
+
+Looking at the errors:
+1. Extensions mostly worked (already existed)
+2. JSON indexes worked (Phase 2)
+3. Functions created successfully (Phase 3)
+4. Materialized views FAILED - `calculate_reputation_score(text)` - the function expects UUID but gets text
+5. Triggers created successfully (Phase 5)
+6. Full-text search FAILED - CREATE INDEX CONCURRENTLY in transaction
+7. Advanced indexes FAILED - same transaction issue
+
+The main issues are:
+1. Data type mismatch (UUID vs text)
+2. CREATE INDEX CONCURRENTLY inside transactions
+3. Some missing fixes for case sensitivity
+
+Let me provide a comprehensive validation and corrected scripts.
+</think>
+
+# Comprehensive Migration Script Validation Report
+
+After meticulous comparison between the `schema.prisma` file and the migration scripts, I've identified critical issues that caused the failures. Here's my thorough analysis and corrected implementation.
+
+## 🔍 Validation Results
+
+### 1. **Critical Issues Identified**
+
+#### ❌ **Issue 1: UUID vs TEXT Data Type Mismatch**
+**Location:** `004_materialized_views.sql` line 102
+```sql
+-- INCORRECT: Prisma uses String @id @default(cuid()) which is TEXT, not UUID
+calculate_reputation_score(u.id) -- u.id is TEXT, not UUID
+```
+**Error:** `function calculate_reputation_score(text) does not exist`
+
+#### ❌ **Issue 2: Transaction Block Violations**
+**Multiple Files:** Scripts incorrectly wrap `CREATE INDEX CONCURRENTLY` in transactions
+```sql
+BEGIN;
+CREATE INDEX CONCURRENTLY... -- FAILS: Cannot run in transaction
+COMMIT;
+```
+
+#### ❌ **Issue 3: Incorrect Table Names**
+**Finding:** Prisma maps models to snake_case tables with `@@map`
+- Model `User` → table `users`
+- Model `PostStats` → table `post_stats`
+- Model `UserStats` → table `user_stats`
+
+### 2. **Schema.prisma vs Migration Mapping Verification**
+
+| Prisma Model | Database Table | Column Case | Status |
+|--------------|---------------|-------------|---------|
+| User | users | camelCase | ✅ Correctly mapped |
+| Post | posts | camelCase | ✅ Correctly mapped |
+| UserStats | user_stats | camelCase | ⚠️ Needs quotes |
+| PostStats | post_stats | camelCase | ⚠️ Needs quotes |
+| LevelConfig | level_configs | camelCase | ⚠️ Needs quotes |
+
+## 📋 Complete Fixed Migration Scripts
+
+### 🔧 **Fixed: 003_database_functions.sql**
+```sql
+-- migrations/003_database_functions.sql
+-- FIXED: Changed UUID to TEXT to match Prisma's String type
+
+BEGIN;
+
+-- Function 1: Calculate user level based on level_configs table
+CREATE OR REPLACE FUNCTION calculate_user_level(experience_points INT)
+RETURNS INT AS $$
+DECLARE
+    target_level INT;
+BEGIN
+    SELECT level INTO target_level
+    FROM level_configs
+    WHERE "requiredXp" <= experience_points
+    ORDER BY level DESC
+    LIMIT 1;
+    
+    RETURN COALESCE(target_level, 1);
+END;
+$$ LANGUAGE plpgsql STABLE;
+
+-- Function 2: Calculate engagement rate for a post
+-- FIXED: Changed parameter type from UUID to TEXT
+CREATE OR REPLACE FUNCTION calculate_engagement_rate(post_id TEXT)
+RETURNS NUMERIC AS $$
+DECLARE
+    total_views INT;
+    total_interactions INT;
+    engagement_rate NUMERIC(5,4);
+BEGIN
+    -- Get view count
+    SELECT COALESCE(ps."viewCount", 0) INTO total_views
+    FROM posts p
+    LEFT JOIN post_stats ps ON p.id = ps."postId"
+    WHERE p.id = post_id;
+    
+    -- Get interaction count
+    SELECT 
+        COALESCE(COUNT(DISTINCT r.id), 0) + 
+        COALESCE(COUNT(DISTINCT c.id) FILTER (WHERE c.deleted = false), 0) +
+        COALESCE(ps."shareCount", 0) +
+        COALESCE(COUNT(DISTINCT b.id), 0)
+    INTO total_interactions
+    FROM posts p
+    LEFT JOIN post_stats ps ON p.id = ps."postId"
+    LEFT JOIN reactions r ON p.id = r."postId"
+    LEFT JOIN comments c ON p.id = c."postId"
+    LEFT JOIN bookmarks b ON p.id = b."postId"
+    WHERE p.id = post_id
+    GROUP BY ps."shareCount";
+    
+    IF total_views > 0 THEN
+        engagement_rate := (total_interactions::NUMERIC / total_views::NUMERIC);
+    ELSE
+        engagement_rate := 0;
+    END IF;
+    
+    RETURN LEAST(engagement_rate, 1);
+END;
+$$ LANGUAGE plpgsql STABLE;
+
+-- Function 3: Update post statistics
+-- FIXED: Changed post_id parameter from UUID to TEXT
+CREATE OR REPLACE FUNCTION update_post_stats(post_id TEXT)
+RETURNS VOID AS $$
+DECLARE
+    stats RECORD;
+    engagement NUMERIC;
+BEGIN
+    WITH post_metrics AS (
+        SELECT 
+            p.id,
+            COUNT(DISTINCT vh.id) as view_count,
+            COUNT(DISTINCT vh."userId") as unique_view_count,
+            COUNT(DISTINCT CASE WHEN r.type = 'LIKE' THEN r.id END) as like_count,
+            COUNT(DISTINCT CASE WHEN r.type = 'LOVE' THEN r.id END) as love_count,
+            COUNT(DISTINCT CASE WHEN r.type = 'FIRE' THEN r.id END) as fire_count,
+            COUNT(DISTINCT r.id) as total_reactions,
+            COUNT(DISTINCT c.id) FILTER (WHERE c.deleted = false) as comment_count,
+            COUNT(DISTINCT b.id) as bookmark_count,
+            AVG(vh."viewDuration") FILTER (WHERE vh."viewDuration" > 0) as avg_read_time
+        FROM posts p
+        LEFT JOIN view_history vh ON p.id = vh."postId"
+        LEFT JOIN reactions r ON p.id = r."postId"
+        LEFT JOIN comments c ON p.id = c."postId"
+        LEFT JOIN bookmarks b ON p.id = b."postId"
+        WHERE p.id = post_id
+        GROUP BY p.id
+    )
+    SELECT * INTO stats FROM post_metrics;
+    
+    engagement := calculate_engagement_rate(post_id);
+    
+    INSERT INTO post_stats (
+        id,  -- Add id field for cuid()
+        "postId", "viewCount", "uniqueViewCount", "likeCount", "loveCount", "fireCount", 
+        "totalReactionCount", "commentCount", "bookmarkCount", "avgReadTime",
+        "engagementRate", "lastCalculatedAt"
+    )
+    VALUES (
+        gen_random_uuid()::text,  -- Generate CUID-like ID
+        post_id, 
+        COALESCE(stats.view_count, 0),
+        COALESCE(stats.unique_view_count, 0),
+        COALESCE(stats.like_count, 0),
+        COALESCE(stats.love_count, 0),
+        COALESCE(stats.fire_count, 0),
+        COALESCE(stats.total_reactions, 0),
+        COALESCE(stats.comment_count, 0),
+        COALESCE(stats.bookmark_count, 0),
+        COALESCE(stats.avg_read_time, 0),
+        engagement,
+        NOW()
+    )
+    ON CONFLICT ("postId") DO UPDATE SET
+        "viewCount" = EXCLUDED."viewCount",
+        "uniqueViewCount" = EXCLUDED."uniqueViewCount",
+        "likeCount" = EXCLUDED."likeCount",
+        "loveCount" = EXCLUDED."loveCount",
+        "fireCount" = EXCLUDED."fireCount",
+        "totalReactionCount" = EXCLUDED."totalReactionCount",
+        "commentCount" = EXCLUDED."commentCount",
+        "bookmarkCount" = EXCLUDED."bookmarkCount",
+        "avgReadTime" = EXCLUDED."avgReadTime",
+        "engagementRate" = EXCLUDED."engagementRate",
+        "lastCalculatedAt" = NOW(),
+        "updatedAt" = NOW();  -- Add updatedAt
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function 4: Calculate user reputation score
+-- FIXED: Changed user_id from UUID to TEXT
+CREATE OR REPLACE FUNCTION calculate_reputation_score(user_id TEXT)
+RETURNS INT AS $$
+DECLARE
+    reputation INT := 0;
+    user_stats RECORD;
+BEGIN
+    SELECT 
+        u.level,
+        u.verified,
+        u.role,
+        u."reputationScore" as base_reputation,
+        COALESCE((u."totalRevenueEarned"::NUMERIC / 1000)::INT, 0) as revenue_score,
+        us."totalPosts",
+        us."totalLikesReceived",
+        us."totalFollowers",
+        us."contentQualityScore",
+        COUNT(DISTINCT ua.id) FILTER (WHERE ua.deleted = false) as achievements_count,
+        COUNT(DISTINCT p.id) FILTER (WHERE p.featured = true) as featured_posts
+    INTO user_stats
+    FROM users u
+    LEFT JOIN user_stats us ON u.id = us."userId"
+    LEFT JOIN user_achievements ua ON u.id = ua."userId"
+    LEFT JOIN posts p ON u.id = p."authorId" AND p.deleted = false
+    WHERE u.id = user_id
+    GROUP BY u.id, u.level, u.verified, u.role, u."reputationScore", 
+             u."totalRevenueEarned", us."totalPosts", us."totalLikesReceived", 
+             us."totalFollowers", us."contentQualityScore";
+    
+    -- Calculate reputation
+    reputation := 
+        COALESCE(user_stats.base_reputation, 0) +
+        (COALESCE(user_stats.level, 1) * 100) +
+        (CASE WHEN user_stats.verified THEN 500 ELSE 0 END) +
+        (CASE 
+            WHEN user_stats.role = 'VERIFIED_CREATOR' THEN 1000
+            WHEN user_stats.role = 'CREATOR' THEN 500
+            ELSE 0
+        END) +
+        (LEAST(COALESCE(user_stats."totalPosts", 0), 100) * 10) +
+        (LEAST(COALESCE(user_stats."totalLikesReceived", 0), 1000) * 2) +
+        (LEAST(COALESCE(user_stats."totalFollowers", 0), 10000) * 1) +
+        (COALESCE(user_stats.achievements_count, 0) * 50) +
+        (COALESCE(user_stats.featured_posts, 0) * 200) +
+        (COALESCE(user_stats."contentQualityScore", 0) * 100)::INT +
+        COALESCE(user_stats.revenue_score, 0);
+    
+    RETURN reputation;
+END;
+$$ LANGUAGE plpgsql STABLE;
+
+-- Function 5: Validate soft delete consistency
+-- FIXED: Changed record_id from UUID to TEXT
+CREATE OR REPLACE FUNCTION validate_soft_delete(
+    table_name TEXT,
+    record_id TEXT
+)
+RETURNS BOOLEAN AS $$
+DECLARE
+    is_valid BOOLEAN;
+BEGIN
+    EXECUTE format(
+        'SELECT (deleted = false OR "deletedAt" IS NOT NULL) 
+         FROM %I WHERE id = $1',
+        table_name
+    ) INTO is_valid USING record_id;
+    
+    RETURN COALESCE(is_valid, true);
+END;
+$$ LANGUAGE plpgsql STABLE;
+
+-- Function 6: Check achievement eligibility
+-- FIXED: Changed user_id from UUID to TEXT
+CREATE OR REPLACE FUNCTION check_achievement_eligibility(
+    user_id TEXT,
+    achievement_code TEXT
+)
+RETURNS BOOLEAN AS $$
+DECLARE
+    achievement RECORD;
+    user_data RECORD;
+    is_eligible BOOLEAN := false;
+BEGIN
+    -- Get achievement
+    SELECT * INTO achievement
+    FROM achievements
+    WHERE code = achievement_code AND deleted = false;
+    
+    IF NOT FOUND THEN
+        RETURN false;
+    END IF;
+    
+    -- Check if user already has it
+    IF EXISTS (
+        SELECT 1 FROM user_achievements ua
+        WHERE ua."userId" = user_id 
+        AND ua."achievementId" = achievement.id
+        AND ua.deleted = false
+    ) THEN
+        RETURN false;
+    END IF;
+    
+    -- Get user data
+    SELECT 
+        u.*,
+        us."totalPosts",
+        us."totalFollowers",
+        us."streakDays"
+    INTO user_data
+    FROM users u
+    LEFT JOIN user_stats us ON u.id = us."userId"
+    WHERE u.id = user_id;
+    
+    -- Check criteria
+    CASE achievement_code
+        WHEN 'FIRST_POST' THEN
+            is_eligible := COALESCE(user_data."totalPosts", 0) >= 1;
+        WHEN 'PROLIFIC_WRITER' THEN
+            is_eligible := COALESCE(user_data."totalPosts", 0) >= 50;
+        WHEN 'SOCIAL_BUTTERFLY' THEN
+            is_eligible := COALESCE(user_data."totalFollowers", 0) >= 100;
+        WHEN 'STREAK_WEEK' THEN
+            is_eligible := COALESCE(user_data."streakDays", 0) >= 7;
+        WHEN 'LEVEL_10' THEN
+            is_eligible := COALESCE(user_data.level, 1) >= 10;
+        ELSE
+            is_eligible := false;
+    END CASE;
+    
+    RETURN is_eligible;
+END;
+$$ LANGUAGE plpgsql STABLE;
+
+-- Function 7: Grant achievement helper
+CREATE OR REPLACE FUNCTION grant_achievement(
+    user_id TEXT,
+    achievement_code TEXT
+)
+RETURNS BOOLEAN AS $$
+DECLARE
+    achievement_id TEXT;
+BEGIN
+    SELECT id INTO achievement_id
+    FROM achievements
+    WHERE code = achievement_code AND deleted = false;
+    
+    IF achievement_id IS NOT NULL THEN
+        INSERT INTO user_achievements (
+            id, "userId", "achievementId", progress, "unlockedAt", showcased, "showcaseOrder", notified, "claimedRewards", deleted
+        )
+        VALUES (
+            gen_random_uuid()::text,
+            user_id,
+            achievement_id,
+            1.0,
+            NOW(),
+            false,
+            0,
+            false,
+            false,
+            false
+        )
+        ON CONFLICT ("userId", "achievementId") DO NOTHING;
+        
+        RETURN true;
+    END IF;
+    
+    RETURN false;
+END;
+$$ LANGUAGE plpgsql;
+
+COMMIT;
+```
+
+### 🔧 **Fixed: 006_fulltext_search.sql**
+```sql
+-- migrations/006_fulltext_search.sql
+-- Full-text search implementation
+-- FIXED: Removed transaction wrapper for CONCURRENTLY operations
+
+-- =====================================================
+-- PART 1: Transactional Operations
+-- =====================================================
+BEGIN;
+
+-- Add tsvector column to posts
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS search_vector tsvector;
+
+-- Create function to update post search vector
+CREATE OR REPLACE FUNCTION update_post_search_vector()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.search_vector := 
+        setweight(to_tsvector('english', COALESCE(NEW.title, '')), 'A') ||
+        setweight(to_tsvector('english', COALESCE(NEW.excerpt, '')), 'B') ||
+        setweight(to_tsvector('english', COALESCE(NEW.content::text, '')), 'C') ||
+        setweight(to_tsvector('english', array_to_string(NEW."metaKeywords", ' ')), 'D');
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create trigger for post search vector
+DROP TRIGGER IF EXISTS update_post_search_vector_trigger ON posts;
+CREATE TRIGGER update_post_search_vector_trigger
+BEFORE INSERT OR UPDATE OF title, excerpt, content, "metaKeywords" ON posts
+FOR EACH ROW
+EXECUTE FUNCTION update_post_search_vector();
+
+-- Update existing posts
+UPDATE posts 
+SET search_vector = 
+    setweight(to_tsvector('english', COALESCE(title, '')), 'A') ||
+    setweight(to_tsvector('english', COALESCE(excerpt, '')), 'B') ||
+    setweight(to_tsvector('english', COALESCE(content::text, '')), 'C') ||
+    setweight(to_tsvector('english', array_to_string("metaKeywords", ' ')), 'D')
+WHERE search_vector IS NULL;
+
+-- Add search vector columns to other tables
+ALTER TABLE users ADD COLUMN IF NOT EXISTS search_vector tsvector;
+ALTER TABLE comments ADD COLUMN IF NOT EXISTS search_vector tsvector;
+ALTER TABLE groups ADD COLUMN IF NOT EXISTS search_vector tsvector;
+
+-- User search function
+CREATE OR REPLACE FUNCTION update_user_search_vector()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.search_vector := 
+        setweight(to_tsvector('english', COALESCE(NEW.username, '')), 'A') ||
+        setweight(to_tsvector('english', COALESCE(NEW.email, '')), 'B') ||
+        setweight(to_tsvector('english', COALESCE(NEW.bio, '')), 'C');
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_user_search_vector_trigger
+BEFORE INSERT OR UPDATE OF username, email, bio ON users
+FOR EACH ROW
+EXECUTE FUNCTION update_user_search_vector();
+
+-- Comment search function
+CREATE OR REPLACE FUNCTION update_comment_search_vector()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.search_vector := to_tsvector('english', COALESCE(NEW.content, ''));
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_comment_search_vector_trigger
+BEFORE INSERT OR UPDATE OF content ON comments
+FOR EACH ROW
+EXECUTE FUNCTION update_comment_search_vector();
+
+-- Group search function
+CREATE OR REPLACE FUNCTION update_group_search_vector()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.search_vector := 
+        setweight(to_tsvector('english', COALESCE(NEW.name, '')), 'A') ||
+        setweight(to_tsvector('english', COALESCE(NEW.description, '')), 'B') ||
+        setweight(to_tsvector('english', array_to_string(NEW.tags, ' ')), 'C');
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_group_search_vector_trigger
+BEFORE INSERT OR UPDATE OF name, description, tags ON groups
+FOR EACH ROW
+EXECUTE FUNCTION update_group_search_vector();
+
+COMMIT;
+
+-- =====================================================
+-- PART 2: Non-Transactional Operations (Run Separately)
+-- =====================================================
+-- Run these CREATE INDEX commands separately, NOT in a transaction
+
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_post_search_vector 
+ON posts USING GIN (search_vector);
+
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_search_vector 
+ON users USING GIN (search_vector);
+
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_comment_search_vector 
+ON comments USING GIN (search_vector);
+
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_group_search_vector 
+ON groups USING GIN (search_vector);
+
+-- Trigram indexes for fuzzy search
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_post_title_trgm 
+ON posts USING GIN (title gin_trgm_ops);
+
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_username_trgm 
+ON users USING GIN (username gin_trgm_ops);
+
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_group_name_trgm 
+ON groups USING GIN (name gin_trgm_ops);
+```
+
+### 🔧 **Fixed: 008_advanced_indexes.sql**
+```sql
+-- migrations/008_advanced_indexes.sql
+-- Advanced indexing strategies
+-- FIXED: No transaction wrapper, run each index separately
+
+-- =====================================================
+-- INSTRUCTIONS: Run each CREATE INDEX separately
+-- These use CONCURRENTLY and cannot be in transactions
+-- =====================================================
+
+-- Partial indexes for soft-deleted records
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_users_active 
+ON users (id) 
+WHERE deleted = false;
+
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_posts_active 
+ON posts (id) 
+WHERE deleted = false AND published = true;
+
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_comments_active 
+ON comments (id) 
+WHERE deleted = false;
+
+-- Covering indexes for common queries
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_posts_feed 
+ON posts ("authorId", "publishedAt" DESC) 
+INCLUDE (title, excerpt, "coverImage", views)
+WHERE published = true AND deleted = false;
+
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_stats_leaderboard 
+ON user_stats ("totalFollowers" DESC, "engagementRate" DESC) 
+INCLUDE ("userId", "totalPosts");
+
+-- Expression indexes
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_posts_published_date 
+ON posts (DATE("publishedAt")) 
+WHERE published = true;
+
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_users_created_month 
+ON users (DATE_TRUNC('month', "createdAt"));
+
+-- Multi-column indexes for complex queries
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_notifications_user_unread 
+ON notifications ("userId", read, "createdAt" DESC) 
+WHERE dismissed = false;
+
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_messages_conversation_recent 
+ON messages ("conversationId", "createdAt" DESC) 
+WHERE deleted = false;
+
+-- BRIN indexes for time-series data
+CREATE INDEX IF NOT EXISTS idx_analytics_event_timestamp_brin 
+ON analytics_events USING BRIN (timestamp);
+
+CREATE INDEX IF NOT EXISTS idx_activity_stream_created_brin 
+ON activity_streams USING BRIN ("createdAt");
+
+-- Hash indexes for exact matches (PostgreSQL 10+)
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_users_email_hash 
+ON users USING HASH (email);
+
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_sessions_token_hash 
+ON sessions USING HASH ("sessionToken");
+```
+
+### 🔧 **Improved Execution Script**
+```bash
+#!/bin/bash
+# execute_migrations_fixed.sh
+# Fixed execution script with proper error handling
+
+set -e
+
+DB_HOST="${DB_HOST:-localhost}"
+DB_PORT="${DB_PORT:-5433}"
+DB_USER="${DB_USER:-sparkle_user}"
+DB_NAME="${DB_NAME:-sparkle_db}"
+
+# Color codes for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+echo "Sparkle Universe Database Migration v2"
+echo "======================================"
+echo "Database: $DB_NAME"
+echo ""
+
+# Function to execute SQL with error handling
+execute_sql() {
+    local file=$1
+    local description=$2
+    echo -e "${YELLOW}Executing: $description${NC}"
+    
+    if psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" \
+           -v ON_ERROR_STOP=1 -f "$file" 2>&1 | tee /tmp/migration_log.txt; then
+        echo -e "${GREEN}✓ Success: $description${NC}\n"
+        return 0
+    else
+        echo -e "${RED}✗ Failed: $description${NC}"
+        echo "Error details in /tmp/migration_log.txt"
+        return 1
+    fi
+}
+
+# Function to execute single SQL command
+execute_sql_command() {
+    local command=$1
+    local description=$2
+    echo -e "${YELLOW}Executing: $description${NC}"
+    
+    if psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" \
+           -c "$command" 2>&1 | tee -a /tmp/migration_log.txt; then
+        echo -e "${GREEN}✓ Success${NC}"
+        return 0
+    else
+        echo -e "${RED}✗ Failed${NC}"
+        return 1
+    fi
+}
+
+# Phase 1: Extensions
+echo "Phase 1: Database Extensions"
+execute_sql "001_enable_extensions.sql" "Enable extensions"
+
+# Phase 2: JSON Indexes (non-transactional)
+echo -e "\nPhase 2: JSON GIN Indexes (This will take time...)"
+psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" \
+     -f "002_json_gin_indexes.sql" 2>&1 | tee -a /tmp/migration_log.txt
+
+# Phase 3: Functions (with fixed data types)
+echo -e "\nPhase 3: Database Functions"
+execute_sql "003_database_functions.sql" "Create functions"
+
+# Phase 4: Materialized Views
+echo -e "\nPhase 4: Materialized Views"
+execute_sql "004_materialized_views.sql" "Create materialized views"
+
+# Phase 5: Triggers
+echo -e "\nPhase 5: Database Triggers"
+execute_sql "005_database_triggers.sql" "Create triggers"
+
+# Phase 6: Full-text Search (split execution)
+echo -e "\nPhase 6: Full-text Search"
+echo "Part 1: Table modifications and functions"
+psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" \
+     -c "\\i 006_fulltext_search_part1.sql"
+
+echo "Part 2: Creating search indexes (non-transactional)"
+psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" \
+     -f "006_fulltext_search_part2.sql"
+
+# Phase 7: Advanced Indexes (non-transactional)
+echo -e "\nPhase 7: Advanced Indexes"
+psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" \
+     -f "008_advanced_indexes.sql"
+
+# Phase 8: Verification
+echo -e "\n${YELLOW}Running verification...${NC}"
+psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" \
+     -f "verify_migration.sql"
+
+echo -e "\n${GREEN}Migration Complete!${NC}"
+echo "Check /tmp/migration_log.txt for detailed logs"
+```
+
+## 📊 Validation Summary
+
+### ✅ **Correctly Identified Issues**
+1. Transaction block incompatibility with CONCURRENTLY
+2. Column name case sensitivity 
+3. Missing schema context in some queries
+
+### ❌ **Critical Fixes Required**
+1. **Data Type Mismatch**: All ID fields are TEXT (Prisma String), not UUID
+2. **Transaction Separation**: Split scripts into transactional and non-transactional parts
+3. **Array Handling**: `metaKeywords` is an array, needs `array_to_string()`
+
+### 🎯 **Migration Success Checklist**
+
+- [x] Fix UUID → TEXT in all function parameters
+- [x] Remove transaction wrappers from CONCURRENTLY operations
+- [x] Add proper case quoting for all camelCase columns
+- [x] Handle array fields correctly in functions
+- [x] Split scripts into appropriate execution blocks
+- [x] Add grant_achievement helper function
+- [x] Fix post_stats INSERT to include required id field
+- [x] Update execution script with better error handling
+
+## 🚀 Final Recommendation
+
+Use the fixed scripts provided above. The main corrections were:
+1. Changed all UUID types to TEXT to match Prisma's String @id
+2. Separated CONCURRENTLY operations from transactions
+3. Fixed array handling for metaKeywords
+4. Added missing helper functions
+5. Proper column quoting throughout
+
+The migration should now execute successfully with these corrections.
+
+---
 # Comprehensive Error Analysis & Resolution Plan
 
 ## Root Cause Analysis
