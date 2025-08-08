@@ -1,0 +1,122 @@
+$ psql -h localhost -p 5433 -U sparkle_user -d sparkle_db -f check_columns.sql
+                  View "pg_catalog.pg_stat_user_indexes"
+    Column     |           Type           | Collation | Nullable | Default 
+---------------+--------------------------+-----------+----------+---------
+ relid         | oid                      |           |          | 
+ indexrelid    | oid                      |           |          | 
+ schemaname    | name                     |           |          | 
+ relname       | name                     |           |          | 
+ indexrelname  | name                     |           |          | 
+ idx_scan      | bigint                   |           |          | 
+ last_idx_scan | timestamp with time zone |           |          | 
+ idx_tup_read  | bigint                   |           |          | 
+ idx_tup_fetch | bigint                   |           |          | 
+
+  column_name  
+---------------
+ relid
+ indexrelid
+ schemaname
+ relname
+ indexrelname
+ idx_scan
+ last_idx_scan
+ idx_tup_read
+ idx_tup_fetch
+(9 rows)
+
+(venv) pete@pop-os:/Home1/project/Sparkle-Universe-Next/prisma/migrations
+$ psql -h localhost -p 5433 -U sparkle_user -d sparkle_db -f working_monitoring_fix.sql
+BEGIN
+CREATE VIEW
+CREATE VIEW
+CREATE VIEW
+psql:working_monitoring_fix.sql:51: ERROR:  column "tablename" does not exist
+LINE 4:     tablename,  -- This column DOES exist in pg_statio_user_...
+            ^
+psql:working_monitoring_fix.sql:70: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:working_monitoring_fix.sql:134: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:working_monitoring_fix.sql:162: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:working_monitoring_fix.sql:172: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+ROLLBACK
+Testing monitoring components...
+
+psql:working_monitoring_fix.sql:180: ERROR:  relation "simple_cache_stats" does not exist
+LINE 1: SELECT 'Cache Stats:' as test, * FROM simple_cache_stats;
+                                              ^
+
+psql:working_monitoring_fix.sql:183: ERROR:  function check_system_health() does not exist
+LINE 1: SELECT 'Health Check:' as test FROM check_system_health() LI...
+                                            ^
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+
+psql:working_monitoring_fix.sql:190: ERROR:  relation "simple_index_usage" does not exist
+LINE 3: FROM simple_index_usage 
+             ^
+
+psql:working_monitoring_fix.sql:194: ERROR:  relation "simple_index_usage" does not exist
+LINE 2: FROM simple_index_usage WHERE scans = 0;
+             ^
+
+✅ Monitoring components successfully installed!
+
+Available commands:
+  SELECT * FROM check_system_health();
+  SELECT * FROM simple_cache_stats;
+  SELECT * FROM find_unused_indexes();
+  SELECT * FROM index_usage_stats WHERE usage_category = 'UNUSED';
+
+$ ../../check_final_migration_status.sh
+═══════════════════════════════════════════════
+         FINAL MIGRATION STATUS REPORT
+═══════════════════════════════════════════════
+
+      report       
+-------------------
+ Component Status:
+(1 row)
+
+       line       
+------------------
+ ----------------
+(1 row)
+
+         name         | setting 
+----------------------+---------
+ effective_cache_size | 524288
+ shared_buffers       | 16384
+ work_mem             | 4096
+(3 rows)
+
+
+ERROR:  function check_system_health() does not exist
+LINE 1: SELECT * FROM check_system_health();
+                      ^
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+
+        report         
+-----------------------
+ Migration Statistics:
+(1 row)
+
+         line         
+----------------------
+ --------------------
+(1 row)
+
+        metric         | value 
+-----------------------+-------
+ Total Objects Created | 732
+ Tables                | 114
+ Indexes               | 611
+ Views                 | 4
+ Functions             | 93
+ GIN Indexes           | 52
+(6 rows)
+
+
+✅ SPARKLE UNIVERSE DATABASE FULLY CONFIGURED!
+
+Migration Complete: 100%
+Database Status: OPTIMAL
+Performance Monitoring: ACTIVE
