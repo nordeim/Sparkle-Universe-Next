@@ -2422,6 +2422,12 @@ CREATE INDEX "users_status_onlineStatus_lastSeenAt_idx" ON "public"."users"("sta
 CREATE INDEX "users_createdAt_idx" ON "public"."users"("createdAt");
 
 -- CreateIndex
+CREATE INDEX "users_role_verified_createdAt_idx" ON "public"."users"("role", "verified", "createdAt" DESC);
+
+-- CreateIndex
+CREATE INDEX "users_deleted_status_lastSeenAt_onlineStatus_idx" ON "public"."users"("deleted", "status", "lastSeenAt", "onlineStatus");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "user_stats_userId_key" ON "public"."user_stats"("userId");
 
 -- CreateIndex
@@ -2593,6 +2599,15 @@ CREATE INDEX "posts_categoryId_published_views_idx" ON "public"."posts"("categor
 CREATE INDEX "posts_featured_published_createdAt_idx" ON "public"."posts"("featured", "published", "createdAt" DESC);
 
 -- CreateIndex
+CREATE INDEX "posts_authorId_isDraft_createdAt_idx" ON "public"."posts"("authorId", "isDraft", "createdAt" DESC);
+
+-- CreateIndex
+CREATE INDEX "posts_scheduledPublishAt_contentStatus_idx" ON "public"."posts"("scheduledPublishAt", "contentStatus");
+
+-- CreateIndex
+CREATE INDEX "posts_contentType_moderationStatus_createdAt_idx" ON "public"."posts"("contentType", "moderationStatus", "createdAt" DESC);
+
+-- CreateIndex
 CREATE INDEX "scheduled_actions_scheduledFor_status_idx" ON "public"."scheduled_actions"("scheduledFor", "status");
 
 -- CreateIndex
@@ -2630,6 +2645,9 @@ CREATE INDEX "post_revisions_postId_version_idx" ON "public"."post_revisions"("p
 
 -- CreateIndex
 CREATE INDEX "post_revisions_editorId_idx" ON "public"."post_revisions"("editorId");
+
+-- CreateIndex
+CREATE INDEX "post_revisions_postId_idx" ON "public"."post_revisions"("postId");
 
 -- CreateIndex
 CREATE INDEX "post_relations_postId_idx" ON "public"."post_relations"("postId");
@@ -2696,6 +2714,12 @@ CREATE INDEX "comments_postId_parentId_createdAt_idx" ON "public"."comments"("po
 
 -- CreateIndex
 CREATE INDEX "comments_authorId_deleted_createdAt_idx" ON "public"."comments"("authorId", "deleted", "createdAt" DESC);
+
+-- CreateIndex
+CREATE INDEX "comments_postId_parentId_deleted_createdAt_idx" ON "public"."comments"("postId", "parentId", "deleted", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "comments_postId_pinned_createdAt_idx" ON "public"."comments"("postId", "pinned", "createdAt" DESC);
 
 -- CreateIndex
 CREATE INDEX "reactions_postId_idx" ON "public"."reactions"("postId");
@@ -2780,6 +2804,12 @@ CREATE INDEX "notifications_priority_idx" ON "public"."notifications"("priority"
 
 -- CreateIndex
 CREATE INDEX "notifications_expiresAt_idx" ON "public"."notifications"("expiresAt");
+
+-- CreateIndex
+CREATE INDEX "notifications_userId_priority_read_createdAt_idx" ON "public"."notifications"("userId", "priority", "read", "createdAt" DESC);
+
+-- CreateIndex
+CREATE INDEX "notifications_userId_type_createdAt_idx" ON "public"."notifications"("userId", "type", "createdAt" DESC);
 
 -- CreateIndex
 CREATE INDEX "notification_queue_scheduledFor_processedAt_idx" ON "public"."notification_queue"("scheduledFor", "processedAt");
@@ -3169,6 +3199,9 @@ CREATE INDEX "conversation_participants_userId_isPinned_idx" ON "public"."conver
 CREATE INDEX "conversation_participants_userId_unreadCount_lastReadAt_idx" ON "public"."conversation_participants"("userId", "unreadCount", "lastReadAt");
 
 -- CreateIndex
+CREATE INDEX "conversation_participants_userId_isPinned_lastReadAt_idx" ON "public"."conversation_participants"("userId", "isPinned", "lastReadAt" DESC);
+
+-- CreateIndex
 CREATE UNIQUE INDEX "conversation_participants_conversationId_userId_key" ON "public"."conversation_participants"("conversationId", "userId");
 
 -- CreateIndex
@@ -3179,6 +3212,12 @@ CREATE INDEX "messages_senderId_idx" ON "public"."messages"("senderId");
 
 -- CreateIndex
 CREATE INDEX "messages_conversationId_status_createdAt_idx" ON "public"."messages"("conversationId", "status", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "messages_conversationId_deleted_createdAt_idx" ON "public"."messages"("conversationId", "deleted", "createdAt" DESC);
+
+-- CreateIndex
+CREATE INDEX "messages_senderId_createdAt_idx" ON "public"."messages"("senderId", "createdAt" DESC);
 
 -- CreateIndex
 CREATE INDEX "message_reads_userId_idx" ON "public"."message_reads"("userId");
@@ -3247,10 +3286,19 @@ CREATE INDEX "activity_streams_entityType_entityId_idx" ON "public"."activity_st
 CREATE INDEX "activity_streams_action_idx" ON "public"."activity_streams"("action");
 
 -- CreateIndex
+CREATE INDEX "activity_streams_visibility_createdAt_idx" ON "public"."activity_streams"("visibility", "createdAt" DESC);
+
+-- CreateIndex
+CREATE INDEX "activity_streams_userId_visibility_createdAt_idx" ON "public"."activity_streams"("userId", "visibility", "createdAt" DESC);
+
+-- CreateIndex
 CREATE UNIQUE INDEX "user_activity_userId_key" ON "public"."user_activity"("userId");
 
 -- CreateIndex
 CREATE INDEX "user_activity_date_idx" ON "public"."user_activity"("date");
+
+-- CreateIndex
+CREATE INDEX "user_activity_date_minutesActive_idx" ON "public"."user_activity"("date", "minutesActive" DESC);
 
 -- CreateIndex
 CREATE UNIQUE INDEX "user_activity_userId_date_key" ON "public"."user_activity"("userId", "date");
@@ -3389,6 +3437,9 @@ CREATE INDEX "media_files_fileType_idx" ON "public"."media_files"("fileType");
 
 -- CreateIndex
 CREATE INDEX "media_files_createdAt_idx" ON "public"."media_files"("createdAt");
+
+-- CreateIndex
+CREATE INDEX "media_files_userId_fileType_createdAt_idx" ON "public"."media_files"("userId", "fileType", "createdAt" DESC);
 
 -- CreateIndex
 CREATE UNIQUE INDEX "experiments_name_key" ON "public"."experiments"("name");
