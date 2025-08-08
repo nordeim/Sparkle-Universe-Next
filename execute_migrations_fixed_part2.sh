@@ -68,3 +68,16 @@ WHERE schemaname = 'public';
 SELECT '==================' as separator;
 SELECT 'Migration Status: COMPLETE' as final_status;
 EOF
+
+# 1. Apply the index fixes
+psql -h localhost -p 5433 -U sparkle_user -d sparkle_db -f 008_advanced_indexes_fixed.sql
+
+# 2. Apply the monitoring fixes
+psql -h localhost -p 5433 -U sparkle_user -d sparkle_db -f 009_monitoring_setup_fixed.sql
+
+# 3. Run the final fix script
+chmod +x fix_remaining_issues.sh
+./fix_remaining_issues.sh
+
+# 4. Final verification
+psql -h localhost -p 5433 -U sparkle_user -d sparkle_db -c "SELECT * FROM check_system_health();"
