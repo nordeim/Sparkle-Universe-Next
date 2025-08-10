@@ -2,7 +2,7 @@
 // =====================================================
 // Sparkle Universe Complete Prisma Schema
 // Fixes for confirmed issues from comprehensive review
-// Version 4.4 - Performance Optimization & Query Strategy Release
+// Version 4.5 - Performance Optimization & Query Strategy Release
 // Changes: Added strategic composite indexes for common query patterns,
 //          Enhanced User model documentation with query strategies,
 //          Added JSON GIN index requirements documentation,
@@ -2036,7 +2036,7 @@ model WatchParty {
   hostId              String
   title               String    @db.VarChar(500)
   description         String?   @db.Text
-  youtubeVideoId      String
+  youtubeVideoId      String?
   youtubeVideoUrl     String?
   scheduledStart      DateTime
   actualStart         DateTime?
@@ -2128,7 +2128,7 @@ model WatchPartyChat {
 
 model VideoClip {
   id             String   @id @default(cuid())
-  youtubeVideoId String
+  youtubeVideoId String?
   creatorId      String
   title          String   @db.VarChar(500)
   description    String?  @db.Text
