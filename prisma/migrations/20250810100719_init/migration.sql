@@ -1302,7 +1302,7 @@ CREATE TABLE "public"."watch_parties" (
     "hostId" TEXT NOT NULL,
     "title" VARCHAR(500) NOT NULL,
     "description" TEXT,
-    "youtubeVideoId" TEXT NOT NULL,
+    "youtubeVideoId" TEXT,
     "youtubeVideoUrl" TEXT,
     "scheduledStart" TIMESTAMP(3) NOT NULL,
     "actualStart" TIMESTAMP(3),
@@ -1370,7 +1370,7 @@ CREATE TABLE "public"."watch_party_chat" (
 -- CreateTable
 CREATE TABLE "public"."video_clips" (
     "id" TEXT NOT NULL,
-    "youtubeVideoId" TEXT NOT NULL,
+    "youtubeVideoId" TEXT,
     "creatorId" TEXT NOT NULL,
     "title" VARCHAR(500) NOT NULL,
     "description" TEXT,
