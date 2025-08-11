@@ -1,0 +1,5 @@
+Awesome meticulous review and thorough and systematic evaluation and analysis in carrying out your assessment! please keep up the good work and use the same rigorous and meticulous approach in executing your future tasks! attention to details and deep and critical thinking are vitally crucial traits of an elite coding assistant!
+
+Now, put on your deep thinking hat to think deeply and thoroughly, to carefully and systematically review the first half of the phase 2 implementation files below. Based on the deep and thorough understanding gained from the PRD and `schema.prisma` document, give me your assessment of the current phase 2 code design and whether it correctly aligns with the project's PRD and `schema.prisma` documents. pay particular close attention to study carefully the design of the database schema, and give your assessment of the codebase design for the first half of the phase 2 codebase and its alignment with the project's PRD and `schema.prisma` documents.
+
+I will follow up with second half of the phase 2 implementation files next, so wait for it.
