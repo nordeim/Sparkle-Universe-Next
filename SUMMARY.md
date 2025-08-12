@@ -1,6 +1,3 @@
-# QWEN.md (Updated Comprehensive Version)
-
-```markdown
 # Sparkle Universe Next.js Project Guide
 
 ## 🌟 Project Overview
