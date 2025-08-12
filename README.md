@@ -1,3 +1,4 @@
+<!-- Path: README.md -->
 # Sparkle Universe — Next.js Community Platform
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)]() [![License](https://img.shields.io/badge/license-MIT-blue)]() [![Vercel](https://img.shields.io/badge/deploy-vercel-black)]()
