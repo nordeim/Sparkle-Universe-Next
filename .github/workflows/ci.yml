@@ -1,0 +1,118 @@
+# Path: .github/workflows/ci.yml
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - 'release/**'
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  security-events: write
+  id-token: write
+
+env:
+  NODE_OPTIONS: --max_old_space_size=4096
+
+jobs:
+  build:
+    name: Build • Lint • Test • Typecheck
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20.x]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prisma: generate client
+        run: npm run db:generate
+        # don't run migrations in CI by default
+
+      - name: Type-check
+        run: npm run type-check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Run unit tests
+        run: npm run test -- --ci --runInBand
+        env:
+          CI: true
+
+      - name: Build (production)
+        run: npm run build
+
+      - name: Run E2E tests (optional, runs on PRs and main)
+        if: ${{ github.event_name == 'pull_request' || github.ref == 'refs/heads/main' }}
+        run: npm run test:e2e || true
+        env:
+          CI: true
+
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: |
+            coverage
+            coverage/**
+
+  codeql:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: javascript, typescript
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v2
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+
+  audit:
+    name: Dependency Audit -> upload results
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Install
+        run: npm ci
+
+      - name: Run npm audit (capture JSON)
+        run: npm audit --json > npm-audit.json || true
+
+      - name: Upload audit results
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-audit
+          path: npm-audit.json
