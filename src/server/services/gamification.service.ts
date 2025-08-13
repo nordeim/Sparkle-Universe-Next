@@ -5,8 +5,8 @@ import { CacheService, CacheType } from './cache.service'
 import { redisUtils } from '@/lib/redis'
 import Decimal from 'decimal.js'
 
-// XP configuration from README
-const XP_REWARDS = {
+// Export XP configuration for use in other services
+export const XP_REWARDS = {
   POST_CREATE: 10,
   COMMENT_CREATE: 5,
   QUALITY_POST_BONUS: 50,
@@ -31,8 +31,6 @@ export class GamificationService {
     this.notificationService = new NotificationService(db)
     this.cacheService = new CacheService()
   }
-
-  // ========== XP & Leveling ==========
 
   async awardXP(
     userId: string,
@@ -89,13 +87,16 @@ export class GamificationService {
         await this.handleLevelUp(tx, userId, oldLevel, newLevel)
       }
 
-      // Update leaderboard
-      await redisUtils.addToLeaderboard('xp:weekly', userId, newXP)
-      await redisUtils.addToLeaderboard('xp:monthly', userId, newXP)
-      await redisUtils.addToLeaderboard('xp:alltime', userId, newXP)
-
       return updatedUser
     })
+
+    // Update leaderboards
+    await Promise.all([
+      redisUtils.addToLeaderboard('xp:daily', userId, result.experience),
+      redisUtils.addToLeaderboard('xp:weekly', userId, result.experience),
+      redisUtils.addToLeaderboard('xp:monthly', userId, result.experience),
+      redisUtils.addToLeaderboard('xp:alltime', userId, result.experience),
+    ])
 
     // Invalidate user cache
     await this.cacheService.invalidate(`user:${userId}`)
@@ -129,6 +130,10 @@ export class GamificationService {
         await this.awardSparklePoints(tx, userId, levelConfig.sparkleReward, 'level_up')
       }
 
+      if (levelConfig.premiumReward > 0) {
+        await this.awardPremiumPoints(tx, userId, levelConfig.premiumReward, 'level_up')
+      }
+
       // Award bonus XP for leveling up
       await tx.xpLog.create({
         data: {
@@ -160,8 +165,6 @@ export class GamificationService {
     await this.checkLevelAchievements(tx, userId, newLevel)
   }
 
-  // ========== Virtual Currency (Integer-based as per README) ==========
-
   async awardSparklePoints(
     tx: Prisma.TransactionClient | PrismaClient,
     userId: string,
@@ -173,11 +176,12 @@ export class GamificationService {
     const intAmount = Math.floor(amount)
 
     // Update user balance (using Int fields)
-    await tx.user.update({
+    const updatedUser = await tx.user.update({
       where: { id: userId },
       data: {
         sparklePoints: { increment: intAmount },
       },
+      select: { sparklePoints: true },
     })
 
     // Update user balance tracking
@@ -188,6 +192,7 @@ export class GamificationService {
         sparklePoints: intAmount,
         premiumPoints: 0,
         lifetimeEarned: intAmount,
+        lifetimeSpent: 0,
       },
       update: {
         sparklePoints: { increment: intAmount },
@@ -204,9 +209,57 @@ export class GamificationService {
         currency: 'SPARKLE',
         source,
         sourceId,
-        balanceAfter: 0, // Will be calculated
+        balanceAfter: updatedUser.sparklePoints,
       },
     })
+
+    return updatedUser.sparklePoints
+  }
+
+  async awardPremiumPoints(
+    tx: Prisma.TransactionClient | PrismaClient,
+    userId: string,
+    amount: number, // Int type
+    source: string,
+    sourceId?: string
+  ) {
+    const intAmount = Math.floor(amount)
+
+    const updatedUser = await tx.user.update({
+      where: { id: userId },
+      data: {
+        premiumPoints: { increment: intAmount },
+      },
+      select: { premiumPoints: true },
+    })
+
+    await tx.userBalance.upsert({
+      where: { userId },
+      create: {
+        userId,
+        sparklePoints: 0,
+        premiumPoints: intAmount,
+        lifetimeEarned: intAmount,
+        lifetimeSpent: 0,
+      },
+      update: {
+        premiumPoints: { increment: intAmount },
+      },
+    })
+
+    await tx.pointTransaction.create({
+      data: {
+        userId,
+        amount: intAmount,
+        type: 'EARN',
+        currency: 'PREMIUM',
+        source,
+        sourceId,
+        balanceAfter: updatedUser.premiumPoints,
+      },
+    })
+
+    return updatedUser.premiumPoints
   }
 
   async spendSparklePoints(
@@ -229,11 +282,12 @@ export class GamificationService {
       }
 
       // Deduct points
-      await tx.user.update({
+      const updatedUser = await tx.user.update({
         where: { id: userId },
         data: {
           sparklePoints: { decrement: intAmount },
         },
+        select: { sparklePoints: true },
       })
 
       // Update balance tracking
@@ -254,15 +308,13 @@ export class GamificationService {
           currency: 'SPARKLE',
           source: reason,
           sourceId: targetId,
-          balanceAfter: user.sparklePoints - intAmount,
+          balanceAfter: updatedUser.sparklePoints,
         },
       })
 
       return true
     })
   }
-
-  // ========== Achievements ==========
 
   async checkAndUnlockAchievements(userId: string, context: string) {
     const achievements = await this.db.achievement.findMany({
@@ -356,7 +408,24 @@ export class GamificationService {
 
       // Award rewards (using Int for points)
       if (achievement.xpReward > 0) {
-        await this.awardXP(userId, achievement.xpReward, 'achievement', achievementId)
+        // Note: awardXP needs to be called outside transaction or refactored
+        await tx.xpLog.create({
+          data: {
+            userId,
+            amount: achievement.xpReward,
+            source: 'achievement',
+            sourceId: achievementId,
+            reason: `Unlocked achievement: ${achievement.name}`,
+            totalXp: 0, // Will be recalculated
+          },
+        })
+
+        await tx.user.update({
+          where: { id: userId },
+          data: {
+            experience: { increment: achievement.xpReward },
+          },
+        })
       }
 
       if (achievement.sparklePointsReward > 0) {
@@ -374,7 +443,6 @@ export class GamificationService {
         where: { userId },
         data: {
           totalAchievements: { increment: 1 },
-          [`${achievement.rarity.toLowerCase()}Achievements`]: { increment: 1 },
         },
       })
     })
@@ -397,8 +465,6 @@ export class GamificationService {
       },
     })
   }
-
-  // ========== Quests ==========
 
   async getActiveQuests(userId: string) {
     const now = new Date()
@@ -486,11 +552,28 @@ export class GamificationService {
         },
       })
 
-      // Award rewards
+      // Award XP
       if (quest.xpReward > 0) {
-        await this.awardXP(userId, quest.xpReward, 'quest', questId)
+        await tx.user.update({
+          where: { id: userId },
+          data: {
+            experience: { increment: quest.xpReward },
+          },
+        })
+
+        await tx.xpLog.create({
+          data: {
+            userId,
+            amount: quest.xpReward,
+            source: 'quest',
+            sourceId: questId,
+            reason: `Completed quest: ${quest.title}`,
+            totalXp: 0,
+          },
+        })
       }
 
+      // Award points
       if (quest.pointsReward > 0) {
         await this.awardSparklePoints(tx, userId, quest.pointsReward, 'quest', questId)
       }
@@ -521,8 +604,6 @@ export class GamificationService {
     })
   }
 
-  // ========== Leaderboards ==========
-
   async getLeaderboard(
     type: 'xp' | 'sparklePoints' | 'achievements',
     period: 'daily' | 'weekly' | 'monthly' | 'alltime',
@@ -549,7 +630,7 @@ export class GamificationService {
       return cached.map((entry, index) => ({
         rank: index + 1,
         user: userMap.get(entry.member),
-        score: entry.score,
+        score: Math.floor(entry.score),
       }))
     }
 
@@ -567,77 +648,170 @@ export class GamificationService {
 
     switch (period) {
       case 'daily':
-        dateFilter = new Date(now.setHours(0, 0, 0, 0))
+        const today = new Date(now)
+        today.setHours(0, 0, 0, 0)
+        dateFilter = today
         break
       case 'weekly':
-        dateFilter = new Date(now.setDate(now.getDate() - 7))
+        const weekAgo = new Date(now)
+        weekAgo.setDate(weekAgo.getDate() - 7)
+        dateFilter = weekAgo
         break
       case 'monthly':
-        dateFilter = new Date(now.setMonth(now.getMonth() - 1))
+        const monthAgo = new Date(now)
+        monthAgo.setMonth(monthAgo.getMonth() - 1)
+        dateFilter = monthAgo
         break
     }
 
-    let orderBy: any
-    let select: any = {
-      id: true,
-      username: true,
-      image: true,
-      level: true,
-    }
+    let users: any[] = []
 
-    switch (type) {
-      case 'xp':
-        orderBy = { experience: 'desc' }
-        select.experience = true
-        break
-      case 'sparklePoints':
-        orderBy = { sparklePoints: 'desc' }
-        select.sparklePoints = true
-        break
-      case 'achievements':
-        // This would need a different query
-        break
-    }
+    if (type === 'xp') {
+      users = await this.db.user.findMany({
+        where: dateFilter ? {
+          createdAt: { gte: dateFilter },
+        } : undefined,
+        select: {
+          id: true,
+          username: true,
+          image: true,
+          level: true,
+          experience: true,
+        },
+        orderBy: { experience: 'desc' },
+        take: limit,
+      })
+    } else if (type === 'sparklePoints') {
+      users = await this.db.user.findMany({
+        where: dateFilter ? {
+          createdAt: { gte: dateFilter },
+        } : undefined,
+        select: {
+          id: true,
+          username: true,
+          image: true,
+          level: true,
+          sparklePoints: true,
+        },
+        orderBy: { sparklePoints: 'desc' },
+        take: limit,
+      })
+    } else if (type === 'achievements') {
+      // Get users with most achievements
+      const userAchievements = await this.db.userAchievement.groupBy({
+        by: ['userId'],
+        where: dateFilter ? {
+          unlockedAt: { gte: dateFilter },
+        } : { unlockedAt: { not: null } },
+        _count: {
+          achievementId: true,
+        },
+        orderBy: {
+          _count: {
+            achievementId: 'desc',
+          },
+        },
+        take: limit,
+      })
 
-    const users = await this.db.user.findMany({
-      where: dateFilter ? {
-        createdAt: { gte: dateFilter },
-      } : undefined,
-      select,
-      orderBy,
-      take: limit,
-    })
+      const userIds = userAchievements.map(ua => ua.userId)
+      const userMap = await this.db.user.findMany({
+        where: { id: { in: userIds } },
+        select: {
+          id: true,
+          username: true,
+          image: true,
+          level: true,
+        },
+      })
+
+      const userDict = new Map(userMap.map(u => [u.id, u]))
+      
+      users = userAchievements.map(ua => ({
+        ...userDict.get(ua.userId),
+        achievementCount: ua._count.achievementId,
+      }))
+    }
 
     // Cache the results
     const cacheKey = `${type}:${period}`
     for (const [index, user] of users.entries()) {
-      const score = type === 'xp' ? user.experience : user.sparklePoints
+      let score = 0
+      if (type === 'xp') score = user.experience
+      else if (type === 'sparklePoints') score = user.sparklePoints
+      else if (type === 'achievements') score = user.achievementCount
+      
       await redisUtils.addToLeaderboard(cacheKey, user.id, score)
     }
 
     return users.map((user, index) => ({
       rank: index + 1,
-      user,
-      score: type === 'xp' ? user.experience : user.sparklePoints,
+      user: {
+        id: user.id,
+        username: user.username,
+        image: user.image,
+        level: user.level,
+      },
+      score: type === 'xp' ? user.experience : 
+             type === 'sparklePoints' ? user.sparklePoints :
+             user.achievementCount,
     }))
   }
-
-  // ========== Helper Methods ==========
 
   private async evaluateAchievementRequirements(
     userId: string,
     requirements: any
   ): Promise<boolean> {
-    // Implementation depends on requirement structure
-    // Example: { type: 'posts', count: 10 }
-    if (requirements.type === 'posts') {
+    if (!requirements) return false
+
+    // Post count requirement
+    if (requirements.type === 'posts' && requirements.count) {
       const count = await this.db.post.count({
-        where: { authorId: userId },
+        where: { 
+          authorId: userId,
+          published: true,
+        },
       })
       return count >= requirements.count
     }
 
-    // Add more requirement types as needed
+    // Comment count requirement
+    if (requirements.type === 'comments' && requirements.count) {
+      const count = await this.db.comment.count({
+        where: { 
+          authorId: userId,
+          deleted: false,
+        },
+      })
+      return count >= requirements.count
+    }
+
+    // Follower count requirement
+    if (requirements.type === 'followers' && requirements.count) {
+      const count = await this.db.follow.count({
+        where: { followingId: userId },
+      })
+      return count >= requirements.count
+    }
+
+    // Level requirement
+    if (requirements.type === 'level' && requirements.level) {
+      const user = await this.db.user.findUnique({
+        where: { id: userId },
+        select: { level: true },
+      })
+      return (user?.level || 0) >= requirements.level
+    }
+
+    // XP requirement
+    if (requirements.type === 'xp' && requirements.amount) {
+      const user = await this.db.user.findUnique({
+        where: { id: userId },
+        select: { experience: true },
+      })
+      return (user?.experience || 0) >= requirements.amount
+    }
+
     return false
   }
 
@@ -645,9 +819,24 @@ export class GamificationService {
     userId: string,
     requirements: any
   ): Promise<number> {
-    if (requirements.type === 'posts') {
+    if (!requirements) return 0
+
+    if (requirements.type === 'posts' && requirements.count) {
       const count = await this.db.post.count({
-        where: { authorId: userId },
+        where: { 
+          authorId: userId,
+          published: true,
+        },
+      })
+      return Math.min(count / requirements.count, 1)
+    }
+
+    if (requirements.type === 'comments' && requirements.count) {
+      const count = await this.db.comment.count({
+        where: { 
+          authorId: userId,
+          deleted: false,
+        },
       })
       return Math.min(count / requirements.count, 1)
     }
@@ -674,7 +863,36 @@ export class GamificationService {
         })
 
         if (dbAchievement) {
-          await this.checkAchievement(userId, dbAchievement)
+          // Check if not already unlocked
+          const existing = await tx.userAchievement.findUnique({
+            where: {
+              userId_achievementId: {
+                userId,
+                achievementId: dbAchievement.id,
+              },
+            },
+          })
+
+          if (!existing || !existing.unlockedAt) {
+            await tx.userAchievement.upsert({
+              where: {
+                userId_achievementId: {
+                  userId,
+                  achievementId: dbAchievement.id,
+                },
+              },
+              create: {
+                userId,
+                achievementId: dbAchievement.id,
+                progress: 1,
+                unlockedAt: new Date(),
+              },
+              update: {
+                progress: 1,
+                unlockedAt: new Date(),
+              },
+            })
+          }
         }
       }
     }

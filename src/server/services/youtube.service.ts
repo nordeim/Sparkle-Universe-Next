@@ -1,21 +1,25 @@
 // src/server/services/youtube.service.ts
 import { PrismaClient } from '@prisma/client'
-import { google } from 'googleapis'
+import { google, youtube_v3 } from 'googleapis'
 import { TRPCError } from '@trpc/server'
-import { CacheService } from './cache.service'
+import { CacheService, CacheType } from './cache.service'
 import { ActivityService } from './activity.service'
-
-const youtube = google.youtube('v3')
 
 export class YouTubeService {
   private cacheService: CacheService
   private activityService: ActivityService
+  private youtube: youtube_v3.Youtube
   private apiKey: string
 
   constructor(private db: PrismaClient) {
     this.cacheService = new CacheService()
     this.activityService = new ActivityService(db)
     this.apiKey = process.env.YOUTUBE_API_KEY!
+    
+    this.youtube = google.youtube({
+      version: 'v3',
+      auth: this.apiKey,
+    })
   }
 
   async getVideoDetails(videoId: string) {
@@ -29,8 +33,7 @@ export class YouTubeService {
       await this.checkApiQuota()
 
       // Fetch from YouTube API
-      const response = await youtube.videos.list({
-        key: this.apiKey,
+      const response = await this.youtube.videos.list({
         part: ['snippet', 'statistics', 'contentDetails'],
         id: [videoId],
       })
@@ -45,16 +48,17 @@ export class YouTubeService {
       const video = response.data.items[0]
       const videoData = {
         id: video.id!,
-        title: video.snippet?.title,
-        description: video.snippet?.description,
-        channelId: video.snippet?.channelId,
-        channelTitle: video.snippet?.channelTitle,
-        thumbnailUrl: video.snippet?.thumbnails?.high?.url,
+        title: video.snippet?.title || '',
+        description: video.snippet?.description || '',
+        channelId: video.snippet?.channelId || '',
+        channelTitle: video.snippet?.channelTitle || '',
+        thumbnailUrl: video.snippet?.thumbnails?.high?.url || '',
         duration: this.parseDuration(video.contentDetails?.duration),
         viewCount: parseInt(video.statistics?.viewCount || '0'),
         likeCount: parseInt(video.statistics?.likeCount || '0'),
         commentCount: parseInt(video.statistics?.commentCount || '0'),
         publishedAt: video.snippet?.publishedAt,
+        tags: video.snippet?.tags || [],
       }
 
       // Store in database
@@ -62,7 +66,7 @@ export class YouTubeService {
         where: { videoId },
         create: {
           videoId,
-          channelId: videoData.channelId!,
+          channelId: videoData.channelId,
           title: videoData.title,
           description: videoData.description,
           thumbnailUrl: videoData.thumbnailUrl,
@@ -71,6 +75,7 @@ export class YouTubeService {
           likeCount: videoData.likeCount,
           commentCount: videoData.commentCount,
           publishedAt: videoData.publishedAt ? new Date(videoData.publishedAt) : undefined,
+          metadata: video as any,
         },
         update: {
           title: videoData.title,
@@ -78,6 +83,7 @@ export class YouTubeService {
           likeCount: videoData.likeCount,
           commentCount: videoData.commentCount,
           lastSyncedAt: new Date(),
+          metadata: video as any,
         },
       })
 
@@ -90,6 +96,28 @@ export class YouTubeService {
       return videoData
     } catch (error) {
       console.error('Failed to fetch YouTube video:', error)
+      
+      // Try to get from database if API fails
+      const dbVideo = await this.db.youtubeVideo.findUnique({
+        where: { videoId },
+      })
+      
+      if (dbVideo) {
+        return {
+          id: dbVideo.videoId,
+          title: dbVideo.title || '',
+          description: dbVideo.description || '',
+          channelId: dbVideo.channelId,
+          channelTitle: dbVideo.channelTitle || '',
+          thumbnailUrl: dbVideo.thumbnailUrl || '',
+          duration: dbVideo.duration,
+          viewCount: Number(dbVideo.viewCount),
+          likeCount: dbVideo.likeCount,
+          commentCount: dbVideo.commentCount,
+          publishedAt: dbVideo.publishedAt?.toISOString(),
+        }
+      }
+      
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
         message: 'Failed to fetch video details',
@@ -103,8 +131,7 @@ export class YouTubeService {
       await this.checkApiQuota()
 
       // Fetch channel data
-      const response = await youtube.channels.list({
-        key: this.apiKey,
+      const response = await this.youtube.channels.list({
         part: ['snippet', 'statistics', 'contentDetails'],
         id: [channelId],
       })
@@ -124,10 +151,10 @@ export class YouTubeService {
         create: {
           channelId,
           userId,
-          channelTitle: channel.snippet?.title,
-          channelHandle: channel.snippet?.customUrl,
-          channelDescription: channel.snippet?.description,
-          thumbnailUrl: channel.snippet?.thumbnails?.high?.url,
+          channelTitle: channel.snippet?.title || '',
+          channelHandle: channel.snippet?.customUrl || null,
+          channelDescription: channel.snippet?.description || null,
+          thumbnailUrl: channel.snippet?.thumbnails?.high?.url || null,
           subscriberCount: BigInt(channel.statistics?.subscriberCount || '0'),
           viewCount: BigInt(channel.statistics?.viewCount || '0'),
           videoCount: parseInt(channel.statistics?.videoCount || '0'),
@@ -135,10 +162,11 @@ export class YouTubeService {
           lastSyncedAt: new Date(),
         },
         update: {
-          channelTitle: channel.snippet?.title,
+          channelTitle: channel.snippet?.title || '',
           subscriberCount: BigInt(channel.statistics?.subscriberCount || '0'),
           viewCount: BigInt(channel.statistics?.viewCount || '0'),
           videoCount: parseInt(channel.statistics?.videoCount || '0'),
+          channelData: channel as any,
           lastSyncedAt: new Date(),
         },
       })
@@ -154,6 +182,18 @@ export class YouTubeService {
 
       // Update API quota
       await this.incrementApiQuota(1)
+
+      // Track activity
+      await this.activityService.trackActivity({
+        userId,
+        action: 'youtube.channel.synced',
+        entityType: 'channel',
+        entityId: channelId,
+        entityData: {
+          channelTitle: channel.snippet?.title,
+          subscriberCount: channel.statistics?.subscriberCount,
+        },
+      })
 
       return dbChannel
     } catch (error) {
@@ -205,8 +245,10 @@ export class YouTubeService {
       },
       include: {
         creator: {
-          include: {
-            profile: true,
+          select: {
+            id: true,
+            username: true,
+            image: true,
           },
         },
       },
@@ -228,6 +270,10 @@ export class YouTubeService {
   }
 
   async getTrendingVideos(limit: number) {
+    const cacheKey = `youtube:trending:${limit}`
+    const cached = await this.cacheService.get(cacheKey, CacheType.TRENDING)
+    if (cached) return cached
+
     // Get videos that have been shared/discussed recently
     const videos = await this.db.youtubeVideo.findMany({
       orderBy: [
@@ -245,7 +291,15 @@ export class YouTubeService {
       },
     })
 
-    return videos
+    // Transform BigInt to number for JSON serialization
+    const transformed = videos.map(v => ({
+      ...v,
+      viewCount: Number(v.viewCount),
+      subscriberCount: v.subscriberCount ? Number(v.subscriberCount) : 0,
+    }))
+
+    await this.cacheService.set(cacheKey, transformed, undefined, CacheType.TRENDING)
+    return transformed
   }
 
   async getVideoAnalytics(videoId: string) {
@@ -259,7 +313,13 @@ export class YouTubeService {
     if (!analytics) {
       // Create default analytics
       return this.db.videoAnalytics.create({
-        data: { videoId },
+        data: { 
+          videoId,
+          totalWatchTime: 0,
+          uniqueViewers: 0,
+          engagementRate: 0,
+          averageWatchPercent: 0,
+        },
         include: { video: true },
       })
     }
@@ -267,7 +327,7 @@ export class YouTubeService {
     return analytics
   }
 
-  private parseDuration(duration?: string): number {
+  private parseDuration(duration?: string | null): number {
     if (!duration) return 0
 
     // Parse ISO 8601 duration (PT1H2M3S)
@@ -289,7 +349,9 @@ export class YouTubeService {
       where: { date: today },
     })
 
-    if (quota && quota.unitsUsed >= quota.quotaLimit) {
+    const quotaLimit = parseInt(process.env.YOUTUBE_QUOTA_LIMIT || '10000')
+
+    if (quota && quota.unitsUsed >= quotaLimit) {
       throw new TRPCError({
         code: 'RESOURCE_EXHAUSTED',
         message: 'YouTube API quota exceeded for today',
@@ -305,12 +367,16 @@ export class YouTubeService {
     const tomorrow = new Date(today)
     tomorrow.setDate(tomorrow.getDate() + 1)
 
+    const quotaLimit = parseInt(process.env.YOUTUBE_QUOTA_LIMIT || '10000')
+
     await this.db.youTubeApiQuota.upsert({
       where: { date: today },
       create: {
         date: today,
         unitsUsed: units,
+        quotaLimit,
         readRequests: 1,
+        writeRequests: 0,
         resetAt: tomorrow,
       },
       update: {
