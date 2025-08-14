@@ -429,14 +429,14 @@ model User {
   // OPTIMIZED INDEXES - Remove redundant, combine where possible
   @@index([email])
   @@index([username])
-  @@index([deleted, status, role, lastSeenAt(sort: Desc)])  // Keep most comprehensive
+  // @@index([deleted, status, role, lastSeenAt(sort: Desc)])  // Keep most comprehensive
   // REMOVED: @@index([deleted, status, lastSeenAt, onlineStatus]) // Redundant with above
   @@index([deleted, level, experience(sort: Desc)])
   @@index([status, onlineStatus, lastSeenAt(sort: Desc)])
   @@index([createdAt])
   @@index([role, verified, createdAt(sort: Desc)])
   // OPTIMIZED: Combine related indexes
-  @@index([deleted, status, onlineStatus, lastSeenAt(sort: Desc)])  // NEW: Combined index
+  @@index([deleted, status, role, onlineStatus, lastSeenAt(sort: Desc)])  // NEW: Combined index
   @@map("users")
 }
 
