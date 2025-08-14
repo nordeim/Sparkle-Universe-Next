@@ -1762,8 +1762,8 @@ model StoreBundle {
   id                 String      @id @default(cuid())
   name               String
   description        String?
-  priceSparkle       Int?
-  pricePremium       Int?
+  priceSparkle       Decimal? @db.Decimal(19, 4)
+  pricePremium       Decimal? @db.Decimal(19, 4)
   discountPercentage Int         @default(0)
   items              StoreItem[] @relation("BundleItems")
   availableFrom      DateTime?
