@@ -1,189 +1,183 @@
 // src/server/services/gamification.service.ts
-import { 
-  PrismaClient, 
-  Prisma, 
-  BadgeRarity, 
-  QuestType, 
-  QuestStatus,
-  NotificationType 
-} from '@prisma/client'
-import { NotificationService } from './notification.service'
-import { CacheService, CacheType } from './cache.service'
-import Decimal from 'decimal.js'
+import { PrismaClient, Prisma } from '@prisma/client'
+import { Redis } from 'ioredis'
+import { achievements } from '@/config/achievements'
+import { EventEmitter } from 'events'
+import { z } from 'zod'
 
-// Redis utilities for leaderboard management
-const redisUtils = {
-  async addToLeaderboard(key: string, member: string, score: number): Promise<void> {
-    const cacheService = new CacheService()
-    const leaderboard = await cacheService.get<Array<{member: string, score: number}>>(key) || []
-    
-    // Update or add member
-    const existingIndex = leaderboard.findIndex(entry => entry.member === member)
-    if (existingIndex >= 0) {
-      leaderboard[existingIndex].score = score
-    } else {
-      leaderboard.push({ member, score })
-    }
-    
-    // Sort by score descending
-    leaderboard.sort((a, b) => b.score - a.score)
-    
-    // Keep top 100
-    const trimmed = leaderboard.slice(0, 100)
-    
-    // Cache for appropriate duration based on period
-    const ttl = key.includes('daily') ? 3600 : 
-                key.includes('weekly') ? 86400 : 
-                key.includes('monthly') ? 604800 : 2592000
-    
-    await cacheService.set(key, trimmed, ttl)
-  },
-
-  async getLeaderboard(key: string, limit: number): Promise<Array<{member: string, score: number}>> {
-    const cacheService = new CacheService()
-    const leaderboard = await cacheService.get<Array<{member: string, score: number}>>(key) || []
-    return leaderboard.slice(0, limit)
-  }
-}
-
-// Export XP configuration for use in other services
-export const XP_REWARDS = {
-  POST_CREATE: 10,
-  COMMENT_CREATE: 5,
-  QUALITY_POST_BONUS: 50,
-  HELPFUL_COMMENT: 20,
+// XP Configuration
+const XP_CONFIG = {
+  POST_CREATED: 50,
+  POST_FEATURED: 100,
+  POST_VIRAL: 500,
+  COMMENT_CREATED: 10,
+  COMMENT_LIKED: 5,
+  REACTION_GIVEN: 2,
+  REACTION_RECEIVED: 3,
+  FOLLOW_RECEIVED: 20,
   DAILY_LOGIN: 10,
-  FIRST_POST_OF_DAY: 15,
-  STREAK_BONUS: 5,
-  ACHIEVEMENT_UNLOCK: 25,
-  QUEST_COMPLETE: 30,
-  LEVEL_UP: 100,
-  REACTION_GIVEN: 1,
-  REACTION_RECEIVED: 2,
-  FOLLOW: 3,
-  FOLLOWED: 5,
+  STREAK_BONUS: 5, // Per day
+  LEVEL_UP_BONUS: 100,
+  ACHIEVEMENT_BONUS: 50, // Base, multiplied by rarity
 } as const
 
-export class GamificationService {
-  private notificationService: NotificationService
-  private cacheService: CacheService
+// Level calculation constants
+const LEVEL_CONFIG = {
+  BASE_XP: 100,
+  GROWTH_RATE: 1.5,
+  MAX_LEVEL: 100,
+} as const
+
+// Achievement progress tracking
+interface AchievementProgress {
+  achievementId: string
+  currentValue: number
+  targetValue: number
+  percentage: number
+  isCompleted: boolean
+}
+
+export class GamificationService extends EventEmitter {
+  private redis: Redis
+  private achievementCache: Map<string, any> = new Map()
 
   constructor(private db: PrismaClient) {
-    this.notificationService = new NotificationService(db)
-    this.cacheService = new CacheService()
+    super()
+    this.redis = new Redis(process.env.REDIS_URL!)
+    this.loadAchievements()
   }
 
+  private async loadAchievements() {
+    // Cache achievements in memory
+    achievements.forEach(achievement => {
+      this.achievementCache.set(achievement.id, achievement)
+    })
+  }
+
+  // XP Management
   async awardXP(
-    userId: string,
-    amount: number,
-    source: keyof typeof XP_REWARDS | string,
-    sourceId?: string,
-    reason?: string
-  ) {
-    // Start transaction for atomic operations
+    userId: string, 
+    amount: number, 
+    reason: string,
+    metadata?: Record<string, any>
+  ): Promise<{
+    totalXP: number
+    xpGained: number
+    oldLevel: number
+    newLevel: number
+    leveledUp: boolean
+    nextLevelXP: number
+    progressToNextLevel: number
+  }> {
+    // Start transaction
     const result = await this.db.$transaction(async (tx) => {
-      // Get current user XP
+      // Get current user stats
       const user = await tx.user.findUnique({
         where: { id: userId },
-        select: { 
-          experience: true, 
+        select: {
+          id: true,
+          experience: true,
           level: true,
           username: true,
-        },
+        }
       })
 
-      if (!user) throw new Error('User not found')
+      if (!user) {
+        throw new Error('User not found')
+      }
 
       const oldLevel = user.level
-      const newXP = user.experience + amount
-      const newLevel = this.calculateLevel(newXP)
+      const newExperience = user.experience + amount
+      const newLevel = this.calculateLevel(newExperience)
+      const leveledUp = newLevel > oldLevel
 
-      // Update user XP and level
-      const updatedUser = await tx.user.update({
+      // Update user experience
+      await tx.user.update({
         where: { id: userId },
         data: {
-          experience: newXP,
+          experience: newExperience,
           level: newLevel,
-          version: { increment: 1 },
-        },
+        }
       })
 
-      // Log XP transaction
+      // Log XP gain
       await tx.xpLog.create({
         data: {
           userId,
           amount,
-          source: source.toString(),
-          sourceId,
-          reason: reason || `Earned ${amount} XP from ${source}`,
-          totalXp: newXP,
-        },
+          reason,
+          metadata,
+        }
       })
 
-      // Update or create user stats
-      await tx.userStats.upsert({
-        where: { userId },
-        create: {
-          userId,
-          totalXpEarned: amount,
-        },
-        update: {
-          totalXpEarned: { increment: amount },
-        },
-      })
-
-      // Update daily activity
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-
-      await tx.userActivity.upsert({
-        where: {
-          userId_date: {
-            userId,
-            date: today,
-          },
-        },
-        create: {
-          userId,
-          date: today,
-          xpEarned: amount,
-        },
-        update: {
-          xpEarned: { increment: amount },
-        },
-      })
-
-      // Check for level up
-      if (newLevel > oldLevel) {
+      // Handle level up
+      if (leveledUp) {
         await this.handleLevelUp(tx, userId, oldLevel, newLevel)
       }
 
-      return updatedUser
+      return {
+        totalXP: newExperience,
+        xpGained: amount,
+        oldLevel,
+        newLevel,
+        leveledUp,
+      }
     })
 
-    // Update leaderboards
-    await Promise.all([
-      redisUtils.addToLeaderboard('xp:daily', userId, result.experience),
-      redisUtils.addToLeaderboard('xp:weekly', userId, result.experience),
-      redisUtils.addToLeaderboard('xp:monthly', userId, result.experience),
-      redisUtils.addToLeaderboard('xp:alltime', userId, result.experience),
-    ])
+    // Calculate next level requirements
+    const nextLevelXP = this.getXPForLevel(result.newLevel + 1)
+    const currentLevelXP = this.getXPForLevel(result.newLevel)
+    const progressToNextLevel = 
+      ((result.totalXP - currentLevelXP) / (nextLevelXP - currentLevelXP)) * 100
 
-    // Invalidate user cache
-    await this.cacheService.invalidate(`user:${userId}`)
-    await this.cacheService.invalidate(`stats:${userId}`)
+    // Emit events
+    this.emit('xp:awarded', {
+      userId,
+      amount,
+      reason,
+      totalXP: result.totalXP,
+    })
 
-    return result
+    if (result.leveledUp) {
+      this.emit('user:levelUp', {
+        userId,
+        oldLevel: result.oldLevel,
+        newLevel: result.newLevel,
+      })
+
+      // Check level-based achievements
+      await this.checkAchievements(userId, 'level_up', { 
+        level: result.newLevel 
+      })
+    }
+
+    // Update leaderboard cache
+    await this.updateLeaderboardCache(userId, result.totalXP)
+
+    return {
+      ...result,
+      nextLevelXP,
+      progressToNextLevel,
+    }
   }
 
-  calculateLevel(xp: number): number {
-    // Progressive level calculation from README
-    return Math.floor(Math.sqrt(xp / 100)) + 1
+  private calculateLevel(xp: number): number {
+    let level = 1
+    let requiredXP = LEVEL_CONFIG.BASE_XP
+
+    while (xp >= requiredXP && level < LEVEL_CONFIG.MAX_LEVEL) {
+      level++
+      requiredXP = this.getXPForLevel(level)
+    }
+
+    return level
   }
 
-  calculateXPForLevel(level: number): number {
-    // Reverse calculation: how much XP needed for a specific level
-    return Math.pow(level - 1, 2) * 100
+  private getXPForLevel(level: number): number {
+    if (level <= 1) return 0
+    return Math.floor(
+      LEVEL_CONFIG.BASE_XP * Math.pow(LEVEL_CONFIG.GROWTH_RATE, level - 1)
+    )
   }
 
   private async handleLevelUp(
@@ -192,1096 +186,888 @@ export class GamificationService {
     oldLevel: number,
     newLevel: number
   ) {
-    // Get level configuration
-    const levelConfig = await tx.levelConfig.findUnique({
-      where: { level: newLevel },
-    })
-
-    if (levelConfig) {
-      // Award level rewards (using Int for points as per README)
-      if (levelConfig.sparkleReward > 0) {
-        await this.awardSparklePoints(tx, userId, levelConfig.sparkleReward, 'level_up')
-      }
-
-      if (levelConfig.premiumReward > 0) {
-        await this.awardPremiumPoints(tx, userId, levelConfig.premiumReward, 'level_up')
-      }
-
-      // Award bonus XP for leveling up
-      await tx.xpLog.create({
-        data: {
-          userId,
-          amount: XP_REWARDS.LEVEL_UP,
-          source: 'level_up',
-          reason: `Reached level ${newLevel}!`,
-          bonusXp: XP_REWARDS.LEVEL_UP,
-          totalXp: 0, // Will be recalculated
-        },
-      })
-
-      // Update user experience
-      await tx.user.update({
-        where: { id: userId },
-        data: {
-          experience: { increment: XP_REWARDS.LEVEL_UP },
-        },
-      })
-    }
-
-    // Send notification
-    await this.notificationService.createNotification({
-      type: NotificationType.LEVEL_UP,
-      userId,
-      entityType: 'level',
-      entityId: newLevel.toString(),
-      title: 'Level Up!',
-      message: `Congratulations! You've reached level ${newLevel}!`,
+    // Award level up bonus XP
+    const bonusXP = LEVEL_CONFIG.LEVEL_UP_BONUS * (newLevel - oldLevel)
+    
+    await tx.xpLog.create({
       data: {
-        oldLevel,
-        newLevel,
-        rewards: levelConfig,
-      },
+        userId,
+        amount: bonusXP,
+        reason: `Level up bonus (${oldLevel} → ${newLevel})`,
+      }
     })
 
-    // Check level-based achievements
-    await this.checkLevelAchievements(tx, userId, newLevel)
+    // Create notification
+    await tx.notification.create({
+      data: {
+        type: 'LEVEL_UP',
+        userId,
+        message: `Congratulations! You've reached level ${newLevel}!`,
+        data: {
+          oldLevel,
+          newLevel,
+          bonusXP,
+        }
+      }
+    })
   }
 
-  async awardSparklePoints(
-    tx: Prisma.TransactionClient | PrismaClient,
+  // Achievement System
+  async checkAchievements(
     userId: string,
-    amount: number, // Int type as per README
-    source: string,
-    sourceId?: string
-  ) {
-    // Ensure amount is integer
-    const intAmount = Math.floor(amount)
+    trigger: string,
+    context?: Record<string, any>
+  ): Promise<{
+    unlocked: string[]
+    progress: AchievementProgress[]
+  }> {
+    const unlockedAchievements: string[] = []
+    const progressUpdates: AchievementProgress[] = []
 
-    // Update user balance (using Int fields)
-    const updatedUser = await tx.user.update({
-      where: { id: userId },
-      data: {
-        sparklePoints: { increment: intAmount },
-        version: { increment: 1 },
-      },
-      select: { sparklePoints: true },
-    })
-
-    // Update user balance tracking
-    await tx.userBalance.upsert({
+    // Get user's current achievements
+    const userAchievements = await this.db.userAchievement.findMany({
       where: { userId },
-      create: {
-        userId,
-        sparklePoints: intAmount,
-        premiumPoints: 0,
-        lifetimeEarned: intAmount,
-        lifetimeSpent: 0,
-        version: 0,
-      },
-      update: {
-        sparklePoints: { increment: intAmount },
-        lifetimeEarned: { increment: intAmount },
-        lastTransactionAt: new Date(),
-        version: { increment: 1 },
-      },
+      select: { achievementId: true }
     })
 
-    // Log transaction
-    await tx.currencyTransaction.create({
-      data: {
-        userId,
-        amount: intAmount,
-        currencyType: 'sparkle',
-        transactionType: 'earn',
-        source,
-        sourceId,
-        balanceBefore: updatedUser.sparklePoints - intAmount,
-        balanceAfter: updatedUser.sparklePoints,
-      },
-    })
+    const unlockedIds = new Set(userAchievements.map(ua => ua.achievementId))
 
-    // Update daily activity
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-
-    await tx.userActivity.upsert({
-      where: {
-        userId_date: {
-          userId,
-          date: today,
-        },
-      },
-      create: {
-        userId,
-        date: today,
-        pointsEarned: intAmount,
-      },
-      update: {
-        pointsEarned: { increment: intAmount },
-      },
-    })
-
-    return updatedUser.sparklePoints
-  }
-
-  async awardPremiumPoints(
-    tx: Prisma.TransactionClient | PrismaClient,
-    userId: string,
-    amount: number, // Int type
-    source: string,
-    sourceId?: string
-  ) {
-    const intAmount = Math.floor(amount)
-
-    const updatedUser = await tx.user.update({
-      where: { id: userId },
-      data: {
-        premiumPoints: { increment: intAmount },
-        version: { increment: 1 },
-      },
-      select: { premiumPoints: true },
-    })
-
-    await tx.userBalance.upsert({
-      where: { userId },
-      create: {
-        userId,
-        sparklePoints: 0,
-        premiumPoints: intAmount,
-        lifetimeEarned: intAmount,
-        lifetimeSpent: 0,
-        version: 0,
-      },
-      update: {
-        premiumPoints: { increment: intAmount },
-        lifetimeEarned: { increment: intAmount },
-        lastTransactionAt: new Date(),
-        version: { increment: 1 },
-      },
-    })
-
-    await tx.currencyTransaction.create({
-      data: {
-        userId,
-        amount: intAmount,
-        currencyType: 'premium',
-        transactionType: 'earn',
-        source,
-        sourceId,
-        balanceBefore: updatedUser.premiumPoints - intAmount,
-        balanceAfter: updatedUser.premiumPoints,
-      },
-    })
-
-    return updatedUser.premiumPoints
-  }
-
-  async spendSparklePoints(
-    userId: string,
-    amount: number, // Int type
-    reason: string,
-    targetId?: string
-  ): Promise<boolean> {
-    const intAmount = Math.floor(amount)
-
-    return this.db.$transaction(async (tx) => {
-      // Check balance
-      const user = await tx.user.findUnique({
-        where: { id: userId },
-        select: { sparklePoints: true },
-      })
-
-      if (!user || user.sparklePoints < intAmount) {
-        return false // Insufficient balance
-      }
-
-      // Deduct points
-      const updatedUser = await tx.user.update({
-        where: { id: userId },
-        data: {
-          sparklePoints: { decrement: intAmount },
-          version: { increment: 1 },
-        },
-        select: { sparklePoints: true },
-      })
-
-      // Update balance tracking
-      await tx.userBalance.update({
-        where: { userId },
-        data: {
-          sparklePoints: { decrement: intAmount },
-          lifetimeSpent: { increment: intAmount },
-          lastTransactionAt: new Date(),
-          version: { increment: 1 },
-        },
-      })
-
-      // Log transaction
-      await tx.currencyTransaction.create({
-        data: {
-          userId,
-          amount: intAmount,
-          currencyType: 'sparkle',
-          transactionType: 'spend',
-          source: reason,
-          sourceId: targetId,
-          balanceBefore: updatedUser.sparklePoints + intAmount,
-          balanceAfter: updatedUser.sparklePoints,
-        },
-      })
-
-      return true
-    })
-  }
-
-  async checkAndUnlockAchievements(userId: string, context: string) {
-    const achievements = await this.db.achievement.findMany({
-      where: {
-        deleted: false,
-        // Check if context matches or if achievement is global
-        OR: [
-          { category: context },
-          { category: null },
-        ],
-      },
-    })
-
-    const unlockedAchievements = []
-
-    for (const achievement of achievements) {
-      const unlocked = await this.checkAchievement(userId, achievement)
-      if (unlocked) {
-        unlockedAchievements.push(achievement)
-      }
-    }
-
-    return unlockedAchievements
-  }
-
-  private async checkAchievement(userId: string, achievement: any): Promise<boolean> {
-    // Check if already unlocked
-    const existing = await this.db.userAchievement.findUnique({
-      where: {
-        userId_achievementId: {
-          userId,
-          achievementId: achievement.id,
-        },
-      },
-    })
-
-    if (existing && existing.progress >= 1) return false
-
-    // Check requirements (stored in JSON)
-    const meetsRequirements = await this.evaluateAchievementRequirements(
-      userId,
-      achievement.criteria || achievement.requirements
+    // Filter achievements by trigger
+    const relevantAchievements = achievements.filter(a => 
+      a.trigger === trigger && !unlockedIds.has(a.id)
     )
 
-    if (meetsRequirements) {
-      await this.unlockAchievement(userId, achievement.id)
-      return true
-    } else if (achievement.progressSteps > 1) {
-      // Update progress for multi-step achievements
-      const progress = await this.calculateAchievementProgress(
-        userId,
-        achievement.criteria || achievement.requirements,
-        achievement.progressSteps
+    // Check each achievement
+    for (const achievement of relevantAchievements) {
+      const progress = await this.checkAchievementProgress(
+        userId, 
+        achievement, 
+        context
       )
 
-      await this.db.userAchievement.upsert({
-        where: {
-          userId_achievementId: {
-            userId,
-            achievementId: achievement.id,
-          },
-        },
-        create: {
-          userId,
-          achievementId: achievement.id,
-          progress,
-          progressData: { 
-            current: Math.floor(progress * achievement.progressSteps), 
-            target: achievement.progressSteps 
-          },
-        },
-        update: {
-          progress,
-          progressData: { 
-            current: Math.floor(progress * achievement.progressSteps), 
-            target: achievement.progressSteps 
-          },
-        },
-      })
+      progressUpdates.push(progress)
 
-      // Check if just completed
-      if (progress >= 1) {
-        await this.unlockAchievement(userId, achievement.id)
-        return true
+      if (progress.isCompleted) {
+        await this.unlockAchievement(userId, achievement)
+        unlockedAchievements.push(achievement.id)
       }
     }
 
-    return false
+    return {
+      unlocked: unlockedAchievements,
+      progress: progressUpdates,
+    }
   }
 
-  private async unlockAchievement(userId: string, achievementId: string) {
-    const achievement = await this.db.achievement.findUnique({
-      where: { id: achievementId },
-    })
+  private async checkAchievementProgress(
+    userId: string,
+    achievement: any,
+    context?: any
+  ): Promise<AchievementProgress> {
+    let currentValue = 0
+    let targetValue = 0
+    let isCompleted = false
 
-    if (!achievement) return
-
-    await this.db.$transaction(async (tx) => {
-      // Unlock achievement
-      await tx.userAchievement.upsert({
-        where: {
-          userId_achievementId: {
-            userId,
-            achievementId,
-          },
-        },
-        create: {
-          userId,
-          achievementId,
-          progress: 1,
-          unlockedAt: new Date(),
-          claimedRewards: true,
-        },
-        update: {
-          progress: 1,
-          unlockedAt: new Date(),
-          claimedRewards: true,
-        },
-      })
-
-      // Award rewards (using Int for points)
-      if (achievement.xpReward > 0) {
-        await tx.user.update({
-          where: { id: userId },
-          data: {
-            experience: { increment: achievement.xpReward },
-          },
+    switch (achievement.id) {
+      case 'first_post':
+        currentValue = await this.db.post.count({ 
+          where: { authorId: userId } 
         })
+        targetValue = 1
+        isCompleted = currentValue >= targetValue
+        break
 
-        await tx.xpLog.create({
-          data: {
-            userId,
-            amount: achievement.xpReward,
-            source: 'achievement',
-            sourceId: achievementId,
-            reason: `Unlocked achievement: ${achievement.name}`,
-            totalXp: 0, // Will be recalculated
-          },
+      case 'prolific_writer':
+        currentValue = await this.db.post.count({ 
+          where: { authorId: userId } 
         })
-      }
+        targetValue = 10
+        isCompleted = currentValue >= targetValue
+        break
 
-      if (achievement.sparklePointsReward > 0) {
-        await this.awardSparklePoints(
-          tx,
-          userId,
-          achievement.sparklePointsReward,
-          'achievement',
-          achievementId
-        )
-      }
+      case 'viral_sensation':
+        const viralPost = await this.db.post.findFirst({
+          where: {
+            authorId: userId,
+            reactions: {
+              _count: { gte: 1000 }
+            }
+          }
+        })
+        currentValue = viralPost ? 1000 : 0
+        targetValue = 1000
+        isCompleted = !!viralPost
+        break
 
-      if (achievement.premiumPointsReward > 0) {
-        await this.awardPremiumPoints(
-          tx,
-          userId,
-          achievement.premiumPointsReward,
-          'achievement',
-          achievementId
-        )
-      }
+      case 'social_butterfly':
+        currentValue = await this.db.follow.count({
+          where: { followingId: userId }
+        })
+        targetValue = 50
+        isCompleted = currentValue >= targetValue
+        break
 
-      // Update user stats
-      await tx.userStats.upsert({
-        where: { userId },
-        create: {
-          userId,
-          totalAchievements: 1,
-        },
-        update: {
-          totalAchievements: { increment: 1 },
-        },
-      })
+      case 'influencer':
+        currentValue = await this.db.follow.count({
+          where: { followingId: userId }
+        })
+        targetValue = 1000
+        isCompleted = currentValue >= targetValue
+        break
 
-      // Update daily activity
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
+      case 'engagement_master':
+        currentValue = await this.db.reaction.count({
+          where: { userId }
+        })
+        targetValue = 100
+        isCompleted = currentValue >= targetValue
+        break
 
-      await tx.userActivity.upsert({
-        where: {
-          userId_date: {
+      case 'helpful_member':
+        const likedComments = await this.db.comment.count({
+          where: {
+            authorId: userId,
+            reactions: {
+              some: { type: 'LIKE' }
+            }
+          }
+        })
+        currentValue = likedComments
+        targetValue = 50
+        isCompleted = currentValue >= targetValue
+        break
+
+      case 'night_owl':
+        // Check if user has posted between 12 AM and 5 AM
+        const nightPosts = await this.db.post.count({
+          where: {
+            authorId: userId,
+            createdAt: {
+              gte: new Date(new Date().setHours(0, 0, 0, 0)),
+              lt: new Date(new Date().setHours(5, 0, 0, 0))
+            }
+          }
+        })
+        currentValue = nightPosts
+        targetValue = 10
+        isCompleted = currentValue >= targetValue
+        break
+
+      case 'streak_master':
+        const streak = await this.getCurrentStreak(userId)
+        currentValue = streak
+        targetValue = 30
+        isCompleted = currentValue >= targetValue
+        break
+
+      case 'level_titan':
+        currentValue = context?.level || 0
+        targetValue = 50
+        isCompleted = currentValue >= targetValue
+        break
+
+      case 'sparkle_fan':
+        // Check completion of Sparkle-themed challenges
+        const sparkleQuests = await this.db.userQuest.count({
+          where: {
             userId,
-            date: today,
-          },
-        },
-        create: {
-          userId,
-          date: today,
-          achievementsUnlocked: 1,
-        },
-        update: {
-          achievementsUnlocked: { increment: 1 },
-        },
-      })
-    })
+            quest: {
+              code: { startsWith: 'sparkle_' }
+            },
+            status: 'COMPLETED'
+          }
+        })
+        currentValue = sparkleQuests
+        targetValue = 10
+        isCompleted = currentValue >= targetValue
+        break
 
-    // Send notification
-    await this.notificationService.createNotification({
-      type: NotificationType.ACHIEVEMENT_UNLOCKED,
-      userId,
-      entityId: achievementId,
-      entityType: 'achievement',
-      title: 'Achievement Unlocked!',
-      message: `You've unlocked "${achievement.name}"!`,
-      imageUrl: achievement.icon || achievement.animatedIcon,
+      default:
+        // Custom achievement logic
+        if (achievement.criteria?.customCheck) {
+          const result = await this.customAchievementCheck(
+            userId, 
+            achievement.id, 
+            context
+          )
+          currentValue = result.current
+          targetValue = result.target
+          isCompleted = result.completed
+        }
+    }
+
+    const percentage = targetValue > 0 
+      ? Math.min(100, (currentValue / targetValue) * 100) 
+      : 0
+
+    return {
+      achievementId: achievement.id,
+      currentValue,
+      targetValue,
+      percentage,
+      isCompleted,
+    }
+  }
+
+  private async unlockAchievement(userId: string, achievement: any) {
+    // Create user achievement record
+    await this.db.userAchievement.create({
       data: {
-        achievementName: achievement.name,
-        rarity: achievement.rarity,
-        rewards: {
-          xp: achievement.xpReward,
-          sparklePoints: achievement.sparklePointsReward,
-          premiumPoints: achievement.premiumPointsReward,
-        },
-      },
+        userId,
+        achievementId: achievement.id,
+        progress: {
+          unlockedAt: new Date(),
+          finalStats: {},
+        }
+      }
     })
+
+    // Calculate XP reward based on rarity
+    const rarityMultipliers: Record<string, number> = {
+      common: 1,
+      uncommon: 1.5,
+      rare: 2,
+      epic: 3,
+      legendary: 5,
+      mythic: 10,
+    }
+
+    const xpReward = Math.floor(
+      achievement.xp * (rarityMultipliers[achievement.rarity] || 1)
+    )
+
+    // Award XP
+    await this.awardXP(
+      userId, 
+      xpReward, 
+      `Achievement unlocked: ${achievement.name}`
+    )
+
+    // Award sparkle points for rare achievements
+    if (['epic', 'legendary', 'mythic'].includes(achievement.rarity)) {
+      const sparklePoints = achievement.rarity === 'mythic' ? 1000 
+        : achievement.rarity === 'legendary' ? 500 
+        : 250
+
+      await this.db.user.update({
+        where: { id: userId },
+        data: {
+          sparklePoints: { increment: sparklePoints }
+        }
+      })
+    }
+
+    // Create notification
+    await this.db.notification.create({
+      data: {
+        type: 'ACHIEVEMENT_UNLOCKED',
+        userId,
+        message: `Achievement Unlocked: ${achievement.name}!`,
+        data: {
+          achievementId: achievement.id,
+          name: achievement.name,
+          description: achievement.description,
+          icon: achievement.icon,
+          rarity: achievement.rarity,
+          xpReward,
+        }
+      }
+    })
+
+    // Emit event
+    this.emit('achievement:unlocked', {
+      userId,
+      achievement,
+      xpReward,
+    })
+
+    // Update achievement leaderboard
+    await this.updateAchievementLeaderboard(userId)
   }
 
-  async getActiveQuests(userId: string) {
-    const now = new Date()
+  // Leaderboard System
+  async getLeaderboard(
+    type: 'xp' | 'posts' | 'followers' | 'achievements',
+    timeframe: 'day' | 'week' | 'month' | 'all' = 'all',
+    limit: number = 100
+  ): Promise<{
+    entries: any[]
+    userRank?: number
+    totalEntries: number
+  }> {
+    const cacheKey = `leaderboard:${type}:${timeframe}`
+    
+    // Try cache first
+    const cached = await this.redis.get(cacheKey)
+    if (cached && timeframe !== 'day') {
+      return JSON.parse(cached)
+    }
 
-    // Get daily, weekly, and monthly quests
-    const quests = await this.db.quest.findMany({
-      where: {
-        availableFrom: { lte: now },
-        availableUntil: { gte: now },
-      },
-      include: {
-        userQuests: {
-          where: { userId },
+    const dateFilter = this.getDateFilter(timeframe)
+    let entries: any[] = []
+
+    switch (type) {
+      case 'xp':
+        entries = await this.getXPLeaderboard(dateFilter, limit)
+        break
+      case 'posts':
+        entries = await this.getPostsLeaderboard(dateFilter, limit)
+        break
+      case 'followers':
+        entries = await this.getFollowersLeaderboard(dateFilter, limit)
+        break
+      case 'achievements':
+        entries = await this.getAchievementsLeaderboard(limit)
+        break
+    }
+
+    // Add ranks
+    entries = entries.map((entry, index) => ({
+      ...entry,
+      rank: index + 1,
+    }))
+
+    const result = {
+      entries,
+      totalEntries: entries.length,
+    }
+
+    // Cache for appropriate duration
+    const ttl = timeframe === 'day' ? 300 // 5 minutes
+      : timeframe === 'week' ? 3600 // 1 hour
+      : timeframe === 'month' ? 7200 // 2 hours
+      : 86400 // 24 hours
+
+    await this.redis.setex(cacheKey, ttl, JSON.stringify(result))
+
+    return result
+  }
+
+  private async getXPLeaderboard(dateFilter: Date | null, limit: number) {
+    if (dateFilter) {
+      // Get XP gained in timeframe
+      const result = await this.db.$queryRaw<any[]>`
+        SELECT 
+          u.id,
+          u.username,
+          u.image,
+          u.level,
+          u.verified,
+          COALESCE(SUM(x.amount), 0)::int as xp_gained
+        FROM users u
+        LEFT JOIN xp_logs x ON x."userId" = u.id
+        WHERE x."createdAt" >= ${dateFilter}
+        GROUP BY u.id
+        ORDER BY xp_gained DESC
+        LIMIT ${limit}
+      `
+      return result
+    } else {
+      // All-time XP leaderboard
+      return this.db.user.findMany({
+        select: {
+          id: true,
+          username: true,
+          image: true,
+          level: true,
+          experience: true,
+          verified: true,
         },
+        orderBy: { experience: 'desc' },
+        take: limit,
+      })
+    }
+  }
+
+  private async getPostsLeaderboard(dateFilter: Date | null, limit: number) {
+    const where = dateFilter ? {
+      createdAt: { gte: dateFilter }
+    } : {}
+
+    const result = await this.db.user.findMany({
+      select: {
+        id: true,
+        username: true,
+        image: true,
+        level: true,
+        verified: true,
+        _count: {
+          select: {
+            posts: {
+              where
+            }
+          }
+        }
       },
+      orderBy: {
+        posts: {
+          _count: 'desc'
+        }
+      },
+      take: limit,
     })
 
-    return quests.map(quest => ({
-      ...quest,
-      userProgress: quest.userQuests[0] || null,
+    return result.map(user => ({
+      ...user,
+      postCount: user._count.posts,
+      _count: undefined,
     }))
   }
 
-  async updateQuestProgress(
-    userId: string,
-    questCode: string,
-    progressIncrement: number = 1
-  ) {
-    const now = new Date()
-    
-    const activeQuests = await this.db.quest.findMany({
-      where: {
-        code: questCode,
-        availableFrom: { lte: now },
-        availableUntil: { gte: now },
-      },
-    })
-
-    for (const quest of activeQuests) {
-      const userQuest = await this.db.userQuest.upsert({
-        where: {
-          userId_questId: {
-            userId,
-            questId: quest.id,
-          },
-        },
-        create: {
-          userId,
-          questId: quest.id,
-          status: QuestStatus.IN_PROGRESS,
-          progress: { current: progressIncrement },
-          currentStep: progressIncrement,
-          totalSteps: quest.requirements ? (quest.requirements as any).target || 1 : 1,
-        },
-        update: {
-          progress: { 
-            increment: { current: progressIncrement } 
-          },
-          currentStep: { increment: progressIncrement },
-        },
-      })
-
-      // Check if quest completed
-      const requirements = quest.requirements as any
-      const targetAmount = requirements?.target || requirements?.amount || 1
-      const currentProgress = (userQuest.progress as any)?.current || userQuest.currentStep
-
-      if (currentProgress >= targetAmount && userQuest.status !== QuestStatus.COMPLETED) {
-        await this.completeQuest(userId, quest.id)
-      }
-    }
-  }
-
-  private async completeQuest(userId: string, questId: string) {
-    const quest = await this.db.quest.findUnique({
-      where: { id: questId },
-    })
-
-    if (!quest) return
-
-    await this.db.$transaction(async (tx) => {
-      // Mark quest as completed
-      await tx.userQuest.update({
-        where: {
-          userId_questId: {
-            userId,
-            questId,
-          },
-        },
-        data: {
-          status: QuestStatus.COMPLETED,
-          completedAt: new Date(),
-        },
-      })
-
-      // Award XP
-      if (quest.xpReward > 0) {
-        await tx.user.update({
-          where: { id: userId },
-          data: {
-            experience: { increment: quest.xpReward },
-          },
-        })
-
-        await tx.xpLog.create({
-          data: {
-            userId,
-            amount: quest.xpReward,
-            source: 'quest',
-            sourceId: questId,
-            reason: `Completed quest: ${quest.name}`,
-            totalXp: 0,
-          },
-        })
-      }
-
-      // Award points
-      if (quest.pointsReward > 0) {
-        await this.awardSparklePoints(tx, userId, quest.pointsReward, 'quest', questId)
-      }
-
-      // Update stats
-      await tx.userStats.upsert({
-        where: { userId },
-        create: {
-          userId,
-          questsCompleted: 1,
-        },
-        update: {
-          questsCompleted: { increment: 1 },
-        },
-      })
-
-      // Update daily activity
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-
-      await tx.userActivity.upsert({
-        where: {
-          userId_date: {
-            userId,
-            date: today,
-          },
-        },
-        create: {
-          userId,
-          date: today,
-          questsCompleted: 1,
-        },
-        update: {
-          questsCompleted: { increment: 1 },
-        },
-      })
-    })
-
-    // Send notification
-    await this.notificationService.createNotification({
-      type: NotificationType.QUEST_COMPLETE,
-      userId,
-      entityId: questId,
-      entityType: 'quest',
-      title: 'Quest Completed!',
-      message: `You've completed "${quest.name}"!`,
-      data: {
-        questName: quest.name,
-        questType: quest.type,
-        rewards: {
-          xp: quest.xpReward,
-          sparklePoints: quest.pointsReward,
-        },
-      },
-    })
-  }
-
-  async getLeaderboard(
-    type: 'xp' | 'sparklePoints' | 'achievements',
-    period: 'daily' | 'weekly' | 'monthly' | 'alltime',
-    limit: number = 10
-  ) {
-    const key = `${type}:${period}`
-    const cached = await redisUtils.getLeaderboard(key, limit)
-
-    if (cached.length > 0) {
-      // Enrich with user data
-      const userIds = cached.map(entry => entry.member)
-      const users = await this.db.user.findMany({
-        where: { 
-          id: { in: userIds },
-          deleted: false,
-        },
+  private async getFollowersLeaderboard(dateFilter: Date | null, limit: number) {
+    if (dateFilter) {
+      const result = await this.db.$queryRaw<any[]>`
+        SELECT 
+          u.id,
+          u.username,
+          u.image,
+          u.level,
+          u.verified,
+          COUNT(f.id)::int as new_followers
+        FROM users u
+        LEFT JOIN follows f ON f."followingId" = u.id
+        WHERE f."createdAt" >= ${dateFilter}
+        GROUP BY u.id
+        ORDER BY new_followers DESC
+        LIMIT ${limit}
+      `
+      return result
+    } else {
+      const result = await this.db.user.findMany({
         select: {
           id: true,
           username: true,
           image: true,
           level: true,
           verified: true,
-        },
-      })
-
-      const userMap = new Map(users.map(u => [u.id, u]))
-
-      return cached.map((entry, index) => ({
-        rank: index + 1,
-        user: userMap.get(entry.member),
-        score: Math.floor(entry.score),
-      })).filter(entry => entry.user) // Filter out deleted users
-    }
-
-    // If no cache, compute from database
-    return this.computeLeaderboard(type, period, limit)
-  }
-
-  private async computeLeaderboard(
-    type: string,
-    period: string,
-    limit: number
-  ) {
-    let dateFilter: Date | undefined
-    const now = new Date()
-
-    switch (period) {
-      case 'daily':
-        const today = new Date(now)
-        today.setHours(0, 0, 0, 0)
-        dateFilter = today
-        break
-      case 'weekly':
-        const weekAgo = new Date(now)
-        weekAgo.setDate(weekAgo.getDate() - 7)
-        dateFilter = weekAgo
-        break
-      case 'monthly':
-        const monthAgo = new Date(now)
-        monthAgo.setMonth(monthAgo.getMonth() - 1)
-        dateFilter = monthAgo
-        break
-    }
-
-    let users: any[] = []
-
-    if (type === 'xp') {
-      // For period-based XP, we need to look at XP logs
-      if (dateFilter) {
-        const xpLogs = await this.db.xpLog.groupBy({
-          by: ['userId'],
-          where: {
-            createdAt: { gte: dateFilter },
-          },
-          _sum: {
-            amount: true,
-          },
-          orderBy: {
-            _sum: {
-              amount: 'desc',
-            },
-          },
-          take: limit,
-        })
-
-        const userIds = xpLogs.map(log => log.userId)
-        const userMap = await this.db.user.findMany({
-          where: { 
-            id: { in: userIds },
-            deleted: false,
-          },
-          select: {
-            id: true,
-            username: true,
-            image: true,
-            level: true,
-            experience: true,
-          },
-        })
-
-        const userDict = new Map(userMap.map(u => [u.id, u]))
-        
-        users = xpLogs.map(log => ({
-          ...userDict.get(log.userId),
-          periodXp: log._sum.amount || 0,
-        }))
-      } else {
-        // All-time XP
-        users = await this.db.user.findMany({
-          where: { deleted: false },
-          select: {
-            id: true,
-            username: true,
-            image: true,
-            level: true,
-            experience: true,
-          },
-          orderBy: { experience: 'desc' },
-          take: limit,
-        })
-      }
-    } else if (type === 'sparklePoints') {
-      if (dateFilter) {
-        // Period-based sparkle points from transactions
-        const transactions = await this.db.currencyTransaction.groupBy({
-          by: ['userId'],
-          where: {
-            createdAt: { gte: dateFilter },
-            currencyType: 'sparkle',
-            transactionType: 'earn',
-          },
-          _sum: {
-            amount: true,
-          },
-          orderBy: {
-            _sum: {
-              amount: 'desc',
-            },
-          },
-          take: limit,
-        })
-
-        const userIds = transactions.map(t => t.userId)
-        const userMap = await this.db.user.findMany({
-          where: { 
-            id: { in: userIds },
-            deleted: false,
-          },
-          select: {
-            id: true,
-            username: true,
-            image: true,
-            level: true,
-            sparklePoints: true,
-          },
-        })
-
-        const userDict = new Map(userMap.map(u => [u.id, u]))
-        
-        users = transactions.map(t => ({
-          ...userDict.get(t.userId),
-          periodPoints: t._sum.amount || 0,
-        }))
-      } else {
-        // All-time sparkle points
-        users = await this.db.user.findMany({
-          where: { deleted: false },
-          select: {
-            id: true,
-            username: true,
-            image: true,
-            level: true,
-            sparklePoints: true,
-          },
-          orderBy: { sparklePoints: 'desc' },
-          take: limit,
-        })
-      }
-    } else if (type === 'achievements') {
-      // Get users with most achievements
-      const userAchievements = await this.db.userAchievement.groupBy({
-        by: ['userId'],
-        where: dateFilter ? {
-          unlockedAt: { gte: dateFilter },
-          claimedRewards: true,
-        } : { 
-          progress: { gte: 1 },
-        },
-        _count: {
-          achievementId: true,
+          _count: {
+            select: { followers: true }
+          }
         },
         orderBy: {
-          _count: {
-            achievementId: 'desc',
-          },
+          followers: {
+            _count: 'desc'
+          }
         },
         take: limit,
       })
 
-      const userIds = userAchievements.map(ua => ua.userId)
-      const userMap = await this.db.user.findMany({
-        where: { 
-          id: { in: userIds },
-          deleted: false,
-        },
-        select: {
-          id: true,
-          username: true,
-          image: true,
-          level: true,
-        },
-      })
-
-      const userDict = new Map(userMap.map(u => [u.id, u]))
-      
-      users = userAchievements.map(ua => ({
-        ...userDict.get(ua.userId),
-        achievementCount: ua._count.achievementId,
+      return result.map(user => ({
+        ...user,
+        followerCount: user._count.followers,
+        _count: undefined,
       }))
     }
+  }
 
-    // Filter out null users (deleted accounts)
-    users = users.filter(u => u && u.id)
+  private async getAchievementsLeaderboard(limit: number) {
+    const result = await this.db.user.findMany({
+      select: {
+        id: true,
+        username: true,
+        image: true,
+        level: true,
+        verified: true,
+        achievements: {
+          include: {
+            achievement: true
+          }
+        }
+      },
+      take: limit * 2, // Get more to filter
+    })
 
-    // Cache the results
-    const cacheKey = `${type}:${period}`
-    for (const user of users) {
-      let score = 0
-      if (type === 'xp') {
-        score = dateFilter ? user.periodXp : user.experience
-      } else if (type === 'sparklePoints') {
-        score = dateFilter ? user.periodPoints : user.sparklePoints
-      } else if (type === 'achievements') {
-        score = user.achievementCount
-      }
-      
-      await redisUtils.addToLeaderboard(cacheKey, user.id, score)
-    }
+    // Calculate achievement scores
+    const scored = result.map(user => {
+      const score = user.achievements.reduce((total, ua) => {
+        const achievement = this.achievementCache.get(ua.achievementId)
+        if (!achievement) return total
 
-    return users.map((user, index) => ({
-      rank: index + 1,
-      user: {
+        const rarityScores: Record<string, number> = {
+          common: 10,
+          uncommon: 25,
+          rare: 50,
+          epic: 100,
+          legendary: 250,
+          mythic: 1000,
+        }
+
+        return total + (rarityScores[achievement.rarity] || 10)
+      }, 0)
+
+      return {
         id: user.id,
         username: user.username,
         image: user.image,
         level: user.level,
-      },
-      score: type === 'xp' ? (dateFilter ? user.periodXp : user.experience) : 
-             type === 'sparklePoints' ? (dateFilter ? user.periodPoints : user.sparklePoints) :
-             user.achievementCount,
-    }))
+        verified: user.verified,
+        achievementCount: user.achievements.length,
+        achievementScore: score,
+        rareAchievements: user.achievements.filter(ua => {
+          const achievement = this.achievementCache.get(ua.achievementId)
+          return achievement && ['epic', 'legendary', 'mythic'].includes(achievement.rarity)
+        }).length,
+      }
+    })
+
+    // Sort by score and return top entries
+    return scored
+      .sort((a, b) => b.achievementScore - a.achievementScore)
+      .slice(0, limit)
   }
 
-  private async evaluateAchievementRequirements(
-    userId: string,
-    requirements: any
-  ): Promise<boolean> {
-    if (!requirements) return false
-
-    // Post count requirement
-    if (requirements.type === 'posts' && requirements.count) {
-      const count = await this.db.post.count({
-        where: { 
-          authorId: userId,
-          published: true,
-          deleted: false,
-        },
-      })
-      return count >= requirements.count
-    }
-
-    // Comment count requirement
-    if (requirements.type === 'comments' && requirements.count) {
-      const count = await this.db.comment.count({
-        where: { 
-          authorId: userId,
-          deleted: false,
-        },
-      })
-      return count >= requirements.count
-    }
-
-    // Follower count requirement
-    if (requirements.type === 'followers' && requirements.count) {
-      const count = await this.db.follow.count({
-        where: { followingId: userId },
-      })
-      return count >= requirements.count
-    }
-
-    // Following count requirement
-    if (requirements.type === 'following' && requirements.count) {
-      const count = await this.db.follow.count({
-        where: { followerId: userId },
-      })
-      return count >= requirements.count
-    }
-
-    // Level requirement
-    if (requirements.type === 'level' && requirements.level) {
-      const user = await this.db.user.findUnique({
-        where: { id: userId },
-        select: { level: true },
-      })
-      return (user?.level || 0) >= requirements.level
-    }
-
-    // XP requirement
-    if (requirements.type === 'xp' && requirements.amount) {
-      const user = await this.db.user.findUnique({
-        where: { id: userId },
-        select: { experience: true },
-      })
-      return (user?.experience || 0) >= requirements.amount
-    }
-
-    // Streak requirement
-    if (requirements.type === 'streak' && requirements.days) {
-      const stats = await this.db.userStats.findUnique({
-        where: { userId },
-        select: { streakDays: true },
-      })
-      return (stats?.streakDays || 0) >= requirements.days
-    }
-
-    // Quality content requirement (high engagement)
-    if (requirements.type === 'quality_content') {
-      const posts = await this.db.post.findMany({
-        where: { 
-          authorId: userId,
-          published: true,
-        },
-        include: {
-          stats: true,
-        },
-      })
-
-      const qualityPosts = posts.filter(post => 
-        post.stats && post.stats.engagementRate >= (requirements.minEngagement || 0.5)
-      )
-
-      return qualityPosts.length >= (requirements.count || 1)
-    }
-
-    return false
-  }
-
-  private async calculateAchievementProgress(
-    userId: string,
-    requirements: any,
-    progressSteps: number
-  ): Promise<number> {
-    if (!requirements) return 0
-
-    let current = 0
-    let target = progressSteps
-
-    if (requirements.type === 'posts' && requirements.count) {
-      current = await this.db.post.count({
-        where: { 
-          authorId: userId,
-          published: true,
-          deleted: false,
-        },
-      })
-      target = requirements.count
-    } else if (requirements.type === 'comments' && requirements.count) {
-      current = await this.db.comment.count({
-        where: { 
-          authorId: userId,
-          deleted: false,
-        },
-      })
-      target = requirements.count
-    } else if (requirements.type === 'followers' && requirements.count) {
-      current = await this.db.follow.count({
-        where: { followingId: userId },
-      })
-      target = requirements.count
-    } else if (requirements.type === 'xp' && requirements.amount) {
-      const user = await this.db.user.findUnique({
-        where: { id: userId },
-        select: { experience: true },
-      })
-      current = user?.experience || 0
-      target = requirements.amount
-    }
-
-    return Math.min(current / target, 1)
-  }
-
-  private async checkLevelAchievements(
-    tx: Prisma.TransactionClient,
-    userId: string,
+  // User Stats
+  async getUserStats(userId: string): Promise<{
     level: number
-  ) {
-    const levelAchievements = [
-      { level: 5, code: 'LEVEL_5' },
-      { level: 10, code: 'LEVEL_10' },
-      { level: 25, code: 'LEVEL_25' },
-      { level: 50, code: 'LEVEL_50' },
-      { level: 75, code: 'LEVEL_75' },
-      { level: 100, code: 'LEVEL_100' },
-      { level: 150, code: 'LEVEL_150' },
-      { level: 200, code: 'LEVEL_200' },
-    ]
-
-    for (const achievement of levelAchievements) {
-      if (level >= achievement.level) {
-        const dbAchievement = await tx.achievement.findUnique({
-          where: { code: achievement.code },
-        })
-
-        if (dbAchievement) {
-          // Check if not already unlocked
-          const existing = await tx.userAchievement.findUnique({
-            where: {
-              userId_achievementId: {
-                userId,
-                achievementId: dbAchievement.id,
-              },
-            },
-          })
-
-          if (!existing || existing.progress < 1) {
-            await tx.userAchievement.upsert({
-              where: {
-                userId_achievementId: {
-                  userId,
-                  achievementId: dbAchievement.id,
-                },
-              },
-              create: {
-                userId,
-                achievementId: dbAchievement.id,
-                progress: 1,
-                unlockedAt: new Date(),
-                claimedRewards: true,
-              },
-              update: {
-                progress: 1,
-                unlockedAt: new Date(),
-                claimedRewards: true,
-              },
-            })
-
-            // Update achievement count in stats
-            await tx.userStats.upsert({
-              where: { userId },
-              create: {
-                userId,
-                totalAchievements: 1,
-              },
-              update: {
-                totalAchievements: { increment: 1 },
-              },
-            })
+    experience: number
+    nextLevelXP: number
+    progress: {
+      current: number
+      needed: number
+      percentage: number
+    }
+    achievements: {
+      total: number
+      unlocked: number
+      points: number
+      byRarity: Record<string, number>
+    }
+    stats: {
+      posts: number
+      comments: number
+      reactions: number
+      followers: number
+      following: number
+    }
+    ranks: {
+      global: number
+      xp: number
+      achievements: number
+    }
+    streaks: {
+      current: number
+      longest: number
+    }
+    recentXP: Array<{
+      amount: number
+      reason: string
+      createdAt: Date
+    }>
+  }> {
+    const user = await this.db.user.findUnique({
+      where: { id: userId },
+      include: {
+        achievements: {
+          include: {
+            achievement: true,
+          }
+        },
+        _count: {
+          select: {
+            posts: true,
+            comments: true,
+            reactions: true,
+            followers: true,
+            following: true,
           }
         }
       }
+    })
+
+    if (!user) {
+      throw new Error('User not found')
     }
+
+    // Calculate level progress
+    const nextLevelXP = this.getXPForLevel(user.level + 1)
+    const currentLevelXP = this.getXPForLevel(user.level)
+    const progressXP = user.experience - currentLevelXP
+    const neededXP = nextLevelXP - currentLevelXP
+    const percentage = (progressXP / neededXP) * 100
+
+    // Calculate achievement stats
+    const achievementStats = this.calculateAchievementStats(user.achievements)
+
+    // Get ranks
+    const ranks = await this.getUserRanks(userId)
+
+    // Get streaks
+    const streaks = await this.getUserStreaks(userId)
+
+    // Get recent XP gains
+    const recentXP = await this.db.xpLog.findMany({
+      where: { userId },
+      select: {
+        amount: true,
+        reason: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+    })
+
+    return {
+      level: user.level,
+      experience: user.experience,
+      nextLevelXP,
+      progress: {
+        current: progressXP,
+        needed: neededXP,
+        percentage,
+      },
+      achievements: achievementStats,
+      stats: user._count,
+      ranks,
+      streaks,
+      recentXP,
+    }
+  }
+
+  private calculateAchievementStats(userAchievements: any[]) {
+    const byRarity: Record<string, number> = {
+      common: 0,
+      uncommon: 0,
+      rare: 0,
+      epic: 0,
+      legendary: 0,
+      mythic: 0,
+    }
+
+    let points = 0
+
+    userAchievements.forEach(ua => {
+      const achievement = this.achievementCache.get(ua.achievementId)
+      if (achievement) {
+        byRarity[achievement.rarity] = (byRarity[achievement.rarity] || 0) + 1
+        
+        const rarityPoints: Record<string, number> = {
+          common: 10,
+          uncommon: 25,
+          rare: 50,
+          epic: 100,
+          legendary: 250,
+          mythic: 1000,
+        }
+        
+        points += rarityPoints[achievement.rarity] || 10
+      }
+    })
+
+    return {
+      total: achievements.length,
+      unlocked: userAchievements.length,
+      points,
+      byRarity,
+    }
+  }
+
+  private async getUserRanks(userId: string): Promise<any> {
+    const user = await this.db.user.findUnique({
+      where: { id: userId },
+      select: { experience: true }
+    })
+
+    if (!user) return { global: 0, xp: 0, achievements: 0 }
+
+    const [xpRank, achievementRank] = await Promise.all([
+      this.db.user.count({
+        where: {
+          experience: { gt: user.experience }
+        }
+      }),
+      this.db.user.count({
+        where: {
+          achievements: {
+            some: {}
+          }
+        }
+      })
+    ])
+
+    return {
+      global: xpRank + 1,
+      xp: xpRank + 1,
+      achievements: achievementRank + 1,
+    }
+  }
+
+  // Daily Quests & Streaks
+  async checkDailyQuests(userId: string): Promise<{
+    completed: string[]
+    rewards: { xp: number; sparklePoints: number }
+  }> {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    // Check if user has logged in today
+    const loginToday = await this.db.xpLog.findFirst({
+      where: {
+        userId,
+        reason: 'Daily login',
+        createdAt: { gte: today }
+      }
+    })
+
+    if (!loginToday) {
+      // Award daily login XP
+      await this.awardXP(userId, XP_CONFIG.DAILY_LOGIN, 'Daily login')
+      
+      // Check and update streak
+      await this.updateLoginStreak(userId)
+    }
+
+    // Check other daily quests
+    const completed: string[] = []
+    let totalXP = 0
+    let totalSparklePoints = 0
+
+    // Post creation quest
+    const postsToday = await this.db.post.count({
+      where: {
+        authorId: userId,
+        createdAt: { gte: today }
+      }
+    })
+
+    if (postsToday >= 1 && !completed.includes('daily_post')) {
+      completed.push('daily_post')
+      totalXP += 25
+    }
+
+    // Engagement quest
+    const reactionsToday = await this.db.reaction.count({
+      where: {
+        userId,
+        createdAt: { gte: today }
+      }
+    })
+
+    if (reactionsToday >= 5 && !completed.includes('daily_reactions')) {
+      completed.push('daily_reactions')
+      totalXP += 15
+    }
+
+    // Award quest completion XP
+    if (totalXP > 0) {
+      await this.awardXP(userId, totalXP, 'Daily quest completion')
+    }
+
+    return {
+      completed,
+      rewards: {
+        xp: totalXP,
+        sparklePoints: totalSparklePoints,
+      }
+    }
+  }
+
+  private async updateLoginStreak(userId: string) {
+    const yesterday = new Date()
+    yesterday.setDate(yesterday.getDate() - 1)
+    yesterday.setHours(0, 0, 0, 0)
+
+    const yesterdayLogin = await this.db.xpLog.findFirst({
+      where: {
+        userId,
+        reason: 'Daily login',
+        createdAt: {
+          gte: yesterday,
+          lt: new Date(yesterday.getTime() + 86400000)
+        }
+      }
+    })
+
+    const streakKey = `streak:${userId}`
+    const currentStreak = parseInt(await this.redis.get(streakKey) || '0')
+
+    if (yesterdayLogin) {
+      // Continue streak
+      const newStreak = currentStreak + 1
+      await this.redis.set(streakKey, newStreak.toString())
+      
+      // Award streak bonus
+      const streakBonus = Math.min(newStreak * XP_CONFIG.STREAK_BONUS, 100)
+      await this.awardXP(userId, streakBonus, `Login streak: ${newStreak} days`)
+
+      // Check streak achievements
+      await this.checkAchievements(userId, 'streak', { days: newStreak })
+    } else {
+      // Reset streak
+      await this.redis.set(streakKey, '1')
+    }
+  }
+
+  private async getCurrentStreak(userId: string): Promise<number> {
+    const streakKey = `streak:${userId}`
+    return parseInt(await this.redis.get(streakKey) || '0')
+  }
+
+  private async getUserStreaks(userId: string) {
+    const current = await this.getCurrentStreak(userId)
+    const longestKey = `streak:longest:${userId}`
+    const longest = parseInt(await this.redis.get(longestKey) || '0')
+
+    // Update longest if current is higher
+    if (current > longest) {
+      await this.redis.set(longestKey, current.toString())
+      return { current, longest: current }
+    }
+
+    return { current, longest }
+  }
+
+  // Helper methods
+  private getDateFilter(timeframe?: string): Date | null {
+    if (!timeframe || timeframe === 'all') return null
+
+    const now = new Date()
+    switch (timeframe) {
+      case 'day':
+        now.setHours(0, 0, 0, 0)
+        return now
+      case 'week':
+        now.setDate(now.getDate() - 7)
+        return now
+      case 'month':
+        now.setMonth(now.getMonth() - 1)
+        return now
+      default:
+        return null
+    }
+  }
+
+  private async updateLeaderboardCache(userId: string, xp: number) {
+    // Update sorted set in Redis for fast leaderboard queries
+    await this.redis.zadd('leaderboard:xp:all', xp, userId)
+  }
+
+  private async updateAchievementLeaderboard(userId: string) {
+    const userAchievements = await this.db.userAchievement.count({
+      where: { userId }
+    })
+    
+    await this.redis.zadd('leaderboard:achievements', userAchievements, userId)
+  }
+
+  private async customAchievementCheck(
+    userId: string,
+    achievementId: string,
+    context?: any
+  ): Promise<{ current: number; target: number; completed: boolean }> {
+    // Implement custom achievement checks here
+    return { current: 0, target: 1, completed: false }
+  }
+
+  // Public event emitter methods
+  onXPAwarded(handler: (data: any) => void) {
+    this.on('xp:awarded', handler)
+  }
+
+  onLevelUp(handler: (data: any) => void) {
+    this.on('user:levelUp', handler)
+  }
+
+  onAchievementUnlocked(handler: (data: any) => void) {
+    this.on('achievement:unlocked', handler)
   }
 }
