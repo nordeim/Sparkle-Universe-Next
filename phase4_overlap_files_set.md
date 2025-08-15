@@ -1,4 +1,4 @@
-# src/hooks/use-socket.ts
+# Phase 4: src/hooks/use-socket.ts
 ```ts
 // src/hooks/use-socket.ts
 'use client'
@@ -348,7 +348,7 @@ export function useGlobalSocket() {
 
 ```
 
-# src/server/api/routers/search.ts
+# Phase 4: src/server/api/routers/search.ts
 ```ts
 // src/server/api/routers/search.ts
 import { z } from 'zod'
@@ -488,7 +488,7 @@ export const searchRouter = createTRPCRouter({
 
 ```
 
-# src/server/api/routers/youtube.ts
+# Phase 4: src/server/api/routers/youtube.ts
 ```ts
 // src/server/api/routers/youtube.ts
 import { z } from 'zod'
@@ -563,7 +563,7 @@ export const youtubeRouter = createTRPCRouter({
 
 ```
 
-# src/server/services/search.service.ts
+# Phase 4: src/server/services/search.service.ts
 ```ts
 // src/server/services/search.service.ts
 import { PrismaClient, Prisma } from '@prisma/client'
@@ -1344,7 +1344,7 @@ export class SearchService {
 
 ```
 
-# src/server/services/youtube.service.ts
+# Phase 4: src/server/services/youtube.service.ts
 ```ts
 // src/server/services/youtube.service.ts
 import { google, youtube_v3 } from 'googleapis'
