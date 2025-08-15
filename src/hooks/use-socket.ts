@@ -1,17 +1,10 @@
 // src/hooks/use-socket.ts
 'use client'
 
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { io, Socket } from 'socket.io-client'
-import { useSession } from 'next-auth/react'
-import { useQueryClient } from '@tanstack/react-query'
-import { logger } from '@/lib/monitoring'
-import type { 
-  ServerToClientEvents, 
-  ClientToServerEvents 
-} from '@/lib/socket/socket-server'
-
-type SocketInstance = Socket<ServerToClientEvents, ClientToServerEvents>
+import { useAuth } from './use-auth'
+import { toast } from './use-toast'
 
 interface UseSocketOptions {
   autoConnect?: boolean
@@ -20,13 +13,14 @@ interface UseSocketOptions {
   reconnectionDelay?: number
 }
 
-export function useSocket(options: UseSocketOptions = {}) {
-  const { data: session } = useSession()
-  const queryClient = useQueryClient()
-  const [isConnected, setIsConnected] = useState(false)
-  const [isConnecting, setIsConnecting] = useState(false)
-  const socketRef = useRef<SocketInstance | null>(null)
+interface SocketState {
+  isConnected: boolean
+  isConnecting: boolean
+  error: Error | null
+  latency: number
+}
 
+export function useSocket(options: UseSocketOptions = {}) {
   const {
     autoConnect = true,
     reconnection = true,
@@ -34,314 +28,318 @@ export function useSocket(options: UseSocketOptions = {}) {
     reconnectionDelay = 1000,
   } = options
 
-  // Initialize socket connection
-  useEffect(() => {
-    if (!session?.user || !autoConnect) return
+  const { user, isAuthenticated } = useAuth()
+  const [state, setState] = useState<SocketState>({
+    isConnected: false,
+    isConnecting: false,
+    error: null,
+    latency: 0,
+  })
 
-    const socket = io(process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:3000', {
-      auth: {
-        token: session.user.id, // In production, use proper session token
-      },
+  const socketRef = useRef<Socket | null>(null)
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const pingIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const eventHandlersRef = useRef<Map<string, Set<Function>>>(new Map())
+
+  // Initialize socket connection
+  const connect = useCallback(() => {
+    if (!isAuthenticated || socketRef.current?.connected) {
+      return
+    }
+
+    setState(prev => ({ ...prev, isConnecting: true, error: null }))
+
+    const socket = io(process.env.NEXT_PUBLIC_WS_URL || '', {
+      withCredentials: true,
       transports: ['websocket', 'polling'],
       reconnection,
       reconnectionAttempts,
       reconnectionDelay,
-    }) as SocketInstance
-
-    socketRef.current = socket
+      timeout: 10000,
+      auth: {
+        sessionId: user?.id,
+      },
+    })
 
     // Connection event handlers
     socket.on('connect', () => {
-      logger.info('Socket connected', { socketId: socket.id })
-      setIsConnected(true)
-      setIsConnecting(false)
+      console.log('WebSocket connected:', socket.id)
+      setState(prev => ({
+        ...prev,
+        isConnected: true,
+        isConnecting: false,
+        error: null,
+      }))
+
+      // Start latency monitoring
+      startLatencyCheck()
     })
 
     socket.on('disconnect', (reason) => {
-      logger.info('Socket disconnected', { reason })
-      setIsConnected(false)
-      setIsConnecting(false)
+      console.log('WebSocket disconnected:', reason)
+      setState(prev => ({
+        ...prev,
+        isConnected: false,
+        isConnecting: false,
+      }))
+
+      stopLatencyCheck()
+
+      // Handle reconnection for specific disconnect reasons
+      if (reason === 'io server disconnect') {
+        // Server disconnected us, try to reconnect
+        attemptReconnect()
+      }
     })
 
     socket.on('connect_error', (error) => {
-      logger.error('Socket connection error:', error)
-      setIsConnecting(false)
+      console.error('WebSocket connection error:', error.message)
+      setState(prev => ({
+        ...prev,
+        isConnecting: false,
+        error,
+      }))
+
+      if (error.message === 'Authentication required') {
+        toast({
+          title: 'Authentication Error',
+          description: 'Please log in to continue',
+          variant: 'destructive',
+        })
+      }
     })
 
-    socket.on('error', ({ message, code }) => {
-      logger.error('Socket error:', { message, code })
+    socket.on('error', (error: any) => {
+      console.error('WebSocket error:', error)
+      
+      if (error.message) {
+        toast({
+          title: 'Connection Error',
+          description: error.message,
+          variant: 'destructive',
+        })
+      }
     })
 
-    // Set up global event handlers
-    setupGlobalHandlers(socket, queryClient)
+    socket.on('reconnect', (attemptNumber) => {
+      console.log('WebSocket reconnected after', attemptNumber, 'attempts')
+      toast({
+        title: 'Reconnected',
+        description: 'Connection restored',
+      })
+    })
 
-    return () => {
-      socket.disconnect()
+    socket.on('reconnect_attempt', (attemptNumber) => {
+      console.log('WebSocket reconnection attempt', attemptNumber)
+      setState(prev => ({ ...prev, isConnecting: true }))
+    })
+
+    socket.on('reconnect_failed', () => {
+      console.error('WebSocket reconnection failed')
+      setState(prev => ({
+        ...prev,
+        isConnecting: false,
+        error: new Error('Failed to reconnect'),
+      }))
+      
+      toast({
+        title: 'Connection Failed',
+        description: 'Unable to establish connection. Please refresh the page.',
+        variant: 'destructive',
+      })
+    })
+
+    // Reattach existing event handlers
+    eventHandlersRef.current.forEach((handlers, event) => {
+      handlers.forEach(handler => {
+        socket.on(event as any, handler as any)
+      })
+    })
+
+    socketRef.current = socket
+  }, [isAuthenticated, user?.id, reconnection, reconnectionAttempts, reconnectionDelay])
+
+  // Disconnect socket
+  const disconnect = useCallback(() => {
+    if (socketRef.current) {
+      socketRef.current.disconnect()
       socketRef.current = null
+      stopLatencyCheck()
     }
-  }, [session, autoConnect, reconnection, reconnectionAttempts, reconnectionDelay, queryClient])
+  }, [])
 
-  // Emit event helper
-  const emit = useCallback(<K extends keyof ClientToServerEvents>(
-    event: K,
-    ...args: Parameters<ClientToServerEvents[K]>
-  ) => {
+  // Emit event
+  const emit = useCallback((event: string, ...args: any[]) => {
     if (!socketRef.current?.connected) {
-      logger.warn('Socket not connected, cannot emit event', { event })
+      console.warn('Socket not connected, queuing event:', event)
+      // Queue events to be sent when connected
+      socketRef.current?.once('connect', () => {
+        socketRef.current?.emit(event as any, ...args)
+      })
       return
     }
-    socketRef.current.emit(event, ...args)
+
+    socketRef.current.emit(event as any, ...args)
   }, [])
 
-  // Subscribe to event helper
-  const on = useCallback(<K extends keyof ServerToClientEvents>(
-    event: K,
-    handler: ServerToClientEvents[K]
-  ) => {
-    if (!socketRef.current) {
-      logger.warn('Socket not initialized')
-      return () => {}
+  // Subscribe to event
+  const on = useCallback((event: string, handler: (...args: any[]) => void) => {
+    // Store handler reference
+    if (!eventHandlersRef.current.has(event)) {
+      eventHandlersRef.current.set(event, new Set())
     }
+    eventHandlersRef.current.get(event)!.add(handler)
 
-    socketRef.current.on(event, handler)
+    // Attach to socket if connected
+    if (socketRef.current) {
+      socketRef.current.on(event as any, handler)
+    }
 
     // Return cleanup function
     return () => {
-      socketRef.current?.off(event, handler)
+      eventHandlersRef.current.get(event)?.delete(handler)
+      socketRef.current?.off(event as any, handler)
     }
   }, [])
 
-  // One-time event listener
-  const once = useCallback(<K extends keyof ServerToClientEvents>(
-    event: K,
-    handler: ServerToClientEvents[K]
-  ) => {
-    if (!socketRef.current) {
-      logger.warn('Socket not initialized')
-      return () => {}
-    }
-
-    socketRef.current.once(event, handler)
-
-    // Return cleanup function
-    return () => {
-      socketRef.current?.off(event, handler)
+  // Subscribe to event (once)
+  const once = useCallback((event: string, handler: (...args: any[]) => void) => {
+    if (socketRef.current) {
+      socketRef.current.once(event as any, handler)
     }
   }, [])
 
   // Remove event listener
-  const off = useCallback(<K extends keyof ServerToClientEvents>(
-    event: K,
-    handler?: ServerToClientEvents[K]
-  ) => {
-    if (!socketRef.current) return
-    
+  const off = useCallback((event: string, handler?: (...args: any[]) => void) => {
     if (handler) {
-      socketRef.current.off(event, handler)
+      eventHandlersRef.current.get(event)?.delete(handler)
+      socketRef.current?.off(event as any, handler)
     } else {
-      socketRef.current.off(event)
+      eventHandlersRef.current.delete(event)
+      socketRef.current?.removeAllListeners(event)
     }
   }, [])
 
-  // Manual connect/disconnect
-  const connect = useCallback(() => {
-    if (!socketRef.current || socketRef.current.connected) return
-    setIsConnecting(true)
-    socketRef.current.connect()
+  // Join room
+  const joinRoom = useCallback((room: string) => {
+    emit('join:room', room)
+  }, [emit])
+
+  // Leave room
+  const leaveRoom = useCallback((room: string) => {
+    emit('leave:room', room)
+  }, [emit])
+
+  // Update presence
+  const updatePresence = useCallback((status: 'online' | 'away' | 'busy') => {
+    emit('presence:update', status)
+  }, [emit])
+
+  // Reconnection logic
+  const attemptReconnect = useCallback(() => {
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current)
+    }
+
+    reconnectTimeoutRef.current = setTimeout(() => {
+      if (!socketRef.current?.connected && isAuthenticated) {
+        console.log('Attempting to reconnect...')
+        connect()
+      }
+    }, reconnectionDelay)
+  }, [connect, isAuthenticated, reconnectionDelay])
+
+  // Latency monitoring
+  const startLatencyCheck = useCallback(() => {
+    if (pingIntervalRef.current) {
+      clearInterval(pingIntervalRef.current)
+    }
+
+    pingIntervalRef.current = setInterval(() => {
+      if (socketRef.current?.connected) {
+        const start = Date.now()
+        
+        socketRef.current.emit('ping', () => {
+          const latency = Date.now() - start
+          setState(prev => ({ ...prev, latency }))
+        })
+      }
+    }, 5000) // Check every 5 seconds
   }, [])
 
-  const disconnect = useCallback(() => {
-    if (!socketRef.current || !socketRef.current.connected) return
-    socketRef.current.disconnect()
+  const stopLatencyCheck = useCallback(() => {
+    if (pingIntervalRef.current) {
+      clearInterval(pingIntervalRef.current)
+      pingIntervalRef.current = null
+    }
   }, [])
+
+  // Auto-connect when authenticated
+  useEffect(() => {
+    if (autoConnect && isAuthenticated) {
+      connect()
+    }
+
+    return () => {
+      disconnect()
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current)
+      }
+    }
+  }, [autoConnect, isAuthenticated, connect, disconnect])
+
+  // Handle page visibility changes
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // Page is hidden, update presence to away
+        updatePresence('away')
+      } else {
+        // Page is visible, update presence to online
+        updatePresence('online')
+        
+        // Reconnect if disconnected
+        if (!socketRef.current?.connected && isAuthenticated) {
+          attemptReconnect()
+        }
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [updatePresence, attemptReconnect, isAuthenticated])
 
   return {
-    socket: socketRef.current,
-    isConnected,
-    isConnecting,
+    // State
+    isConnected: state.isConnected,
+    isConnecting: state.isConnecting,
+    error: state.error,
+    latency: state.latency,
+    
+    // Methods
+    connect,
+    disconnect,
     emit,
     on,
     once,
     off,
-    connect,
-    disconnect,
+    joinRoom,
+    leaveRoom,
+    updatePresence,
+    
+    // Socket instance (for advanced usage)
+    socket: socketRef.current,
   }
 }
 
-// Global event handlers that update React Query cache
-function setupGlobalHandlers(socket: SocketInstance, queryClient: ReturnType<typeof useQueryClient>) {
-  // Notification handlers
-  socket.on('notification', (notification) => {
-    // Update notifications query
-    queryClient.setQueryData(['notifications'], (old: any) => {
-      if (!old) return { items: [notification], nextCursor: null, hasMore: false }
-      return {
-        ...old,
-        items: [notification, ...old.items],
-      }
-    })
+// Singleton hook for app-wide socket
+let globalSocket: ReturnType<typeof useSocket> | null = null
 
-    // Show toast notification
-    if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification(notification.title, {
-        body: notification.message,
-        icon: '/icon-192x192.png',
-      })
-    }
-  })
-
-  socket.on('unreadCountUpdate', (count) => {
-    queryClient.setQueryData(['notifications', 'unreadCount'], count)
-  })
-
-  // Post updates
-  socket.on('postUpdated', (post) => {
-    queryClient.setQueryData(['post', post.id], post)
-    
-    // Update in lists
-    queryClient.setQueriesData(
-      { queryKey: ['posts'], exact: false },
-      (old: any) => {
-        if (!old) return old
-        return {
-          ...old,
-          pages: old.pages?.map((page: any) => ({
-            ...page,
-            items: page.items.map((item: any) =>
-              item.id === post.id ? post : item
-            ),
-          })),
-        }
-      }
-    )
-  })
-
-  // Comment updates
-  socket.on('commentCreated', (comment) => {
-    queryClient.setQueryData(
-      ['comments', comment.postId],
-      (old: any) => {
-        if (!old) return { items: [comment], nextCursor: null, hasMore: false }
-        return {
-          ...old,
-          items: [comment, ...old.items],
-        }
-      }
-    )
-  })
-
-  // Reaction updates
-  socket.on('reactionAdded', ({ entityType, entityId, counts }) => {
-    const queryKey = entityType === 'post' 
-      ? ['post', entityId] 
-      : ['comment', entityId]
-    
-    queryClient.setQueryData(queryKey, (old: any) => {
-      if (!old) return old
-      return {
-        ...old,
-        reactionCounts: counts,
-      }
-    })
-  })
-}
-
-// Specialized hooks for specific features
-export function usePresence() {
-  const { emit, on, off } = useSocket()
-  
-  const updatePresence = useCallback((status: string, location?: string) => {
-    emit('updatePresence', { status, location })
-  }, [emit])
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      updatePresence('online')
-    }, 4 * 60 * 1000) // Send heartbeat every 4 minutes
-
-    return () => clearInterval(interval)
-  }, [updatePresence])
-
-  return { updatePresence }
-}
-
-export function useTypingIndicator(channelId: string, channelType: string = 'conversation') {
-  const { emit, on, off } = useSocket()
-  const [typingUsers, setTypingUsers] = useState<Map<string, { username: string }>>(new Map())
-  const typingTimeoutRef = useRef<NodeJS.Timeout>()
-
-  useEffect(() => {
-    const handleUserTyping = ({ userId, username }: any) => {
-      setTypingUsers(prev => new Map(prev).set(userId, { username }))
-    }
-
-    const handleUserStoppedTyping = ({ userId }: any) => {
-      setTypingUsers(prev => {
-        const updated = new Map(prev)
-        updated.delete(userId)
-        return updated
-      })
-    }
-
-    const unsubscribeTyping = on('userTyping', handleUserTyping)
-    const unsubscribeStoppedTyping = on('userStoppedTyping', handleUserStoppedTyping)
-
-    return () => {
-      unsubscribeTyping()
-      unsubscribeStoppedTyping()
-    }
-  }, [on, channelId])
-
-  const startTyping = useCallback(() => {
-    emit('startTyping', { channelId, channelType })
-
-    // Clear existing timeout
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current)
-    }
-
-    // Auto-stop after 3 seconds
-    typingTimeoutRef.current = setTimeout(() => {
-      emit('stopTyping', { channelId, channelType })
-    }, 3000)
-  }, [emit, channelId, channelType])
-
-  const stopTyping = useCallback(() => {
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current)
-    }
-    emit('stopTyping', { channelId, channelType })
-  }, [emit, channelId, channelType])
-
-  return {
-    typingUsers: Array.from(typingUsers.values()),
-    startTyping,
-    stopTyping,
+export function useGlobalSocket() {
+  if (!globalSocket) {
+    globalSocket = useSocket({ autoConnect: true })
   }
-}
-
-export function useRealtimePost(postId: string) {
-  const { emit, on, off, isConnected } = useSocket()
-  const queryClient = useQueryClient()
-
-  useEffect(() => {
-    if (!isConnected) return
-
-    // Subscribe to post updates
-    emit('subscribeToPost', postId)
-
-    // Set up specific handlers for this post
-    const handleReaction = (data: any) => {
-      if (data.entityType === 'post' && data.entityId === postId) {
-        queryClient.setQueryData(['post', postId, 'reactions'], data.counts)
-      }
-    }
-
-    const unsubscribe = on('reactionAdded', handleReaction)
-
-    return () => {
-      emit('unsubscribeFromPost', postId)
-      unsubscribe()
-    }
-  }, [postId, isConnected, emit, on, queryClient])
+  return globalSocket
 }

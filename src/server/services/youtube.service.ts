@@ -1,336 +1,444 @@
 // src/server/services/youtube.service.ts
-import { PrismaClient } from '@prisma/client'
 import { google, youtube_v3 } from 'googleapis'
-import { TRPCError } from '@trpc/server'
-import { CacheService, CacheType } from './cache.service'
-import { ActivityService } from './activity.service'
+import { db } from '@/lib/db'
+import { CacheService } from './cache.service'
+import { z } from 'zod'
+
+// YouTube API response types
+interface VideoDetails {
+  id: string
+  title: string
+  description: string
+  thumbnail: string
+  thumbnailHd?: string
+  channelId: string
+  channelTitle: string
+  duration: number // in seconds
+  durationFormatted: string
+  viewCount: number
+  likeCount: number
+  commentCount: number
+  publishedAt: string
+  tags: string[]
+  categoryId?: string
+  liveBroadcast: boolean
+  premiereDate?: string
+  embedHtml?: string
+}
+
+interface ChannelDetails {
+  id: string
+  title: string
+  description: string
+  customUrl?: string
+  thumbnail: string
+  bannerUrl?: string
+  subscriberCount: number
+  videoCount: number
+  viewCount: number
+  createdAt: string
+  country?: string
+}
+
+interface SearchResult {
+  id: string
+  title: string
+  description: string
+  thumbnail: string
+  channelId: string
+  channelTitle: string
+  publishedAt: string
+  duration?: number
+  viewCount?: number
+}
 
 export class YouTubeService {
-  private cacheService: CacheService
-  private activityService: ActivityService
   private youtube: youtube_v3.Youtube
-  private apiKey: string
-
-  constructor(private db: PrismaClient) {
-    this.cacheService = new CacheService()
-    this.activityService = new ActivityService(db)
-    this.apiKey = process.env.YOUTUBE_API_KEY!
-    
-    this.youtube = google.youtube({
-      version: 'v3',
-      auth: this.apiKey,
-    })
+  private cacheService: CacheService
+  private quotaLimit = 10000 // Daily quota limit
+  private quotaCost = {
+    search: 100,
+    videos: 1,
+    channels: 1,
+    playlists: 1,
   }
 
-  async getVideoDetails(videoId: string) {
-    // Check cache first
+  constructor() {
+    this.youtube = google.youtube({
+      version: 'v3',
+      auth: process.env.YOUTUBE_API_KEY,
+    })
+    this.cacheService = new CacheService()
+  }
+
+  // Get video details
+  async getVideoDetails(videoId: string): Promise<VideoDetails | null> {
+    // Validate video ID
+    if (!this.isValidVideoId(videoId)) {
+      throw new Error('Invalid YouTube video ID')
+    }
+
+    // Check cache
     const cacheKey = `youtube:video:${videoId}`
-    const cached = await this.cacheService.get(cacheKey)
+    const cached = await this.cacheService.get<VideoDetails>(cacheKey)
     if (cached) return cached
 
     try {
-      // Check API quota
-      await this.checkApiQuota()
+      // Check quota
+      if (!await this.checkQuota(this.quotaCost.videos)) {
+        throw new Error('YouTube API quota exceeded')
+      }
 
-      // Fetch from YouTube API
       const response = await this.youtube.videos.list({
-        part: ['snippet', 'statistics', 'contentDetails'],
+        part: ['snippet', 'statistics', 'contentDetails', 'liveStreamingDetails'],
         id: [videoId],
       })
 
-      if (!response.data.items || response.data.items.length === 0) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Video not found',
-        })
+      const video = response.data.items?.[0]
+      if (!video) {
+        return null
       }
 
-      const video = response.data.items[0]
-      const videoData = {
+      const details: VideoDetails = {
         id: video.id!,
         title: video.snippet?.title || '',
         description: video.snippet?.description || '',
+        thumbnail: this.getBestThumbnail(video.snippet?.thumbnails),
+        thumbnailHd: video.snippet?.thumbnails?.maxres?.url || video.snippet?.thumbnails?.high?.url,
         channelId: video.snippet?.channelId || '',
         channelTitle: video.snippet?.channelTitle || '',
-        thumbnailUrl: video.snippet?.thumbnails?.high?.url || '',
         duration: this.parseDuration(video.contentDetails?.duration),
+        durationFormatted: this.formatDuration(video.contentDetails?.duration),
         viewCount: parseInt(video.statistics?.viewCount || '0'),
         likeCount: parseInt(video.statistics?.likeCount || '0'),
         commentCount: parseInt(video.statistics?.commentCount || '0'),
-        publishedAt: video.snippet?.publishedAt,
+        publishedAt: video.snippet?.publishedAt || '',
         tags: video.snippet?.tags || [],
+        categoryId: video.snippet?.categoryId,
+        liveBroadcast: video.snippet?.liveBroadcastContent !== 'none',
+        premiereDate: video.liveStreamingDetails?.scheduledStartTime,
       }
 
-      // Store in database
-      await this.db.youtubeVideo.upsert({
-        where: { videoId },
-        create: {
-          videoId,
-          channelId: videoData.channelId,
-          title: videoData.title,
-          description: videoData.description,
-          thumbnailUrl: videoData.thumbnailUrl,
-          duration: videoData.duration,
-          viewCount: BigInt(videoData.viewCount),
-          likeCount: videoData.likeCount,
-          commentCount: videoData.commentCount,
-          publishedAt: videoData.publishedAt ? new Date(videoData.publishedAt) : undefined,
-          metadata: video as any,
-        },
-        update: {
-          title: videoData.title,
-          viewCount: BigInt(videoData.viewCount),
-          likeCount: videoData.likeCount,
-          commentCount: videoData.commentCount,
-          lastSyncedAt: new Date(),
-          metadata: video as any,
-        },
-      })
-
-      // Update API quota usage
-      await this.incrementApiQuota(1)
-
       // Cache for 1 hour
-      await this.cacheService.set(cacheKey, videoData, 3600)
+      await this.cacheService.set(cacheKey, details, 3600)
 
-      return videoData
+      // Store in database
+      await this.storeVideoData(details)
+
+      // Update quota usage
+      await this.updateQuotaUsage(this.quotaCost.videos)
+
+      return details
     } catch (error) {
-      console.error('Failed to fetch YouTube video:', error)
+      console.error('YouTube API error:', error)
       
-      // Try to get from database if API fails
-      const dbVideo = await this.db.youtubeVideo.findUnique({
+      // Try to get from database as fallback
+      const dbVideo = await db.youtubeVideo.findUnique({
         where: { videoId },
       })
-      
+
       if (dbVideo) {
         return {
           id: dbVideo.videoId,
           title: dbVideo.title || '',
           description: dbVideo.description || '',
+          thumbnail: dbVideo.thumbnailUrl || '',
+          thumbnailHd: dbVideo.thumbnailUrlHd,
           channelId: dbVideo.channelId,
-          channelTitle: dbVideo.channelTitle || '',
-          thumbnailUrl: dbVideo.thumbnailUrl || '',
-          duration: dbVideo.duration,
+          channelTitle: '',
+          duration: dbVideo.duration || 0,
+          durationFormatted: dbVideo.durationFormatted || '',
           viewCount: Number(dbVideo.viewCount),
           likeCount: dbVideo.likeCount,
           commentCount: dbVideo.commentCount,
-          publishedAt: dbVideo.publishedAt?.toISOString(),
+          publishedAt: dbVideo.publishedAt?.toISOString() || '',
+          tags: dbVideo.tags,
+          categoryId: dbVideo.categoryId || undefined,
+          liveBroadcast: dbVideo.liveBroadcast,
+          premiereDate: dbVideo.premiereDate?.toISOString(),
         }
       }
-      
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Failed to fetch video details',
-      })
-    }
-  }
 
-  async syncChannel(channelId: string, userId: string) {
-    try {
-      // Check API quota
-      await this.checkApiQuota()
-
-      // Fetch channel data
-      const response = await this.youtube.channels.list({
-        part: ['snippet', 'statistics', 'contentDetails'],
-        id: [channelId],
-      })
-
-      if (!response.data.items || response.data.items.length === 0) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Channel not found',
-        })
-      }
-
-      const channel = response.data.items[0]
-      
-      // Store channel data
-      const dbChannel = await this.db.youtubeChannel.upsert({
-        where: { channelId },
-        create: {
-          channelId,
-          userId,
-          channelTitle: channel.snippet?.title || '',
-          channelHandle: channel.snippet?.customUrl || null,
-          channelDescription: channel.snippet?.description || null,
-          thumbnailUrl: channel.snippet?.thumbnails?.high?.url || null,
-          subscriberCount: BigInt(channel.statistics?.subscriberCount || '0'),
-          viewCount: BigInt(channel.statistics?.viewCount || '0'),
-          videoCount: parseInt(channel.statistics?.videoCount || '0'),
-          channelData: channel as any,
-          lastSyncedAt: new Date(),
-        },
-        update: {
-          channelTitle: channel.snippet?.title || '',
-          subscriberCount: BigInt(channel.statistics?.subscriberCount || '0'),
-          viewCount: BigInt(channel.statistics?.viewCount || '0'),
-          videoCount: parseInt(channel.statistics?.videoCount || '0'),
-          channelData: channel as any,
-          lastSyncedAt: new Date(),
-        },
-      })
-
-      // Update user profile with channel
-      await this.db.profile.update({
-        where: { userId },
-        data: {
-          youtubeChannelId: channelId,
-          youtubeChannelUrl: `https://youtube.com/channel/${channelId}`,
-        },
-      })
-
-      // Update API quota
-      await this.incrementApiQuota(1)
-
-      // Track activity
-      await this.activityService.trackActivity({
-        userId,
-        action: 'youtube.channel.synced',
-        entityType: 'channel',
-        entityId: channelId,
-        entityData: {
-          channelTitle: channel.snippet?.title,
-          subscriberCount: channel.statistics?.subscriberCount,
-        },
-      })
-
-      return dbChannel
-    } catch (error) {
-      console.error('Failed to sync YouTube channel:', error)
       throw error
     }
   }
 
-  async createVideoClip(input: {
-    youtubeVideoId: string
-    title: string
-    description?: string
-    startTime: number
-    endTime: number
-    creatorId: string
-    tags?: string[]
-  }) {
-    // Validate times
-    if (input.endTime <= input.startTime) {
-      throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'End time must be after start time',
-      })
-    }
-
-    const duration = input.endTime - input.startTime
-    if (duration > 300) { // 5 minutes max
-      throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'Clips cannot be longer than 5 minutes',
-      })
-    }
-
-    // Get video details
-    const video = await this.getVideoDetails(input.youtubeVideoId)
-
-    // Create clip
-    const clip = await this.db.videoClip.create({
-      data: {
-        youtubeVideoId: input.youtubeVideoId,
-        creatorId: input.creatorId,
-        title: input.title,
-        description: input.description,
-        startTime: input.startTime,
-        endTime: input.endTime,
-        duration,
-        thumbnailUrl: video.thumbnailUrl,
-        tags: input.tags || [],
-      },
-      include: {
-        creator: {
-          select: {
-            id: true,
-            username: true,
-            image: true,
-          },
-        },
-      },
-    })
-
-    // Track activity
-    await this.activityService.trackActivity({
-      userId: input.creatorId,
-      action: 'clip.created',
-      entityType: 'clip',
-      entityId: clip.id,
-      entityData: {
-        title: clip.title,
-        videoId: input.youtubeVideoId,
-      },
-    })
-
-    return clip
-  }
-
-  async getTrendingVideos(limit: number) {
-    const cacheKey = `youtube:trending:${limit}`
-    const cached = await this.cacheService.get(cacheKey, CacheType.TRENDING)
+  // Get channel details
+  async getChannelDetails(channelId: string): Promise<ChannelDetails | null> {
+    // Check cache
+    const cacheKey = `youtube:channel:${channelId}`
+    const cached = await this.cacheService.get<ChannelDetails>(cacheKey)
     if (cached) return cached
 
-    // Get videos that have been shared/discussed recently
-    const videos = await this.db.youtubeVideo.findMany({
-      orderBy: [
-        { viewCount: 'desc' },
-        { publishedAt: 'desc' },
-      ],
-      take: limit,
-      include: {
-        _count: {
-          select: {
-            watchParties: true,
-            clips: true,
-          },
-        },
-      },
-    })
+    try {
+      // Check quota
+      if (!await this.checkQuota(this.quotaCost.channels)) {
+        throw new Error('YouTube API quota exceeded')
+      }
 
-    // Transform BigInt to number for JSON serialization
-    const transformed = videos.map(v => ({
-      ...v,
-      viewCount: Number(v.viewCount),
-      subscriberCount: v.subscriberCount ? Number(v.subscriberCount) : 0,
-    }))
+      const response = await this.youtube.channels.list({
+        part: ['snippet', 'statistics', 'brandingSettings'],
+        id: [channelId],
+      })
 
-    await this.cacheService.set(cacheKey, transformed, undefined, CacheType.TRENDING)
-    return transformed
+      const channel = response.data.items?.[0]
+      if (!channel) {
+        return null
+      }
+
+      const details: ChannelDetails = {
+        id: channel.id!,
+        title: channel.snippet?.title || '',
+        description: channel.snippet?.description || '',
+        customUrl: channel.snippet?.customUrl,
+        thumbnail: this.getBestThumbnail(channel.snippet?.thumbnails),
+        bannerUrl: channel.brandingSettings?.image?.bannerExternalUrl,
+        subscriberCount: parseInt(channel.statistics?.subscriberCount || '0'),
+        videoCount: parseInt(channel.statistics?.videoCount || '0'),
+        viewCount: parseInt(channel.statistics?.viewCount || '0'),
+        createdAt: channel.snippet?.publishedAt || '',
+        country: channel.snippet?.country,
+      }
+
+      // Cache for 24 hours
+      await this.cacheService.set(cacheKey, details, 86400)
+
+      // Store in database
+      await this.storeChannelData(details)
+
+      // Update quota usage
+      await this.updateQuotaUsage(this.quotaCost.channels)
+
+      return details
+    } catch (error) {
+      console.error('YouTube API error:', error)
+      
+      // Try to get from database as fallback
+      const dbChannel = await db.youtubeChannel.findUnique({
+        where: { channelId },
+      })
+
+      if (dbChannel) {
+        return {
+          id: dbChannel.channelId,
+          title: dbChannel.channelTitle || '',
+          description: dbChannel.channelDescription || '',
+          customUrl: dbChannel.channelHandle || undefined,
+          thumbnail: dbChannel.thumbnailUrl || '',
+          bannerUrl: dbChannel.bannerUrl || undefined,
+          subscriberCount: Number(dbChannel.subscriberCount),
+          videoCount: dbChannel.videoCount,
+          viewCount: Number(dbChannel.viewCount),
+          createdAt: dbChannel.createdAt.toISOString(),
+        }
+      }
+
+      throw error
+    }
   }
 
-  async getVideoAnalytics(videoId: string) {
-    const analytics = await this.db.videoAnalytics.findUnique({
-      where: { videoId },
-      include: {
-        video: true,
-      },
-    })
+  // Search videos
+  async searchVideos(query: string, options: {
+    maxResults?: number
+    order?: 'relevance' | 'date' | 'viewCount' | 'rating'
+    channelId?: string
+    type?: 'video' | 'channel' | 'playlist'
+    videoDuration?: 'short' | 'medium' | 'long'
+    pageToken?: string
+  } = {}): Promise<{
+    items: SearchResult[]
+    nextPageToken?: string
+    totalResults: number
+  }> {
+    const {
+      maxResults = 10,
+      order = 'relevance',
+      channelId,
+      type = 'video',
+      videoDuration,
+      pageToken,
+    } = options
 
-    if (!analytics) {
-      // Create default analytics
-      return this.db.videoAnalytics.create({
-        data: { 
-          videoId,
-          totalWatchTime: 0,
-          uniqueViewers: 0,
-          engagementRate: 0,
-          averageWatchPercent: 0,
-        },
-        include: { video: true },
-      })
+    // Check cache for first page
+    if (!pageToken) {
+      const cacheKey = `youtube:search:${query}:${JSON.stringify(options)}`
+      const cached = await this.cacheService.get(cacheKey)
+      if (cached) return cached as any
     }
 
-    return analytics
+    try {
+      // Check quota
+      if (!await this.checkQuota(this.quotaCost.search)) {
+        throw new Error('YouTube API quota exceeded')
+      }
+
+      const searchParams: any = {
+        part: ['snippet'],
+        q: query,
+        type: [type],
+        maxResults,
+        order,
+        pageToken,
+      }
+
+      if (channelId) {
+        searchParams.channelId = channelId
+      }
+
+      if (videoDuration && type === 'video') {
+        searchParams.videoDuration = videoDuration
+      }
+
+      const response = await this.youtube.search.list(searchParams)
+
+      const items: SearchResult[] = (response.data.items || []).map(item => ({
+        id: type === 'video' ? item.id?.videoId! : item.id?.channelId!,
+        title: item.snippet?.title || '',
+        description: item.snippet?.description || '',
+        thumbnail: this.getBestThumbnail(item.snippet?.thumbnails),
+        channelId: item.snippet?.channelId || '',
+        channelTitle: item.snippet?.channelTitle || '',
+        publishedAt: item.snippet?.publishedAt || '',
+      }))
+
+      // Get additional details for videos
+      if (type === 'video' && items.length > 0) {
+        const videoIds = items.map(item => item.id)
+        const videoDetails = await this.getMultipleVideoDetails(videoIds)
+        
+        items.forEach((item, index) => {
+          const details = videoDetails.find(v => v.id === item.id)
+          if (details) {
+            item.duration = details.duration
+            item.viewCount = details.viewCount
+          }
+        })
+      }
+
+      const result = {
+        items,
+        nextPageToken: response.data.nextPageToken,
+        totalResults: response.data.pageInfo?.totalResults || 0,
+      }
+
+      // Cache first page for 30 minutes
+      if (!pageToken) {
+        const cacheKey = `youtube:search:${query}:${JSON.stringify(options)}`
+        await this.cacheService.set(cacheKey, result, 1800)
+      }
+
+      // Update quota usage
+      await this.updateQuotaUsage(this.quotaCost.search)
+
+      return result
+    } catch (error) {
+      console.error('YouTube search error:', error)
+      throw error
+    }
   }
 
-  private parseDuration(duration?: string | null): number {
+  // Get multiple video details (batch request)
+  private async getMultipleVideoDetails(videoIds: string[]): Promise<VideoDetails[]> {
+    if (videoIds.length === 0) return []
+
+    // Check quota
+    if (!await this.checkQuota(this.quotaCost.videos)) {
+      return []
+    }
+
+    try {
+      const response = await this.youtube.videos.list({
+        part: ['snippet', 'statistics', 'contentDetails'],
+        id: videoIds,
+        maxResults: 50,
+      })
+
+      return (response.data.items || []).map(video => ({
+        id: video.id!,
+        title: video.snippet?.title || '',
+        description: video.snippet?.description || '',
+        thumbnail: this.getBestThumbnail(video.snippet?.thumbnails),
+        thumbnailHd: video.snippet?.thumbnails?.maxres?.url || video.snippet?.thumbnails?.high?.url,
+        channelId: video.snippet?.channelId || '',
+        channelTitle: video.snippet?.channelTitle || '',
+        duration: this.parseDuration(video.contentDetails?.duration),
+        durationFormatted: this.formatDuration(video.contentDetails?.duration),
+        viewCount: parseInt(video.statistics?.viewCount || '0'),
+        likeCount: parseInt(video.statistics?.likeCount || '0'),
+        commentCount: parseInt(video.statistics?.commentCount || '0'),
+        publishedAt: video.snippet?.publishedAt || '',
+        tags: video.snippet?.tags || [],
+        categoryId: video.snippet?.categoryId,
+        liveBroadcast: video.snippet?.liveBroadcastContent !== 'none',
+      }))
+    } catch (error) {
+      console.error('Failed to get video details:', error)
+      return []
+    }
+  }
+
+  // Get channel videos
+  async getChannelVideos(channelId: string, options: {
+    maxResults?: number
+    order?: 'date' | 'viewCount'
+    pageToken?: string
+  } = {}): Promise<{
+    items: SearchResult[]
+    nextPageToken?: string
+  }> {
+    return this.searchVideos('', {
+      ...options,
+      channelId,
+      type: 'video',
+    })
+  }
+
+  // Get video embed HTML
+  async getVideoEmbedHtml(videoId: string, options: {
+    width?: number
+    height?: number
+    autoplay?: boolean
+    controls?: boolean
+    modestbranding?: boolean
+    rel?: boolean
+  } = {}): Promise<string> {
+    const {
+      width = 560,
+      height = 315,
+      autoplay = false,
+      controls = true,
+      modestbranding = true,
+      rel = false,
+    } = options
+
+    const params = new URLSearchParams({
+      autoplay: autoplay ? '1' : '0',
+      controls: controls ? '1' : '0',
+      modestbranding: modestbranding ? '1' : '0',
+      rel: rel ? '1' : '0',
+    })
+
+    return `<iframe width="${width}" height="${height}" src="https://www.youtube.com/embed/${videoId}?${params}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`
+  }
+
+  // Helper methods
+  private isValidVideoId(videoId: string): boolean {
+    return /^[a-zA-Z0-9_-]{11}$/.test(videoId)
+  }
+
+  private getBestThumbnail(thumbnails: any): string {
+    if (!thumbnails) return ''
+    
+    return thumbnails.maxres?.url ||
+           thumbnails.high?.url ||
+           thumbnails.medium?.url ||
+           thumbnails.default?.url ||
+           ''
+  }
+
+  private parseDuration(duration?: string): number {
     if (!duration) return 0
 
-    // Parse ISO 8601 duration (PT1H2M3S)
     const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/)
     if (!match) return 0
 
@@ -341,48 +449,143 @@ export class YouTubeService {
     return hours * 3600 + minutes * 60 + seconds
   }
 
-  private async checkApiQuota() {
+  private formatDuration(duration?: string): string {
+    const seconds = this.parseDuration(duration)
+    
+    const hours = Math.floor(seconds / 3600)
+    const minutes = Math.floor((seconds % 3600) / 60)
+    const secs = seconds % 60
+
+    if (hours > 0) {
+      return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+    }
+    return `${minutes}:${secs.toString().padStart(2, '0')}`
+  }
+
+  // Database storage
+  private async storeVideoData(video: VideoDetails) {
+    await db.youtubeVideo.upsert({
+      where: { videoId: video.id },
+      update: {
+        title: video.title,
+        description: video.description,
+        thumbnailUrl: video.thumbnail,
+        thumbnailUrlHd: video.thumbnailHd,
+        duration: video.duration,
+        durationFormatted: video.durationFormatted,
+        viewCount: video.viewCount,
+        likeCount: video.likeCount,
+        commentCount: video.commentCount,
+        tags: video.tags,
+        categoryId: video.categoryId,
+        liveBroadcast: video.liveBroadcast,
+        premiereDate: video.premiereDate ? new Date(video.premiereDate) : null,
+        publishedAt: new Date(video.publishedAt),
+        lastSyncedAt: new Date(),
+      },
+      create: {
+        videoId: video.id,
+        channelId: video.channelId,
+        title: video.title,
+        description: video.description,
+        thumbnailUrl: video.thumbnail,
+        thumbnailUrlHd: video.thumbnailHd,
+        duration: video.duration,
+        durationFormatted: video.durationFormatted,
+        viewCount: video.viewCount,
+        likeCount: video.likeCount,
+        commentCount: video.commentCount,
+        tags: video.tags,
+        categoryId: video.categoryId,
+        liveBroadcast: video.liveBroadcast,
+        premiereDate: video.premiereDate ? new Date(video.premiereDate) : null,
+        publishedAt: new Date(video.publishedAt),
+        lastSyncedAt: new Date(),
+      },
+    })
+  }
+
+  private async storeChannelData(channel: ChannelDetails) {
+    await db.youtubeChannel.upsert({
+      where: { channelId: channel.id },
+      update: {
+        channelTitle: channel.title,
+        channelDescription: channel.description,
+        channelHandle: channel.customUrl,
+        thumbnailUrl: channel.thumbnail,
+        bannerUrl: channel.bannerUrl,
+        subscriberCount: channel.subscriberCount,
+        videoCount: channel.videoCount,
+        viewCount: channel.viewCount,
+        lastSyncedAt: new Date(),
+      },
+      create: {
+        channelId: channel.id,
+        channelTitle: channel.title,
+        channelDescription: channel.description,
+        channelHandle: channel.customUrl,
+        thumbnailUrl: channel.thumbnail,
+        bannerUrl: channel.bannerUrl,
+        subscriberCount: channel.subscriberCount,
+        videoCount: channel.videoCount,
+        viewCount: channel.viewCount,
+        lastSyncedAt: new Date(),
+      },
+    })
+  }
+
+  // Quota management
+  private async checkQuota(cost: number): Promise<boolean> {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
-    const quota = await this.db.youTubeApiQuota.findUnique({
+    const quota = await db.youTubeApiQuota.findUnique({
       where: { date: today },
     })
 
-    const quotaLimit = parseInt(process.env.YOUTUBE_QUOTA_LIMIT || '10000')
-
-    if (quota && quota.unitsUsed >= quotaLimit) {
-      throw new TRPCError({
-        code: 'RESOURCE_EXHAUSTED',
-        message: 'YouTube API quota exceeded for today',
-      })
+    if (!quota) {
+      return true // First request of the day
     }
 
-    return quota
+    return (quota.unitsUsed + cost) <= quota.quotaLimit
   }
 
-  private async incrementApiQuota(units: number) {
+  private async updateQuotaUsage(cost: number) {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
+    
     const tomorrow = new Date(today)
     tomorrow.setDate(tomorrow.getDate() + 1)
 
-    const quotaLimit = parseInt(process.env.YOUTUBE_QUOTA_LIMIT || '10000')
-
-    await this.db.youTubeApiQuota.upsert({
+    await db.youTubeApiQuota.upsert({
       where: { date: today },
-      create: {
-        date: today,
-        unitsUsed: units,
-        quotaLimit,
-        readRequests: 1,
-        writeRequests: 0,
-        resetAt: tomorrow,
-      },
       update: {
-        unitsUsed: { increment: units },
+        unitsUsed: { increment: cost },
         readRequests: { increment: 1 },
       },
+      create: {
+        date: today,
+        unitsUsed: cost,
+        quotaLimit: this.quotaLimit,
+        readRequests: 1,
+        resetAt: tomorrow,
+      },
     })
+  }
+
+  // Public quota check
+  async getRemainingQuota(): Promise<number> {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    const quota = await db.youTubeApiQuota.findUnique({
+      where: { date: today },
+    })
+
+    if (!quota) {
+      return this.quotaLimit
+    }
+
+    return Math.max(0, quota.quotaLimit - quota.unitsUsed)
   }
 }
