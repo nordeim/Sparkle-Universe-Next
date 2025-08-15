@@ -1918,6 +1918,32 @@ const revenueModel = {
 };
 ```
 
+### Additional Schema Discoveries
+
+#### 1. **Missing Relation Definition (Fixed in Schema v4.6)**
+The schema includes a fix for `WatchPartyChat` relations:
+```prisma
+// Relations - FIXED: Consistent relation naming
+party   WatchParty       @relation(...)
+user    User             @relation(...)
+replyTo WatchPartyChat?  @relation("WatchPartyChatReplies", ...)
+replies WatchPartyChat[] @relation("WatchPartyChatReplies")
+```
+
+#### 2. **Report Model Enhancement**
+The schema includes a fix adding missing `reportedUser` relation:
+```prisma
+// Relations - FIXED: Added missing reportedUser relation
+reportedUser User? @relation("reportedUser", ...) // NEW
+```
+
+#### 3. **Strategic Index Optimizations**
+The schema includes v4.6 specific optimizations:
+```prisma
+// OPTIMIZED: Combine related indexes
+@@index([deleted, status, role, onlineStatus, lastSeenAt(sort: Desc)])  // NEW: Combined index
+```
+
 ### Key Metrics
 
 - **MAU Target**: 1M by end of Year 1
