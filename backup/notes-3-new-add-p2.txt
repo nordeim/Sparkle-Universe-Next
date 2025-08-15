@@ -1,0 +1,202 @@
+$ diff backup/oo3-new-add-p2.md docs/phase3-new-add-p2.md
+(venv) pete@pop-os:/Home1/project/Sparkle-Universe-Next
+$ python3 extract_code_files.py backup/oo3-new-add-p2.md
+Processing compacted file: backup/oo3-new-add-p2.md
+Input file encoding detected as: utf-8
+  Warning: Overwriting file: src/server/services/user.service.ts
+Extracted: src/server/services/user.service.ts
+  Warning: Overwriting file: src/server/services/mention.service.ts
+Extracted: src/server/services/mention.service.ts
+  Warning: Overwriting file: src/server/services/moderation.service.ts
+Extracted: src/server/services/moderation.service.ts
+  Warning: Overwriting file: src/types/comment.ts
+Extracted: src/types/comment.ts
+  Warning: Overwriting file: src/server/services/gamification.service.ts
+Extracted: src/server/services/gamification.service.ts
+  Warning: Overwriting file: src/server/services/cache.service.ts
+Extracted: src/server/services/cache.service.ts
+
+Extraction complete!
+Total code blocks found: 6
+Files successfully extracted: 6
+
+Files overwritten: 6
+Note: Multiple code blocks with the same filename were found; each file contains the content from the last matching block.
+(venv) pete@pop-os:/Home1/project/Sparkle-Universe-Next
+$ egrep 'services\/user.service.ts|services\/mention.service.ts|services\/moderation.service.ts|types\/comment.ts|services\/gamification.service.ts|services\/cache.service.ts' backup/phase3_
+
+
+
+phase3_overlap_files_set.md   phase3_replaced-files-set.md  
+(venv) pete@pop-os:/Home1/project/Sparkle-Universe-Next
+$ egrep 'services\/user.service.ts|services\/mention.service.ts|services\/moderation.service.ts|types\/comment.ts|services\/gamification.service.ts|services\/cache.service.ts' backup/phase3_overlap_files_set.md
+
+
+# Phase 3: src/server/services/cache.service.ts
+// src/server/services/cache.service.ts
+(venv) pete@pop-os:/Home1/project/Sparkle-Universe-Next
+$ egrep 'services\/user.service.ts|services\/mention.service.ts|services\/moderation.service.ts|types\/comment.ts|services\/gamification.service.ts|services\/cache.service.ts' backup/phase3_replaced-files-set.md 
+# original Phase3: src/server/services/user.service.ts
+// src/server/services/user.service.ts
+# original Phase3: src/server/services/mention.service.ts
+// src/server/services/mention.service.ts
+# original Phase3: src/server/services/moderation.service.ts
+// src/server/services/moderation.service.ts
+# original Phase3: src/types/comment.ts
+// src/types/comment.ts
+(venv) pete@pop-os:/Home1/project/Sparkle-Universe-Next
+$ 
+(venv) pete@pop-os:/Home1/project/Sparkle-Universe-Next
+$ git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+        new file:   backup/phase3_replaced-files-set.md
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        deleted:    backup/phase3_replaced-set.md
+        deleted:    execute_migrations_fixed.sh
+        deleted:    execute_migrations_fixed_v2.sh
+        modified:   src/server/services/cache.service.ts
+        modified:   src/server/services/gamification.service.ts
+        modified:   src/server/services/mention.service.ts
+        modified:   src/server/services/moderation.service.ts
+        modified:   src/server/services/user.service.ts
+        modified:   src/types/comment.ts
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        CLAUDE.md
+        GEMINI.md
+        QWEN.md.1
+        SUN-p3/
+        SUN-test/
+        a1
+        a2
+        clist
+        config_files.md
+        klist
+        migration_plan.md
+        mlist
+        phase1/
+        pt1
+        rp1
+        rr1
+        schema.prisma.txt
+        schema_patch_v4.3.sql
+        src.3o/
+        tt1
+        ttt4/
+        w3
+
+(venv) pete@pop-os:/Home1/project/Sparkle-Universe-Next
+$ git add src/server/services/ src/types/
+(venv) pete@pop-os:/Home1/project/Sparkle-Universe-Next
+$ git commit -m "update merged phase3"
+[main 0d9cede] update merged phase3
+ 7 files changed, 2569 insertions(+), 1190 deletions(-)
+ create mode 100644 backup/phase3_replaced-files-set.md
+(venv) pete@pop-os:/Home1/project/Sparkle-Universe-Next
+$ cat docs/tips.txt 
+egrep -n '```|`\/src\/|\/\/ src\/| File: '  oo1
+
+git commit -m "update docs"
+git status
+git push -u origin main
+
+(venv) pete@pop-os:/Home1/project/Sparkle-Universe-Next
+$ git status
+git push -u origin main
+On branch main
+Your branch is ahead of 'origin/main' by 1 commit.
+  (use "git push" to publish your local commits)
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        deleted:    backup/phase3_replaced-set.md
+        deleted:    execute_migrations_fixed.sh
+        deleted:    execute_migrations_fixed_v2.sh
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        CLAUDE.md
+        GEMINI.md
+        QWEN.md.1
+        SUN-p3/
+        SUN-test/
+        a1
+        a2
+        clist
+        config_files.md
+        klist
+        migration_plan.md
+        mlist
+        phase1/
+        pt1
+        rp1
+        rr1
+        schema.prisma.txt
+        schema_patch_v4.3.sql
+        src.3o/
+        tt1
+        ttt4/
+        w3
+
+no changes added to commit (use "git add" and/or "git commit -a")
+Enumerating objects: 23, done.
+Counting objects: 100% (23/23), done.
+Delta compression using up to 4 threads
+Compressing objects: 100% (13/13), done.
+Writing objects: 100% (13/13), 12.87 KiB | 3.22 MiB/s, done.
+Total 13 (delta 7), reused 0 (delta 0), pack-reused 0
+remote: Resolving deltas: 100% (7/7), completed with 7 local objects.
+To github.com:nordeim/Sparkle-Universe-Next
+   cc66430..0d9cede  main -> main
+branch 'main' set up to track 'origin/main'.
+(venv) pete@pop-os:/Home1/project/Sparkle-Universe-Next
+$ git push -u origin main
+branch 'main' set up to track 'origin/main'.
+Everything up-to-date
+(venv) pete@pop-os:/Home1/project/Sparkle-Universe-Next
+$ git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        deleted:    backup/phase3_replaced-set.md
+        deleted:    execute_migrations_fixed.sh
+        deleted:    execute_migrations_fixed_v2.sh
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        CLAUDE.md
+        GEMINI.md
+        QWEN.md.1
+        SUN-p3/
+        SUN-test/
+        a1
+        a2
+        clist
+        config_files.md
+        klist
+        migration_plan.md
+        mlist
+        phase1/
+        pt1
+        rp1
+        rr1
+        schema.prisma.txt
+        schema_patch_v4.3.sql
+        src.3o/
+        tt1
+        ttt4/
+        w3
+
+no changes added to commit (use "git add" and/or "git commit -a")
