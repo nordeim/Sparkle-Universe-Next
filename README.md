@@ -2061,7 +2061,7 @@ SOFTWARE.
 ### Schema Statistics
 - **Database Version**: 4.6 (Performance Optimization Release)
 - **Total Models**: 126
-- **Total Enums**: 23
+- **Total Enums**: 22
 - **Total Indexes**: 200+
 - **JSON GIN Indexes**: 15
 - **Models with Soft Delete**: 25+
@@ -2094,8 +2094,8 @@ SOFTWARE.
   <a href="#-about--vision">Back to Top ↑</a>
   <br><br>
   <sub>
-    <strong>Schema Version:</strong> 4.5.0 | 
+    <strong>Schema Version:</strong> 4.6.0 | 
     <strong>README Version:</strong> 3.0.0 | 
-    <strong>Last Updated:</strong> December 2024
+    <strong>Last Updated:</strong> August 2025
   </sub>
 </p>
