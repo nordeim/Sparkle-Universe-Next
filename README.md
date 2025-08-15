@@ -341,7 +341,6 @@ NODE_ENV="development"
 psql -U postgres -d sparkle_universe_dev << EOF
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 EOF
 
 # Run migrations
@@ -495,7 +494,7 @@ The database uses PostgreSQL 16 with Prisma ORM v5.8.1, implementing a comprehen
 ### Core Database Statistics
 
 - **Total Database Models**: 126
-- **Total Enum Types**: 23
+- **Total Enum Types**: 22
 - **Models with Version Field**: 20+
 - **Models with Soft Delete**: 25+
 - **Models Requiring JSON Indexes**: 8
@@ -1917,6 +1916,32 @@ const revenueModel = {
     month12: 500000,      // $500K MRR
   }
 };
+```
+
+### Additional Schema Discoveries
+
+#### 1. **Missing Relation Definition (Fixed in Schema v4.6)**
+The schema includes a fix for `WatchPartyChat` relations:
+```prisma
+// Relations - FIXED: Consistent relation naming
+party   WatchParty       @relation(...)
+user    User             @relation(...)
+replyTo WatchPartyChat?  @relation("WatchPartyChatReplies", ...)
+replies WatchPartyChat[] @relation("WatchPartyChatReplies")
+```
+
+#### 2. **Report Model Enhancement**
+The schema includes a fix adding missing `reportedUser` relation:
+```prisma
+// Relations - FIXED: Added missing reportedUser relation
+reportedUser User? @relation("reportedUser", ...) // NEW
+```
+
+#### 3. **Strategic Index Optimizations**
+The schema includes v4.6 specific optimizations:
+```prisma
+// OPTIMIZED: Combine related indexes
+@@index([deleted, status, role, onlineStatus, lastSeenAt(sort: Desc)])  // NEW: Combined index
 ```
 
 ### Key Metrics
