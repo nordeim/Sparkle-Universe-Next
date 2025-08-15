@@ -1,3 +1,6 @@
+Now please put on your deep-thinking hat to deeply think and carefully and systematically review the project's `README.md` and PRD using line by line comparison, then give me your comprehensive assessment on what the project is all about, also highlight any inconsistencies between `README.md` and the PRD. please meticulously plan how to review and compare the two documents before proceeding cautiously.
+
+---
 Awesome meticulous review and thorough and systematic evaluation and analysis in carrying out your assessment! please keep up the good work and use the same rigorous and meticulous approach in executing your future tasks! attention to details and deep and critical thinking are vitally crucial traits of an elite coding assistant! Now, please keep up the good work! now help me carefully review the project's `README.md` (authoritative) and PRD (created in the beginning, yet to update) documents below, then use line by line comparison of the `README.md` and PRD against the `prisma/schema.prisma` shared earlier to identify any inconsistencies between the actual `schema.prisma` and the project documents.
 
 ---
