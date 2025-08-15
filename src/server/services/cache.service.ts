@@ -1,8 +1,33 @@
 // src/server/services/cache.service.ts
 import Redis from 'ioredis'
-import { z } from 'zod'
 
-// Cache configuration
+export enum CacheType {
+  USER_PROFILE = 'user_profile',
+  POST_CONTENT = 'post_content',
+  FEED = 'feed',
+  TRENDING = 'trending',
+  LEADERBOARD = 'leaderboard',
+  STATS = 'stats',
+}
+
+interface CacheTTL {
+  [CacheType.USER_PROFILE]: number
+  [CacheType.POST_CONTENT]: number
+  [CacheType.FEED]: number
+  [CacheType.TRENDING]: number
+  [CacheType.LEADERBOARD]: number
+  [CacheType.STATS]: number
+}
+
+const CACHE_TTL: CacheTTL = {
+  [CacheType.USER_PROFILE]: 300,    // 5 minutes
+  [CacheType.POST_CONTENT]: 600,    // 10 minutes
+  [CacheType.FEED]: 60,             // 1 minute
+  [CacheType.TRENDING]: 900,        // 15 minutes
+  [CacheType.LEADERBOARD]: 300,     // 5 minutes
+  [CacheType.STATS]: 1800,          // 30 minutes
+}
+
 const CACHE_PREFIX = 'sparkle:'
 const DEFAULT_TTL = 300 // 5 minutes in seconds
 
@@ -66,15 +91,15 @@ export class CacheService {
   }
 
   /**
-   * Get a value from cache
+   * Get a value from cache with optional type
    */
-  async get<T = any>(key: string): Promise<T | null> {
+  async get<T = any>(key: string, type?: CacheType): Promise<T | null> {
     if (!this.isConnected || !this.redis) {
       return null
     }
 
     try {
-      const fullKey = `${CACHE_PREFIX}${key}`
+      const fullKey = this.getKey(key, type)
       const value = await this.redis.get(fullKey)
       
       if (!value) {
@@ -89,19 +114,25 @@ export class CacheService {
   }
 
   /**
-   * Set a value in cache with optional TTL
+   * Set a value in cache with optional TTL and type
    */
-  async set<T = any>(key: string, value: T, ttl: number = DEFAULT_TTL): Promise<boolean> {
+  async set<T = any>(
+    key: string, 
+    value: T, 
+    ttl?: number, 
+    type?: CacheType
+  ): Promise<boolean> {
     if (!this.isConnected || !this.redis) {
       return false
     }
 
     try {
-      const fullKey = `${CACHE_PREFIX}${key}`
+      const fullKey = this.getKey(key, type)
       const serialized = JSON.stringify(value)
+      const finalTTL = ttl || (type ? CACHE_TTL[type] : DEFAULT_TTL)
       
-      if (ttl > 0) {
-        await this.redis.setex(fullKey, ttl, serialized)
+      if (finalTTL > 0) {
+        await this.redis.setex(fullKey, finalTTL, serialized)
       } else {
         await this.redis.set(fullKey, serialized)
       }
@@ -149,9 +180,7 @@ export class CacheService {
       const keys = await this.redis.keys(fullPattern)
       
       if (keys.length > 0) {
-        // Remove the prefix before passing to del
-        const cleanKeys = keys.map(k => k.replace(CACHE_PREFIX, ''))
-        await this.del(cleanKeys)
+        await this.redis.del(...keys)
       }
       
       return true
@@ -162,15 +191,30 @@ export class CacheService {
   }
 
   /**
+   * Invalidate cache by pattern or key
+   */
+  async invalidate(pattern: string): Promise<void> {
+    await this.delPattern(pattern)
+  }
+
+  /**
+   * Invalidate all cache entries of a specific type
+   */
+  async invalidateByType(type: CacheType): Promise<void> {
+    const pattern = `${type}:*`
+    await this.delPattern(pattern)
+  }
+
+  /**
    * Check if a key exists
    */
-  async exists(key: string): Promise<boolean> {
+  async exists(key: string, type?: CacheType): Promise<boolean> {
     if (!this.isConnected || !this.redis) {
       return false
     }
 
     try {
-      const fullKey = `${CACHE_PREFIX}${key}`
+      const fullKey = this.getKey(key, type)
       const exists = await this.redis.exists(fullKey)
       return exists === 1
     } catch (error) {
@@ -182,13 +226,13 @@ export class CacheService {
   /**
    * Get remaining TTL for a key
    */
-  async ttl(key: string): Promise<number> {
+  async ttl(key: string, type?: CacheType): Promise<number> {
     if (!this.isConnected || !this.redis) {
       return -1
     }
 
     try {
-      const fullKey = `${CACHE_PREFIX}${key}`
+      const fullKey = this.getKey(key, type)
       return await this.redis.ttl(fullKey)
     } catch (error) {
       console.error(`Cache TTL error for key ${key}:`, error)
@@ -365,6 +409,16 @@ export class CacheService {
       await this.redis.quit()
       this.isConnected = false
     }
+  }
+
+  /**
+   * Get the full cache key with optional type prefix
+   */
+  private getKey(key: string, type?: CacheType): string {
+    if (type) {
+      return `${CACHE_PREFIX}${type}:${key}`
+    }
+    return `${CACHE_PREFIX}${key}`
   }
 }
 
