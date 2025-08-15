@@ -942,8 +942,8 @@ const CURRENCY_CONFIG = {
 
 - **Project Repository**: [GitHub - Sparkle Universe](https://github.com/nordeim/Sparkle-Universe-Next)
 - **Documentation**: Internal project documentation
-- **Schema Version**: 4.5 (Performance Optimization Release)
-- **PRD Version**: 2.0 (December 2024)
+- **Schema Version**: 4.6 (Performance Optimization Release)
+- **PRD Version**: 2.0 (August 2025)
 
 ---
 
@@ -951,8 +951,8 @@ const CURRENCY_CONFIG = {
 
 | Version | Date | Changes | Author |
 |---------|------|---------|--------|
-| 1.0 | August 2024 | Initial draft | Team |
-| 2.0 | December 2024 | Complete alignment with v4.6 schema, corrected all inconsistencies | System |
+| 1.0 | July 2025 | Initial draft | Team |
+| 2.0 | August 2025 | Complete alignment with v4.6 schema, corrected all inconsistencies | System |
 
 ---
 
