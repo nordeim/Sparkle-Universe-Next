@@ -494,7 +494,7 @@ The database uses PostgreSQL 16 with Prisma ORM v5.8.1, implementing a comprehen
 ### Core Database Statistics
 
 - **Total Database Models**: 126
-- **Total Enum Types**: 23
+- **Total Enum Types**: 22
 - **Models with Version Field**: 20+
 - **Models with Soft Delete**: 25+
 - **Models Requiring JSON Indexes**: 8
