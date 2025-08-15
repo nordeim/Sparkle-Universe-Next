@@ -1,12 +1,13 @@
 // src/server/services/search.service.ts
 import { PrismaClient, Prisma } from '@prisma/client'
 import algoliasearch, { SearchClient, SearchIndex } from 'algoliasearch'
-import { CacheService } from './cache.service'
+import { CacheService, CacheType } from './cache.service'
+import { ActivityService } from './activity.service'
 
 interface SearchOptions {
   page?: number
   hitsPerPage?: number
-  filters?: string
+  filters?: any
   facets?: string[]
   facetFilters?: string[][]
   numericFilters?: string[]
@@ -27,64 +28,18 @@ interface SearchResult<T = any> {
   query: string
 }
 
-interface IndexablePost {
-  objectID: string
-  title: string
-  content: string
-  excerpt: string
-  slug: string
-  author: {
-    id: string
-    username: string
-    image?: string
-  }
-  tags: string[]
-  category?: string
-  featured: boolean
-  published: boolean
-  publishedAt?: number
-  views: number
-  likes: number
-  comments: number
-  readingTime: number
-  youtubeVideoId?: string
-  _searchableContent?: string
-}
-
-interface IndexableUser {
-  objectID: string
-  username: string
-  displayName?: string
-  bio?: string
-  verified: boolean
-  role: string
-  followers: number
-  posts: number
-  level: number
-  interests: string[]
-  skills: string[]
-  createdAt: number
-}
-
-interface IndexableTag {
-  objectID: string
-  name: string
-  slug: string
-  description?: string
-  postCount: number
-  featured: boolean
-}
-
 export class SearchService {
   private algoliaClient: SearchClient | null = null
   private postsIndex: SearchIndex | null = null
   private usersIndex: SearchIndex | null = null
   private tagsIndex: SearchIndex | null = null
   private cacheService: CacheService
+  private activityService: ActivityService
   private useAlgolia: boolean
 
   constructor(private db: PrismaClient) {
     this.cacheService = new CacheService()
+    this.activityService = new ActivityService(db)
     this.useAlgolia = !!(process.env.ALGOLIA_APP_ID && process.env.ALGOLIA_ADMIN_KEY)
     
     if (this.useAlgolia) {
@@ -101,308 +56,168 @@ export class SearchService {
     this.postsIndex = this.algoliaClient.initIndex('posts')
     this.usersIndex = this.algoliaClient.initIndex('users')
     this.tagsIndex = this.algoliaClient.initIndex('tags')
-
-    // Configure indices
-    this.configureIndices()
   }
 
-  private async configureIndices() {
-    // Posts index configuration
-    await this.postsIndex?.setSettings({
-      searchableAttributes: [
-        'unordered(title)',
-        'unordered(content)',
-        'excerpt',
-        'tags',
-        'author.username',
-        'category',
-      ],
-      attributesForFaceting: [
-        'searchable(tags)',
-        'searchable(author.username)',
-        'filterOnly(author.id)',
-        'category',
-        'featured',
-        'published',
-      ],
-      customRanking: [
-        'desc(featured)',
-        'desc(likes)',
-        'desc(views)',
-        'desc(publishedAt)',
-      ],
-      attributesToSnippet: [
-        'content:50',
-        'excerpt:30',
-      ],
-      snippetEllipsisText: '...',
-      highlightPreTag: '<mark class="search-highlight">',
-      highlightPostTag: '</mark>',
-      hitsPerPage: 20,
-      paginationLimitedTo: 1000,
-      attributesToRetrieve: [
-        'objectID',
-        'title',
-        'excerpt',
-        'slug',
-        'author',
-        'tags',
-        'category',
-        'publishedAt',
-        'views',
-        'likes',
-        'comments',
-        'readingTime',
-        'youtubeVideoId',
-      ],
+  async search(params: {
+    query: string
+    type: 'all' | 'posts' | 'users' | 'tags'
+    limit: number
+    page?: number
+  }) {
+    const { query, type, limit, page = 0 } = params
+    const results: any = {}
+
+    // Track search in SearchHistory
+    await this.trackSearch({
+      query,
+      searchType: type,
     })
 
-    // Users index configuration
-    await this.usersIndex?.setSettings({
-      searchableAttributes: [
-        'unordered(username)',
-        'unordered(displayName)',
-        'bio',
-        'interests',
-        'skills',
-      ],
-      attributesForFaceting: [
-        'verified',
-        'role',
-        'searchable(interests)',
-        'searchable(skills)',
-      ],
-      customRanking: [
-        'desc(verified)',
-        'desc(followers)',
-        'desc(level)',
-        'desc(posts)',
-      ],
-      attributesToSnippet: [
-        'bio:30',
-      ],
-      hitsPerPage: 20,
-    })
+    if (type === 'all' || type === 'posts') {
+      results.posts = await this.searchPosts(query, { 
+        page, 
+        hitsPerPage: limit 
+      })
+    }
 
-    // Tags index configuration
-    await this.tagsIndex?.setSettings({
-      searchableAttributes: [
-        'unordered(name)',
-        'description',
-      ],
-      attributesForFaceting: [
-        'featured',
-      ],
-      customRanking: [
-        'desc(featured)',
-        'desc(postCount)',
-      ],
-      hitsPerPage: 50,
-    })
+    if (type === 'all' || type === 'users') {
+      results.users = await this.searchUsers(query, { 
+        page, 
+        hitsPerPage: limit 
+      })
+    }
+
+    if (type === 'all' || type === 'tags') {
+      results.tags = await this.searchTags(query, { 
+        page, 
+        hitsPerPage: limit 
+      })
+    }
+
+    return results
   }
 
-  // Index a post
-  async indexPost(post: any) {
-    if (!this.useAlgolia || !this.postsIndex) return
-
-    const indexablePost: IndexablePost = {
-      objectID: post.id,
-      title: post.title,
-      content: this.stripHtml(post.content || ''),
-      excerpt: post.excerpt || '',
-      slug: post.slug,
-      author: {
-        id: post.author.id,
-        username: post.author.username,
-        image: post.author.image,
-      },
-      tags: post.tags?.map((t: any) => t.name) || [],
-      category: post.category?.name,
-      featured: post.featured || false,
-      published: post.published || false,
-      publishedAt: post.publishedAt?.getTime(),
-      views: post.stats?.viewCount || 0,
-      likes: post._count?.reactions || 0,
-      comments: post._count?.comments || 0,
-      readingTime: post.readingTime || 0,
-      youtubeVideoId: post.youtubeVideoId,
-      _searchableContent: `${post.title} ${post.excerpt || ''} ${this.stripHtml(post.content || '')}`.toLowerCase(),
-    }
-
-    try {
-      await this.postsIndex.saveObject(indexablePost)
-    } catch (error) {
-      console.error('Failed to index post:', error)
-    }
-  }
-
-  // Index a user
-  async indexUser(user: any) {
-    if (!this.useAlgolia || !this.usersIndex) return
-
-    const indexableUser: IndexableUser = {
-      objectID: user.id,
-      username: user.username,
-      displayName: user.profile?.displayName,
-      bio: user.bio,
-      verified: user.verified || false,
-      role: user.role,
-      followers: user._count?.followers || 0,
-      posts: user._count?.posts || 0,
-      level: user.level || 1,
-      interests: user.profile?.interests || [],
-      skills: user.profile?.skills || [],
-      createdAt: user.createdAt.getTime(),
-    }
-
-    try {
-      await this.usersIndex.saveObject(indexableUser)
-    } catch (error) {
-      console.error('Failed to index user:', error)
-    }
-  }
-
-  // Index a tag
-  async indexTag(tag: any) {
-    if (!this.useAlgolia || !this.tagsIndex) return
-
-    const indexableTag: IndexableTag = {
-      objectID: tag.id,
-      name: tag.name,
-      slug: tag.slug,
-      description: tag.description,
-      postCount: tag.postCount || 0,
-      featured: tag.featured || false,
-    }
-
-    try {
-      await this.tagsIndex.saveObject(indexableTag)
-    } catch (error) {
-      console.error('Failed to index tag:', error)
-    }
-  }
-
-  // Search posts
   async searchPosts(
     query: string, 
-    options: SearchOptions = {}
-  ): Promise<SearchResult<IndexablePost>> {
-    // Try cache first
+    options: SearchOptions & { filters?: any } = {}
+  ): Promise<SearchResult> {
+    // Check cache
     const cacheKey = `search:posts:${query}:${JSON.stringify(options)}`
-    const cached = await this.cacheService.get<SearchResult<IndexablePost>>(cacheKey)
+    const cached = await this.cacheService.get<SearchResult>(cacheKey)
     if (cached) return cached
 
-    let result: SearchResult<IndexablePost>
+    let result: SearchResult
 
     if (this.useAlgolia && this.postsIndex) {
-      // Use Algolia
-      const searchResult = await this.postsIndex.search<IndexablePost>(query, {
-        page: options.page || 0,
-        hitsPerPage: options.hitsPerPage || 20,
-        filters: options.filters,
-        facets: options.facets,
-        facetFilters: options.facetFilters,
-        numericFilters: options.numericFilters,
-        attributesToRetrieve: options.attributesToRetrieve,
-        attributesToHighlight: options.attributesToHighlight,
-        highlightPreTag: options.highlightPreTag || '<mark>',
-        highlightPostTag: options.highlightPostTag || '</mark>',
-      })
-
-      result = {
-        hits: searchResult.hits,
-        nbHits: searchResult.nbHits,
-        page: searchResult.page,
-        nbPages: searchResult.nbPages,
-        hitsPerPage: searchResult.hitsPerPage,
-        facets: searchResult.facets,
-        processingTimeMS: searchResult.processingTimeMS,
-        query: searchResult.query,
+      // Build Algolia filters
+      const algoliaFilters: string[] = []
+      
+      if (options.filters?.authorId) {
+        algoliaFilters.push(`author.id:"${options.filters.authorId}"`)
       }
+      if (options.filters?.category) {
+        algoliaFilters.push(`category:"${options.filters.category}"`)
+      }
+      if (options.filters?.featured !== undefined) {
+        algoliaFilters.push(`featured:${options.filters.featured}`)
+      }
+      if (options.filters?.contentType) {
+        algoliaFilters.push(`contentType:"${options.filters.contentType}"`)
+      }
+      if (options.filters?.hasYoutubeVideo !== undefined) {
+        algoliaFilters.push(`hasYoutubeVideo:${options.filters.hasYoutubeVideo}`)
+      }
+
+      // Use Algolia
+      result = await this.searchWithAlgolia(
+        this.postsIndex,
+        query,
+        {
+          ...options,
+          filters: algoliaFilters.join(' AND ')
+        }
+      )
     } else {
-      // Fallback to database search
+      // Fallback to database
       result = await this.searchPostsInDatabase(query, options)
     }
 
+    // Update SearchIndex
+    await this.updateSearchIndex('posts', query, result.nbHits)
+
     // Cache for 5 minutes
     await this.cacheService.set(cacheKey, result, 300)
 
     return result
   }
 
-  // Search users
   async searchUsers(
     query: string, 
-    options: SearchOptions = {}
-  ): Promise<SearchResult<IndexableUser>> {
-    // Try cache first
+    options: SearchOptions & { filters?: any } = {}
+  ): Promise<SearchResult> {
+    // Check cache
     const cacheKey = `search:users:${query}:${JSON.stringify(options)}`
-    const cached = await this.cacheService.get<SearchResult<IndexableUser>>(cacheKey)
+    const cached = await this.cacheService.get<SearchResult>(cacheKey)
     if (cached) return cached
 
-    let result: SearchResult<IndexableUser>
+    let result: SearchResult
 
     if (this.useAlgolia && this.usersIndex) {
-      // Use Algolia
-      const searchResult = await this.usersIndex.search<IndexableUser>(query, {
-        page: options.page || 0,
-        hitsPerPage: options.hitsPerPage || 20,
-        filters: options.filters,
-        facets: options.facets,
-        facetFilters: options.facetFilters,
-        attributesToRetrieve: options.attributesToRetrieve,
-        attributesToHighlight: options.attributesToHighlight,
-      })
-
-      result = {
-        hits: searchResult.hits,
-        nbHits: searchResult.nbHits,
-        page: searchResult.page,
-        nbPages: searchResult.nbPages,
-        hitsPerPage: searchResult.hitsPerPage,
-        facets: searchResult.facets,
-        processingTimeMS: searchResult.processingTimeMS,
-        query: searchResult.query,
+      // Build Algolia filters
+      const algoliaFilters: string[] = []
+      
+      if (options.filters?.verified !== undefined) {
+        algoliaFilters.push(`verified:${options.filters.verified}`)
       }
+      if (options.filters?.role) {
+        algoliaFilters.push(`role:"${options.filters.role}"`)
+      }
+
+      result = await this.searchWithAlgolia(
+        this.usersIndex,
+        query,
+        {
+          ...options,
+          filters: algoliaFilters.join(' AND ')
+        }
+      )
     } else {
-      // Fallback to database search
       result = await this.searchUsersInDatabase(query, options)
     }
 
+    // Update SearchIndex
+    await this.updateSearchIndex('users', query, result.nbHits)
+
     // Cache for 5 minutes
     await this.cacheService.set(cacheKey, result, 300)
 
     return result
   }
 
-  // Search tags
   async searchTags(
     query: string, 
-    options: SearchOptions = {}
-  ): Promise<SearchResult<IndexableTag>> {
+    options: SearchOptions & { filters?: any } = {}
+  ): Promise<SearchResult> {
     if (this.useAlgolia && this.tagsIndex) {
-      const searchResult = await this.tagsIndex.search<IndexableTag>(query, {
-        page: options.page || 0,
-        hitsPerPage: options.hitsPerPage || 50,
-        filters: options.filters,
-      })
-
-      return {
-        hits: searchResult.hits,
-        nbHits: searchResult.nbHits,
-        page: searchResult.page,
-        nbPages: searchResult.nbPages,
-        hitsPerPage: searchResult.hitsPerPage,
-        processingTimeMS: searchResult.processingTimeMS,
-        query: searchResult.query,
+      const algoliaFilters: string[] = []
+      
+      if (options.filters?.featured !== undefined) {
+        algoliaFilters.push(`featured:${options.filters.featured}`)
       }
+
+      return this.searchWithAlgolia(
+        this.tagsIndex,
+        query,
+        {
+          ...options,
+          filters: algoliaFilters.join(' AND ')
+        }
+      )
     }
 
-    // Fallback to database search
     return this.searchTagsInDatabase(query, options)
   }
 
-  // Multi-index search
   async searchAll(query: string, options: {
     postsLimit?: number
     usersLimit?: number
@@ -428,30 +243,353 @@ export class SearchService {
     }
   }
 
-  // Delete from index
+  async getSuggestions(query: string, limit: number) {
+    const cacheKey = `suggestions:${query}`
+    const cached = await this.cacheService.get<string[]>(cacheKey)
+    if (cached) return cached
+
+    // Get from SearchHistory
+    const suggestions = await this.db.searchHistory.findMany({
+      where: {
+        query: {
+          startsWith: query,
+          mode: 'insensitive',
+        },
+      },
+      select: {
+        query: true,
+      },
+      distinct: ['query'],
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: limit,
+    })
+
+    const terms = suggestions.map(s => s.query)
+    await this.cacheService.set(cacheKey, terms, 300) // Cache for 5 minutes
+
+    return terms
+  }
+
+  async getTrendingSearches() {
+    const cacheKey = 'trending:searches'
+    const cached = await this.cacheService.get(cacheKey, CacheType.TRENDING)
+    if (cached) return cached
+
+    // Get from SearchHistory
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
+    
+    const trending = await this.db.searchHistory.groupBy({
+      by: ['query'],
+      where: {
+        createdAt: {
+          gte: oneHourAgo,
+        },
+      },
+      _count: {
+        query: true,
+      },
+      orderBy: {
+        _count: {
+          query: 'desc',
+        },
+      },
+      take: 10,
+    })
+
+    const result = trending.map(t => ({
+      term: t.query,
+      count: t._count.query,
+    }))
+
+    await this.cacheService.set(cacheKey, result, 900, CacheType.TRENDING)
+    return result
+  }
+
+  async getUserSearchHistory(userId: string, limit: number) {
+    return this.db.searchHistory.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    })
+  }
+
+  async clearUserSearchHistory(userId: string) {
+    await this.db.searchHistory.deleteMany({
+      where: { userId },
+    })
+    return { success: true }
+  }
+
+  async trackSearch(params: {
+    userId?: string
+    query: string
+    searchType?: string
+  }) {
+    await this.db.searchHistory.create({
+      data: {
+        userId: params.userId,
+        query: params.query,
+        searchType: params.searchType,
+        resultCount: 0, // Will be updated later
+      },
+    })
+  }
+
+  private async updateSearchIndex(
+    entityType: string,
+    query: string,
+    resultCount: number
+  ) {
+    // Update or create SearchIndex entry
+    await this.db.searchIndex.upsert({
+      where: {
+        entityType_entityId: {
+          entityType: 'query',
+          entityId: query,
+        },
+      },
+      create: {
+        entityType: 'query',
+        entityId: query,
+        searchableText: query,
+        metadata: {
+          count: 1,
+          lastSearched: new Date(),
+          resultCount,
+        },
+      },
+      update: {
+        metadata: {
+          count: { increment: 1 },
+          lastSearched: new Date(),
+          resultCount,
+        },
+      },
+    })
+  }
+
+  async indexPost(post: any) {
+    // Index in SearchIndex table
+    await this.db.searchIndex.upsert({
+      where: {
+        entityType_entityId: {
+          entityType: 'post',
+          entityId: post.id,
+        },
+      },
+      create: {
+        entityType: 'post',
+        entityId: post.id,
+        searchableText: `${post.title} ${post.excerpt || ''} ${this.stripHtml(post.content || '')}`,
+        title: post.title,
+        description: post.excerpt,
+        tags: post.tags?.map((t: any) => t.tag.name) || [],
+        metadata: {
+          slug: post.slug,
+          authorId: post.authorId,
+          categoryId: post.categoryId,
+        },
+      },
+      update: {
+        searchableText: `${post.title} ${post.excerpt || ''} ${this.stripHtml(post.content || '')}`,
+        title: post.title,
+        description: post.excerpt,
+        tags: post.tags?.map((t: any) => t.tag.name) || [],
+        lastIndexedAt: new Date(),
+      },
+    })
+
+    // Index in Algolia if available
+    if (this.useAlgolia && this.postsIndex) {
+      await this.postsIndex.saveObject({
+        objectID: post.id,
+        title: post.title,
+        content: this.stripHtml(post.content || ''),
+        excerpt: post.excerpt || '',
+        slug: post.slug,
+        author: post.author,
+        tags: post.tags?.map((t: any) => t.tag.name) || [],
+        category: post.category?.name,
+        featured: post.featured,
+        published: post.published,
+        contentType: post.contentType,
+        hasYoutubeVideo: !!post.youtubeVideoId,
+        publishedAt: post.publishedAt?.getTime(),
+      })
+    }
+  }
+
   async deletePost(postId: string) {
+    await this.db.searchIndex.delete({
+      where: {
+        entityType_entityId: {
+          entityType: 'post',
+          entityId: postId,
+        },
+      },
+    })
+
     if (this.useAlgolia && this.postsIndex) {
       await this.postsIndex.deleteObject(postId)
     }
   }
 
-  async deleteUser(userId: string) {
+  async reindexContent(type: 'posts' | 'users' | 'tags' | 'all') {
+    const results = {
+      posts: 0,
+      users: 0,
+      tags: 0,
+    }
+
+    if (type === 'all' || type === 'posts') {
+      const posts = await this.db.post.findMany({
+        where: { published: true },
+        include: {
+          author: true,
+          category: true,
+          tags: {
+            include: { tag: true },
+          },
+        },
+      })
+
+      for (const post of posts) {
+        await this.indexPost(post)
+        results.posts++
+      }
+    }
+
+    if (type === 'all' || type === 'users') {
+      const users = await this.db.user.findMany({
+        where: { status: 'ACTIVE' },
+        include: {
+          profile: true,
+        },
+      })
+
+      for (const user of users) {
+        await this.indexUser(user)
+        results.users++
+      }
+    }
+
+    if (type === 'all' || type === 'tags') {
+      const tags = await this.db.tag.findMany()
+      
+      for (const tag of tags) {
+        await this.indexTag(tag)
+        results.tags++
+      }
+    }
+
+    return results
+  }
+
+  private async indexUser(user: any) {
+    await this.db.searchIndex.upsert({
+      where: {
+        entityType_entityId: {
+          entityType: 'user',
+          entityId: user.id,
+        },
+      },
+      create: {
+        entityType: 'user',
+        entityId: user.id,
+        searchableText: `${user.username} ${user.bio || ''} ${user.profile?.displayName || ''}`,
+        title: user.username,
+        description: user.bio,
+        metadata: {
+          verified: user.verified,
+          role: user.role,
+        },
+      },
+      update: {
+        searchableText: `${user.username} ${user.bio || ''} ${user.profile?.displayName || ''}`,
+        title: user.username,
+        description: user.bio,
+        lastIndexedAt: new Date(),
+      },
+    })
+
     if (this.useAlgolia && this.usersIndex) {
-      await this.usersIndex.deleteObject(userId)
+      await this.usersIndex.saveObject({
+        objectID: user.id,
+        username: user.username,
+        displayName: user.profile?.displayName,
+        bio: user.bio,
+        verified: user.verified,
+        role: user.role,
+        interests: user.profile?.interests || [],
+        skills: user.profile?.skills || [],
+      })
     }
   }
 
-  async deleteTag(tagId: string) {
+  private async indexTag(tag: any) {
+    await this.db.searchIndex.upsert({
+      where: {
+        entityType_entityId: {
+          entityType: 'tag',
+          entityId: tag.id,
+        },
+      },
+      create: {
+        entityType: 'tag',
+        entityId: tag.id,
+        searchableText: `${tag.name} ${tag.description || ''}`,
+        title: tag.name,
+        description: tag.description,
+        metadata: {
+          slug: tag.slug,
+          featured: tag.featured,
+        },
+      },
+      update: {
+        searchableText: `${tag.name} ${tag.description || ''}`,
+        title: tag.name,
+        description: tag.description,
+        lastIndexedAt: new Date(),
+      },
+    })
+
     if (this.useAlgolia && this.tagsIndex) {
-      await this.tagsIndex.deleteObject(tagId)
+      await this.tagsIndex.saveObject({
+        objectID: tag.id,
+        name: tag.name,
+        slug: tag.slug,
+        description: tag.description,
+        postCount: tag.postCount,
+        featured: tag.featured,
+      })
     }
   }
 
-  // Database fallback search methods
+  private async searchWithAlgolia(
+    index: SearchIndex,
+    query: string,
+    options: SearchOptions
+  ): Promise<SearchResult> {
+    const result = await index.search(query, options)
+    
+    return {
+      hits: result.hits,
+      nbHits: result.nbHits,
+      page: result.page,
+      nbPages: result.nbPages,
+      hitsPerPage: result.hitsPerPage,
+      facets: result.facets,
+      processingTimeMS: result.processingTimeMS,
+      query: result.query,
+    }
+  }
+
   private async searchPostsInDatabase(
     query: string, 
-    options: SearchOptions
-  ): Promise<SearchResult<IndexablePost>> {
+    options: SearchOptions & { filters?: any }
+  ): Promise<SearchResult> {
     const startTime = Date.now()
     const page = options.page || 0
     const hitsPerPage = options.hitsPerPage || 20
@@ -460,69 +598,76 @@ export class SearchService {
     // Build where clause
     const where: Prisma.PostWhereInput = {
       published: true,
+      deleted: false,
       OR: [
         { title: { contains: query, mode: 'insensitive' } },
-        { content: { contains: query, mode: 'insensitive' } },
         { excerpt: { contains: query, mode: 'insensitive' } },
-        { tags: { some: { name: { contains: query, mode: 'insensitive' } } } },
-        { author: { username: { contains: query, mode: 'insensitive' } } },
       ],
     }
 
-    // Get total count
-    const totalCount = await this.db.post.count({ where })
+    // Apply filters
+    if (options.filters?.authorId) {
+      where.authorId = options.filters.authorId
+    }
+    if (options.filters?.category) {
+      where.category = {
+        name: options.filters.category,
+      }
+    }
+    if (options.filters?.featured !== undefined) {
+      where.featured = options.filters.featured
+    }
+    if (options.filters?.contentType) {
+      where.contentType = options.filters.contentType
+    }
+    if (options.filters?.hasYoutubeVideo !== undefined) {
+      if (options.filters.hasYoutubeVideo) {
+        where.youtubeVideoId = { not: null }
+      } else {
+        where.youtubeVideoId = null
+      }
+    }
 
-    // Get posts
-    const posts = await this.db.post.findMany({
-      where,
-      include: {
-        author: {
-          select: {
-            id: true,
-            username: true,
-            image: true,
+    const [posts, totalCount] = await Promise.all([
+      this.db.post.findMany({
+        where,
+        include: {
+          author: {
+            select: {
+              id: true,
+              username: true,
+              image: true,
+            },
+          },
+          category: true,
+          tags: {
+            include: { tag: true },
+          },
+          stats: true,
+          _count: {
+            select: {
+              comments: true,
+              reactions: true,
+            },
           },
         },
-        category: {
-          select: {
-            name: true,
-          },
-        },
-        tags: {
-          select: {
-            name: true,
-          },
-        },
-        stats: true,
-        _count: {
-          select: {
-            comments: true,
-            reactions: true,
-          },
-        },
-      },
-      orderBy: [
-        { featured: 'desc' },
-        { stats: { viewCount: 'desc' } },
-        { publishedAt: 'desc' },
-      ],
-      skip: offset,
-      take: hitsPerPage,
-    })
+        orderBy: [
+          { featured: 'desc' },
+          { publishedAt: 'desc' },
+        ],
+        skip: offset,
+        take: hitsPerPage,
+      }),
+      this.db.post.count({ where }),
+    ])
 
-    // Transform to search result format
-    const hits: IndexablePost[] = posts.map(post => ({
+    const hits = posts.map(post => ({
       objectID: post.id,
       title: post.title,
-      content: this.stripHtml(post.content || ''),
       excerpt: post.excerpt || '',
       slug: post.slug,
-      author: {
-        id: post.author.id,
-        username: post.author.username,
-        image: post.author.image || undefined,
-      },
-      tags: post.tags.map(t => t.name),
+      author: post.author,
+      tags: post.tags.map(t => t.tag.name),
       category: post.category?.name,
       featured: post.featured,
       published: post.published,
@@ -530,8 +675,6 @@ export class SearchService {
       views: post.stats?.viewCount || 0,
       likes: post._count.reactions,
       comments: post._count.comments,
-      readingTime: post.readingTime || 0,
-      youtubeVideoId: post.youtubeVideoId || undefined,
     }))
 
     return {
@@ -547,8 +690,8 @@ export class SearchService {
 
   private async searchUsersInDatabase(
     query: string, 
-    options: SearchOptions
-  ): Promise<SearchResult<IndexableUser>> {
+    options: SearchOptions & { filters?: any }
+  ): Promise<SearchResult> {
     const startTime = Date.now()
     const page = options.page || 0
     const hitsPerPage = options.hitsPerPage || 20
@@ -556,59 +699,53 @@ export class SearchService {
 
     // Build where clause
     const where: Prisma.UserWhereInput = {
+      status: 'ACTIVE',
       OR: [
         { username: { contains: query, mode: 'insensitive' } },
         { bio: { contains: query, mode: 'insensitive' } },
-        { profile: { displayName: { contains: query, mode: 'insensitive' } } },
-        { profile: { interests: { hasSome: [query] } } },
-        { profile: { skills: { hasSome: [query] } } },
       ],
     }
 
-    // Get total count
-    const totalCount = await this.db.user.count({ where })
+    // Apply filters
+    if (options.filters?.verified !== undefined) {
+      where.verified = options.filters.verified
+    }
+    if (options.filters?.role) {
+      where.role = options.filters.role
+    }
 
-    // Get users
-    const users = await this.db.user.findMany({
-      where,
-      include: {
-        profile: {
-          select: {
-            displayName: true,
-            interests: true,
-            skills: true,
+    const [users, totalCount] = await Promise.all([
+      this.db.user.findMany({
+        where,
+        include: {
+          profile: true,
+          _count: {
+            select: {
+              followers: true,
+              posts: true,
+            },
           },
         },
-        _count: {
-          select: {
-            followers: true,
-            posts: true,
-          },
-        },
-      },
-      orderBy: [
-        { verified: 'desc' },
-        { followers: { _count: 'desc' } },
-        { level: 'desc' },
-      ],
-      skip: offset,
-      take: hitsPerPage,
-    })
+        orderBy: [
+          { verified: 'desc' },
+          { level: 'desc' },
+        ],
+        skip: offset,
+        take: hitsPerPage,
+      }),
+      this.db.user.count({ where }),
+    ])
 
-    // Transform to search result format
-    const hits: IndexableUser[] = users.map(user => ({
+    const hits = users.map(user => ({
       objectID: user.id,
       username: user.username,
       displayName: user.profile?.displayName,
-      bio: user.bio || undefined,
+      bio: user.bio,
       verified: user.verified,
       role: user.role,
       followers: user._count.followers,
       posts: user._count.posts,
       level: user.level,
-      interests: user.profile?.interests || [],
-      skills: user.profile?.skills || [],
-      createdAt: user.createdAt.getTime(),
     }))
 
     return {
@@ -624,8 +761,8 @@ export class SearchService {
 
   private async searchTagsInDatabase(
     query: string, 
-    options: SearchOptions
-  ): Promise<SearchResult<IndexableTag>> {
+    options: SearchOptions & { filters?: any }
+  ): Promise<SearchResult> {
     const startTime = Date.now()
     const page = options.page || 0
     const hitsPerPage = options.hitsPerPage || 50
@@ -639,26 +776,29 @@ export class SearchService {
       ],
     }
 
-    // Get total count
-    const totalCount = await this.db.tag.count({ where })
+    // Apply filters
+    if (options.filters?.featured !== undefined) {
+      where.featured = options.filters.featured
+    }
 
-    // Get tags
-    const tags = await this.db.tag.findMany({
-      where,
-      orderBy: [
-        { featured: 'desc' },
-        { postCount: 'desc' },
-      ],
-      skip: offset,
-      take: hitsPerPage,
-    })
+    const [tags, totalCount] = await Promise.all([
+      this.db.tag.findMany({
+        where,
+        orderBy: [
+          { featured: 'desc' },
+          { postCount: 'desc' },
+        ],
+        skip: offset,
+        take: hitsPerPage,
+      }),
+      this.db.tag.count({ where }),
+    ])
 
-    // Transform to search result format
-    const hits: IndexableTag[] = tags.map(tag => ({
+    const hits = tags.map(tag => ({
       objectID: tag.id,
       name: tag.name,
       slug: tag.slug,
-      description: tag.description || undefined,
+      description: tag.description,
       postCount: tag.postCount,
       featured: tag.featured,
     }))
@@ -674,103 +814,10 @@ export class SearchService {
     }
   }
 
-  // Helper methods
   private stripHtml(html: string): string {
     return html
       .replace(/<[^>]*>/g, '') // Remove HTML tags
       .replace(/\s+/g, ' ') // Normalize whitespace
       .trim()
-  }
-
-  // Reindex all data (for maintenance)
-  async reindexAll() {
-    if (!this.useAlgolia) {
-      console.log('Algolia not configured, skipping reindex')
-      return
-    }
-
-    console.log('Starting full reindex...')
-
-    // Clear indices
-    await Promise.all([
-      this.postsIndex?.clearObjects(),
-      this.usersIndex?.clearObjects(),
-      this.tagsIndex?.clearObjects(),
-    ])
-
-    // Reindex posts
-    let postCursor: string | undefined
-    let postCount = 0
-
-    while (true) {
-      const posts = await this.db.post.findMany({
-        where: { published: true },
-        include: {
-          author: true,
-          category: true,
-          tags: true,
-          stats: true,
-          _count: {
-            select: {
-              comments: true,
-              reactions: true,
-            },
-          },
-        },
-        take: 100,
-        cursor: postCursor ? { id: postCursor } : undefined,
-        orderBy: { createdAt: 'asc' },
-      })
-
-      if (posts.length === 0) break
-
-      for (const post of posts) {
-        await this.indexPost(post)
-        postCount++
-      }
-
-      postCursor = posts[posts.length - 1].id
-      console.log(`Indexed ${postCount} posts...`)
-    }
-
-    // Reindex users
-    let userCursor: string | undefined
-    let userCount = 0
-
-    while (true) {
-      const users = await this.db.user.findMany({
-        where: { status: 'ACTIVE' },
-        include: {
-          profile: true,
-          _count: {
-            select: {
-              followers: true,
-              posts: true,
-            },
-          },
-        },
-        take: 100,
-        cursor: userCursor ? { id: userCursor } : undefined,
-        orderBy: { createdAt: 'asc' },
-      })
-
-      if (users.length === 0) break
-
-      for (const user of users) {
-        await this.indexUser(user)
-        userCount++
-      }
-
-      userCursor = users[users.length - 1].id
-      console.log(`Indexed ${userCount} users...`)
-    }
-
-    // Reindex tags
-    const tags = await this.db.tag.findMany()
-    for (const tag of tags) {
-      await this.indexTag(tag)
-    }
-
-    console.log(`Reindex complete: ${postCount} posts, ${userCount} users, ${tags.length} tags`)
   }
 }

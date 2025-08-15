@@ -2,12 +2,36 @@
 import { z } from 'zod'
 import { 
   createTRPCRouter, 
-  publicProcedure 
+  publicProcedure,
+  protectedProcedure 
 } from '@/server/api/trpc'
 import { SearchService } from '@/server/services/search.service'
 
 export const searchRouter = createTRPCRouter({
-  // Search posts
+  // Global search
+  search: publicProcedure
+    .input(z.object({
+      query: z.string().min(1).max(100),
+      type: z.enum(['all', 'posts', 'users', 'tags']).default('all'),
+      limit: z.number().min(1).max(50).default(10),
+      page: z.number().min(0).optional(),
+    }))
+    .query(async ({ ctx, input }) => {
+      const searchService = new SearchService(ctx.db)
+      
+      // Track search for analytics
+      if (ctx.session?.user?.id) {
+        await searchService.trackSearch({
+          userId: ctx.session.user.id,
+          query: input.query,
+          searchType: input.type,
+        })
+      }
+      
+      return searchService.search(input)
+    }),
+
+  // Search posts with filters
   posts: publicProcedure
     .input(z.object({
       query: z.string().min(1),
@@ -19,37 +43,16 @@ export const searchRouter = createTRPCRouter({
         authorUsername: z.string().optional(),
         category: z.string().optional(),
         featured: z.boolean().optional(),
+        contentType: z.string().optional(),
+        hasYoutubeVideo: z.boolean().optional(),
       }).optional(),
     }))
     .query(async ({ ctx, input }) => {
       const searchService = new SearchService(ctx.db)
-      
-      // Build Algolia filters
-      const filters: string[] = []
-      if (input.filters?.authorId) {
-        filters.push(`author.id:"${input.filters.authorId}"`)
-      }
-      if (input.filters?.authorUsername) {
-        filters.push(`author.username:"${input.filters.authorUsername}"`)
-      }
-      if (input.filters?.category) {
-        filters.push(`category:"${input.filters.category}"`)
-      }
-      if (input.filters?.featured !== undefined) {
-        filters.push(`featured:${input.filters.featured}`)
-      }
-
-      const facetFilters: string[][] = []
-      if (input.filters?.tags && input.filters.tags.length > 0) {
-        facetFilters.push(input.filters.tags.map(tag => `tags:${tag}`))
-      }
-
       return searchService.searchPosts(input.query, {
         page: input.page,
         hitsPerPage: input.limit,
-        filters: filters.join(' AND '),
-        facetFilters,
-        facets: ['tags', 'category', 'author.username'],
+        filters: input.filters,
       })
     }),
 
@@ -68,30 +71,10 @@ export const searchRouter = createTRPCRouter({
     }))
     .query(async ({ ctx, input }) => {
       const searchService = new SearchService(ctx.db)
-      
-      // Build filters
-      const filters: string[] = []
-      if (input.filters?.verified !== undefined) {
-        filters.push(`verified:${input.filters.verified}`)
-      }
-      if (input.filters?.role) {
-        filters.push(`role:"${input.filters.role}"`)
-      }
-
-      const facetFilters: string[][] = []
-      if (input.filters?.interests && input.filters.interests.length > 0) {
-        facetFilters.push(input.filters.interests.map(interest => `interests:${interest}`))
-      }
-      if (input.filters?.skills && input.filters.skills.length > 0) {
-        facetFilters.push(input.filters.skills.map(skill => `skills:${skill}`))
-      }
-
       return searchService.searchUsers(input.query, {
         page: input.page,
         hitsPerPage: input.limit,
-        filters: filters.join(' AND '),
-        facetFilters,
-        facets: ['verified', 'role', 'interests', 'skills'],
+        filters: input.filters,
       })
     }),
 
@@ -104,15 +87,9 @@ export const searchRouter = createTRPCRouter({
     }))
     .query(async ({ ctx, input }) => {
       const searchService = new SearchService(ctx.db)
-      
-      const filters: string[] = []
-      if (input.featured !== undefined) {
-        filters.push(`featured:${input.featured}`)
-      }
-
       return searchService.searchTags(input.query, {
         hitsPerPage: input.limit,
-        filters: filters.join(' AND '),
+        filters: { featured: input.featured },
       })
     }),
 
@@ -131,5 +108,55 @@ export const searchRouter = createTRPCRouter({
         usersLimit: input.usersLimit,
         tagsLimit: input.tagsLimit,
       })
+    }),
+
+  // Search suggestions
+  suggestions: publicProcedure
+    .input(z.object({
+      query: z.string().min(1).max(50),
+      limit: z.number().min(1).max(10).default(5),
+    }))
+    .query(async ({ ctx, input }) => {
+      const searchService = new SearchService(ctx.db)
+      return searchService.getSuggestions(input.query, input.limit)
+    }),
+
+  // Trending searches
+  trending: publicProcedure
+    .query(async ({ ctx }) => {
+      const searchService = new SearchService(ctx.db)
+      return searchService.getTrendingSearches()
+    }),
+
+  // User's search history
+  history: protectedProcedure
+    .input(z.object({
+      limit: z.number().min(1).max(50).default(10),
+    }))
+    .query(async ({ ctx, input }) => {
+      const searchService = new SearchService(ctx.db)
+      return searchService.getUserSearchHistory(ctx.session.user.id, input.limit)
+    }),
+
+  // Clear search history
+  clearHistory: protectedProcedure
+    .mutation(async ({ ctx }) => {
+      const searchService = new SearchService(ctx.db)
+      return searchService.clearUserSearchHistory(ctx.session.user.id)
+    }),
+
+  // Index content (admin only)
+  reindex: protectedProcedure
+    .input(z.object({
+      type: z.enum(['posts', 'users', 'tags', 'all']),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      // Check admin permission
+      if (ctx.session.user.role !== 'ADMIN' && ctx.session.user.role !== 'SYSTEM') {
+        throw new Error('Unauthorized')
+      }
+      
+      const searchService = new SearchService(ctx.db)
+      return searchService.reindexContent(input.type)
     }),
 })
