@@ -106,3 +106,16 @@ src/server/services/search.service.ts
         new file:   src/server/services/user.service.ts
         new file:   src/server/services/watch-party.service.ts
         new file:   src/server/services/youtube.service.ts
+
+# Phase 4:
+$ git status | grep src
+        new file:   src/components/features/youtube/youtube-embed.tsx
+        modified:   src/hooks/use-socket.ts
+        modified:   src/server/api/routers/search.ts
+        new file:   src/server/api/routers/upload.ts
+        modified:   src/server/api/routers/youtube.ts
+        modified:   src/server/services/search.service.ts
+        new file:   src/server/services/upload.service.ts
+        new file:   src/server/services/watchparty.service.ts
+        modified:   src/server/services/youtube.service.ts
+        new file:   src/server/websocket/socket.server.ts
