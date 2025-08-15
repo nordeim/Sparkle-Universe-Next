@@ -1081,8 +1081,8 @@ interface StoreItem {
 
 // Note: StoreBundle uses Int for prices (schema inconsistency)
 interface StoreBundle {
-  priceSparkle?: number;    // Int type
-  pricePremium?: number;    // Int type
+  priceSparkle?: number;    // Decimal(19,4)
+  pricePremium?: number;    // Decimal(19,4)
 }
 
 // Trading System with escrow
@@ -2060,7 +2060,7 @@ SOFTWARE.
 ## 📊 Project Metrics
 
 ### Schema Statistics
-- **Database Version**: 4.5 (Performance Optimization Release)
+- **Database Version**: 4.6 (Performance Optimization Release)
 - **Total Models**: 126
 - **Total Enums**: 23
 - **Total Indexes**: 200+
