@@ -70,3 +70,39 @@ src/server/services/youtube.service.ts
 src/server/services/achievement.service.ts
 src/server/services/cache.service.ts
 src/server/services/search.service.ts
+
+        new file:   src/app/(main)/create/page.tsx
+        new file:   src/app/api/trpc/[trpc]/route.ts
+        new file:   src/components/features/editor/rich-text-editor.tsx
+        new file:   src/components/features/post/post-actions.tsx
+        new file:   src/components/features/post/post-card.tsx
+        new file:   src/lib/api.ts
+        modified:   src/lib/rate-limit.ts
+        modified:   src/lib/redis.ts
+        modified:   src/lib/security.ts
+        modified:   src/lib/utils.ts
+        new file:   src/lib/validations/comment.ts
+        new file:   src/lib/validations/post.ts
+        new file:   src/lib/validations/user.ts
+        new file:   src/server/api/root.ts
+        new file:   src/server/api/routers/comment.ts
+        new file:   src/server/api/routers/gamification.ts
+        new file:   src/server/api/routers/notification.ts
+        new file:   src/server/api/routers/post.ts
+        new file:   src/server/api/routers/search.ts
+        new file:   src/server/api/routers/user.ts
+        new file:   src/server/api/routers/youtube.ts
+        new file:   src/server/api/trpc.ts
+        new file:   src/server/services/achievement.service.ts
+        new file:   src/server/services/activity.service.ts
+        new file:   src/server/services/cache.service.ts
+        new file:   src/server/services/comment.service.ts
+        new file:   src/server/services/event.service.ts
+        new file:   src/server/services/gamification.service.ts
+        new file:   src/server/services/notification.service.ts
+        new file:   src/server/services/post.service.ts
+        new file:   src/server/services/realtime.service.ts
+        new file:   src/server/services/search.service.ts
+        new file:   src/server/services/user.service.ts
+        new file:   src/server/services/watch-party.service.ts
+        new file:   src/server/services/youtube.service.ts
