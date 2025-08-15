@@ -1,4 +1,4 @@
-# src/server/services/user.service.ts
+# original Phase3: src/server/services/user.service.ts
 ```ts
 // src/server/services/user.service.ts
 import { PrismaClient, Prisma, UserRole, UserStatus } from '@prisma/client'
@@ -722,7 +722,7 @@ export class UserService {
 
 ```
 
-# src/server/services/mention.service.ts
+# original Phase3: src/server/services/mention.service.ts
 ```ts
 // src/server/services/mention.service.ts
 import { PrismaClient } from '@prisma/client'
@@ -808,7 +808,7 @@ export class MentionService {
 
 ```
 
-# src/server/services/moderation.service.ts
+# original Phase3: src/server/services/moderation.service.ts
 ```ts
 // src/server/services/moderation.service.ts
 import { PrismaClient } from '@prisma/client'
@@ -924,7 +924,7 @@ export class ModerationService {
 
 ```
 
-# src/types/comment.ts
+# original Phase3: src/types/comment.ts
 ```ts
 // src/types/comment.ts
 import type { 
