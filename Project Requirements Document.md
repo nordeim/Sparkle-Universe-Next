@@ -1,6 +1,6 @@
 # Sparkle Universe - Project Requirements Document
 
-## Version 2.0 | Date: December 2024
+## Version 2.0 | Date: August 2025
 
 ---
 
