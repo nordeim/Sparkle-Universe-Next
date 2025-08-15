@@ -1,4 +1,4 @@
-# src/server/api/routers/comment.ts
+# Phase 1,2: src/server/api/routers/comment.ts
 ```ts
 // src/server/api/routers/comment.ts
 import { z } from 'zod'
@@ -131,7 +131,7 @@ export const commentRouter = createTRPCRouter({
 
 ```
 
-# src/server/api/routers/notification.ts
+# Phase 1,2: src/server/api/routers/notification.ts
 ```ts
 // src/server/api/routers/notification.ts
 import { z } from 'zod'
@@ -234,7 +234,7 @@ export const notificationRouter = createTRPCRouter({
 
 ```
 
-# src/server/api/routers/user.ts
+# Phase 1,2: src/server/api/routers/user.ts
 ```ts
 // src/server/api/routers/user.ts
 import { z } from 'zod'
@@ -516,7 +516,7 @@ export const userRouter = createTRPCRouter({
 
 ```
 
-# src/server/services/activity.service.ts
+# Phase 1,2: src/server/services/activity.service.ts
 ```ts
 // src/server/services/activity.service.ts
 import { PrismaClient } from '@prisma/client'
@@ -600,7 +600,7 @@ export class ActivityService {
 
 ```
 
-# src/server/services/cache.service.ts
+# Phase 1,2: src/server/services/cache.service.ts
 ```ts
 // src/server/services/cache.service.ts
 import { redis } from '@/lib/redis'
@@ -753,7 +753,7 @@ export class CacheService {
 
 ```
 
-# src/server/services/comment.service.ts
+# Phase 1,2: src/server/services/comment.service.ts
 ```ts
 // src/server/services/comment.service.ts
 import { 
@@ -1364,7 +1364,7 @@ export class CommentService {
 
 ```
 
-# src/server/services/event.service.ts
+# Phase 1,2: src/server/services/event.service.ts
 ```ts
 // src/server/services/event.service.ts
 import { EventEmitter } from 'events'
@@ -1508,7 +1508,7 @@ export const eventService = EventService.getInstance()
 
 ```
 
-# src/server/services/notification.service.ts
+# Phase 1,2: src/server/services/notification.service.ts
 ```ts
 // src/server/services/notification.service.ts
 import { PrismaClient, NotificationType } from '@prisma/client'

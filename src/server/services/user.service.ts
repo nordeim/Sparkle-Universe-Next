@@ -1,422 +1,257 @@
 // src/server/services/user.service.ts
-import { PrismaClient, Prisma, UserRole, UserStatus } from '@prisma/client'
+import { 
+  PrismaClient, 
+  Prisma,
+  UserRole,
+  UserStatus,
+  ReportReason,
+  NotificationType 
+} from '@prisma/client'
 import { TRPCError } from '@trpc/server'
-import bcrypt from 'bcryptjs'
-import { generateUsername } from '@/lib/utils'
+import * as bcrypt from 'bcryptjs'
 import { NotificationService } from './notification.service'
-import { ActivityService } from './activity.service'
-import { GamificationService, XP_REWARDS } from './gamification.service'
-import { CacheService, CacheType } from './cache.service'
-
-// Query builders for User model (addressing 70+ relations warning from README)
-export class UserQueryBuilder {
-  // Basic profile - minimal fields for lists
-  static basicProfile() {
-    return {
-      select: {
-        id: true,
-        username: true,
-        image: true,
-        role: true,
-        verified: true,
-        createdAt: true,
-      }
-    }
-  }
-
-  // Extended profile - for profile pages
-  static extendedProfile() {
-    return {
-      select: {
-        id: true,
-        username: true,
-        email: true,
-        image: true,
-        bio: true,
-        role: true,
-        verified: true,
-        createdAt: true,
-        lastSeenAt: true,
-        profile: {
-          select: {
-            displayName: true,
-            location: true,
-            website: true,
-            interests: true,
-            skills: true,
-            pronouns: true,
-            socialLinks: true,
-            youtubeChannelId: true,
-            youtubeChannelUrl: true,
-          }
-        },
-        stats: true,
-        _count: {
-          select: {
-            posts: { where: { published: true } },
-            followers: true,
-            following: true,
-          }
-        }
-      }
-    }
-  }
-
-  // Dashboard view - for authenticated user
-  static dashboardView() {
-    return {
-      select: {
-        id: true,
-        username: true,
-        email: true,
-        image: true,
-        bio: true,
-        role: true,
-        verified: true,
-        createdAt: true,
-        lastSeenAt: true,
-        sparklePoints: true,
-        premiumPoints: true,
-        experience: true,
-        level: true,
-        profile: true,
-        stats: true,
-        balance: true,
-        subscription: true,
-        notificationPrefs: true,
-        _count: {
-          select: {
-            posts: { where: { published: true } },
-            followers: true,
-            following: true,
-            notifications: { where: { read: false } },
-          }
-        }
-      }
-    }
-  }
-}
 
 export class UserService {
   private notificationService: NotificationService
-  private activityService: ActivityService
-  private gamificationService: GamificationService
-  private cacheService: CacheService
 
   constructor(private db: PrismaClient) {
     this.notificationService = new NotificationService(db)
-    this.activityService = new ActivityService(db)
-    this.gamificationService = new GamificationService(db)
-    this.cacheService = new CacheService()
   }
 
   async getProfileByUsername(username: string) {
-    // Use cache with proper type
-    const cacheKey = `user:${username}`
-    const cached = await this.cacheService.get(cacheKey, CacheType.USER_PROFILE)
-    if (cached) return cached
-
-    // Use optimized query pattern
     const user = await this.db.user.findUnique({
-      where: { username },
-      ...UserQueryBuilder.extendedProfile(),
-    })
-
-    if (!user) {
-      throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'User not found',
-      })
-    }
-
-    if (user.status === UserStatus.BANNED) {
-      throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'This user has been banned',
-      })
-    }
-
-    // Update last seen in background (don't wait)
-    this.db.user.update({
-      where: { id: user.id },
-      data: { lastSeenAt: new Date() },
-    }).catch(console.error)
-
-    // Cache the result
-    await this.cacheService.set(cacheKey, user, undefined, CacheType.USER_PROFILE)
-
-    return user
-  }
-
-  async getProfileById(userId: string) {
-    // Use dashboard view for authenticated user's own profile
-    const user = await this.db.user.findUnique({
-      where: { id: userId },
-      ...UserQueryBuilder.dashboardView(),
-    })
-
-    if (!user) {
-      throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'User not found',
-      })
-    }
-
-    // Get recent achievements separately (avoid loading all)
-    const recentAchievements = await this.db.userAchievement.findMany({
-      where: { userId },
-      orderBy: { unlockedAt: 'desc' },
-      take: 10,
-      include: {
-        achievement: true,
+      where: { 
+        username,
+        deleted: false,
       },
-    })
-
-    return {
-      ...user,
-      recentAchievements,
-    }
-  }
-
-  async updateProfile(userId: string, data: any) {
-    // Validate username if changed
-    if (data.username) {
-      const existing = await this.db.user.findUnique({
-        where: { username: data.username },
-      })
-      
-      if (existing && existing.id !== userId) {
-        throw new TRPCError({
-          code: 'CONFLICT',
-          message: 'Username already taken',
-        })
-      }
-    }
-
-    const updatedUser = await this.db.user.update({
-      where: { id: userId },
-      data: {
-        username: data.username,
-        bio: data.bio,
-        image: data.image,
-        profile: {
-          upsert: {
-            create: {
-              displayName: data.displayName,
-              location: data.location,
-              website: data.website,
-              twitterUsername: data.twitterUsername,
-              instagramUsername: data.instagramUsername,
-              tiktokUsername: data.tiktokUsername,
-              discordUsername: data.discordUsername,
-              youtubeChannelId: data.youtubeChannelId,
-              interests: data.interests || [],
-              skills: data.skills || [],
-              pronouns: data.pronouns,
-            },
-            update: {
-              displayName: data.displayName,
-              location: data.location,
-              website: data.website,
-              twitterUsername: data.twitterUsername,
-              instagramUsername: data.instagramUsername,
-              tiktokUsername: data.tiktokUsername,
-              discordUsername: data.discordUsername,
-              youtubeChannelId: data.youtubeChannelId,
-              interests: data.interests || [],
-              skills: data.skills || [],
-              pronouns: data.pronouns,
-            },
+      include: {
+        profile: true,
+        stats: true,
+        _count: {
+          select: {
+            posts: true,
+            comments: true,
+            followers: true,
+            following: true,
           },
         },
       },
+    })
+
+    if (!user) {
+      return null
+    }
+
+    // Don't expose sensitive fields
+    const { 
+      hashedPassword,
+      twoFactorSecret,
+      twoFactorBackupCodes,
+      resetPasswordToken,
+      emailVerificationToken,
+      ...safeUser 
+    } = user
+
+    return safeUser
+  }
+
+  async getProfileById(userId: string) {
+    const user = await this.db.user.findUnique({
+      where: { 
+        id: userId,
+        deleted: false,
+      },
+      include: {
+        profile: true,
+        stats: true,
+        subscription: true,
+        balance: true,
+        _count: {
+          select: {
+            posts: true,
+            comments: true,
+            followers: true,
+            following: true,
+            achievements: true,
+          },
+        },
+      },
+    })
+
+    if (!user) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'User not found',
+      })
+    }
+
+    // Don't expose sensitive fields
+    const { 
+      hashedPassword,
+      twoFactorSecret,
+      twoFactorBackupCodes,
+      resetPasswordToken,
+      emailVerificationToken,
+      ...safeUser 
+    } = user
+
+    return safeUser
+  }
+
+  async updateProfile(userId: string, data: any) {
+    // Use transaction to update both user and profile
+    const result = await this.db.$transaction(async (tx) => {
+      // Update profile
+      const profile = await tx.profile.upsert({
+        where: { userId },
+        create: {
+          userId,
+          ...data,
+        },
+        update: {
+          ...data,
+          profileCompleteness: this.calculateProfileCompleteness(data),
+        },
+      })
+
+      // Update user version for cache invalidation
+      await tx.user.update({
+        where: { id: userId },
+        data: { 
+          version: { increment: 1 },
+          updatedAt: new Date(),
+        },
+      })
+
+      return profile
+    })
+
+    // Get updated user with profile
+    const user = await this.db.user.findUnique({
+      where: { id: userId },
       include: {
         profile: true,
       },
     })
 
-    // Track profile update activity
-    await this.activityService.trackActivity({
-      userId,
-      action: 'profile.updated',
-      entityType: 'user',
-      entityId: userId,
-    })
-
-    // Check profile completion
-    await this.checkProfileCompletion(userId)
-
-    // Invalidate cache
-    await this.cacheService.invalidate(`user:${updatedUser.username}`)
-
-    return updatedUser
+    return user
   }
 
   async updatePreferences(userId: string, preferences: any) {
     return this.db.user.update({
       where: { id: userId },
       data: {
-        preferredLanguage: preferences.language,
+        preferredLanguage: preferences.preferredLanguage,
         timezone: preferences.timezone,
-        profile: {
-          update: {
-            themePreference: preferences.theme,
-            notificationSettings: preferences.notifications,
-            privacySettings: preferences.privacy,
-          },
-        },
-        notificationPrefs: {
-          upsert: {
-            create: preferences.notificationPrefs,
-            update: preferences.notificationPrefs,
-          },
-        },
-      },
-      include: {
-        profile: true,
-        notificationPrefs: true,
+        version: { increment: 1 },
       },
     })
   }
 
   async followUser(followerId: string, followingId: string) {
-    try {
-      // Use transaction for atomic operations
-      const result = await this.db.$transaction(async (tx) => {
-        // Create follow relationship
-        const follow = await tx.follow.create({
-          data: {
-            followerId,
-            followingId,
-          },
-        })
+    // Check if already following
+    const existingFollow = await this.db.follow.findUnique({
+      where: {
+        followerId_followingId: {
+          followerId,
+          followingId,
+        },
+      },
+    })
 
-        // Update stats
-        await Promise.all([
-          tx.userStats.update({
-            where: { userId: followerId },
-            data: { totalFollowing: { increment: 1 } },
-          }),
-          tx.userStats.update({
-            where: { userId: followingId },
-            data: { totalFollowers: { increment: 1 } },
-          }),
-        ])
-
-        return follow
+    if (existingFollow) {
+      throw new TRPCError({
+        code: 'CONFLICT',
+        message: 'Already following this user',
       })
-
-      // Award XP for following
-      await this.gamificationService.awardXP(
-        followerId,
-        XP_REWARDS.FOLLOW,
-        'follow',
-        followingId
-      )
-
-      // Award XP for being followed
-      await this.gamificationService.awardXP(
-        followingId,
-        XP_REWARDS.FOLLOWED,
-        'followed',
-        followerId
-      )
-
-      // Create notification
-      await this.notificationService.createNotification({
-        type: 'USER_FOLLOWED',
-        userId: followingId,
-        actorId: followerId,
-        entityId: followerId,
-        entityType: 'user',
-        title: 'New follower',
-        message: 'started following you',
-      })
-
-      // Track activity
-      await this.activityService.trackActivity({
-        userId: followerId,
-        action: 'user.followed',
-        entityType: 'user',
-        entityId: followingId,
-      })
-
-      // Update quest progress
-      await this.gamificationService.updateQuestProgress(
-        followerId,
-        'FOLLOW_USERS'
-      )
-
-      // Check achievements
-      await this.checkFollowAchievements(followerId)
-
-      // Invalidate caches
-      await Promise.all([
-        this.cacheService.invalidate(`user:${followerId}`),
-        this.cacheService.invalidate(`user:${followingId}`),
-      ])
-
-      return result
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === 'P2002') {
-          throw new TRPCError({
-            code: 'CONFLICT',
-            message: 'Already following this user',
-          })
-        }
-      }
-      throw error
     }
+
+    // Check if blocked
+    const block = await this.db.block.findFirst({
+      where: {
+        OR: [
+          { blockerId: followerId, blockedId: followingId },
+          { blockerId: followingId, blockedId: followerId },
+        ],
+      },
+    })
+
+    if (block) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'Cannot follow blocked user',
+      })
+    }
+
+    // Create follow relationship
+    const follow = await this.db.follow.create({
+      data: {
+        followerId,
+        followingId,
+      },
+    })
+
+    // Update stats
+    await Promise.all([
+      this.db.userStats.update({
+        where: { userId: followerId },
+        data: { totalFollowing: { increment: 1 } },
+      }),
+      this.db.userStats.update({
+        where: { userId: followingId },
+        data: { totalFollowers: { increment: 1 } },
+      }),
+    ])
+
+    // Send notification
+    await this.notificationService.createNotification({
+      type: NotificationType.USER_FOLLOWED,
+      userId: followingId,
+      actorId: followerId,
+      entityId: followerId,
+      entityType: 'user',
+      title: 'New follower',
+      message: 'started following you',
+    })
+
+    return follow
   }
 
   async unfollowUser(followerId: string, followingId: string) {
-    try {
-      await this.db.follow.delete({
-        where: {
-          followerId_followingId: {
-            followerId,
-            followingId,
-          },
-        },
+    const deleted = await this.db.follow.deleteMany({
+      where: {
+        followerId,
+        followingId,
+      },
+    })
+
+    if (deleted.count === 0) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Not following this user',
       })
-
-      // Update stats
-      await this.db.$transaction([
-        this.db.userStats.update({
-          where: { userId: followerId },
-          data: { totalFollowing: { decrement: 1 } },
-        }),
-        this.db.userStats.update({
-          where: { userId: followingId },
-          data: { totalFollowers: { decrement: 1 } },
-        }),
-      ])
-
-      // Invalidate caches
-      await Promise.all([
-        this.cacheService.invalidate(`user:${followerId}`),
-        this.cacheService.invalidate(`user:${followingId}`),
-      ])
-
-      return { success: true }
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === 'P2025') {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Not following this user',
-          })
-        }
-      }
-      throw error
     }
+
+    // Update stats
+    await Promise.all([
+      this.db.userStats.update({
+        where: { userId: followerId },
+        data: { totalFollowing: { decrement: 1 } },
+      }),
+      this.db.userStats.update({
+        where: { userId: followingId },
+        data: { totalFollowers: { decrement: 1 } },
+      }),
+    ])
+
+    return { success: true }
   }
 
   async getFollowers(params: {
     userId: string
     limit: number
     cursor?: string
+    viewerId?: string
   }) {
     const followers = await this.db.follow.findMany({
       where: { followingId: params.userId },
@@ -424,7 +259,9 @@ export class UserService {
       cursor: params.cursor ? { id: params.cursor } : undefined,
       include: {
         follower: {
-          ...UserQueryBuilder.basicProfile(),
+          include: {
+            profile: true,
+          },
         },
       },
       orderBy: { createdAt: 'desc' },
@@ -436,8 +273,30 @@ export class UserService {
       nextCursor = nextItem!.id
     }
 
+    // Check if viewer follows these users
+    let followingStatus: Record<string, boolean> = {}
+    if (params.viewerId) {
+      const viewerFollowing = await this.db.follow.findMany({
+        where: {
+          followerId: params.viewerId,
+          followingId: {
+            in: followers.map(f => f.follower.id),
+          },
+        },
+        select: { followingId: true },
+      })
+
+      followingStatus = viewerFollowing.reduce((acc, f) => {
+        acc[f.followingId] = true
+        return acc
+      }, {} as Record<string, boolean>)
+    }
+
     return {
-      items: followers.map(f => f.follower),
+      items: followers.map(f => ({
+        ...f.follower,
+        isFollowing: followingStatus[f.follower.id] || false,
+      })),
       nextCursor,
     }
   }
@@ -446,6 +305,7 @@ export class UserService {
     userId: string
     limit: number
     cursor?: string
+    viewerId?: string
   }) {
     const following = await this.db.follow.findMany({
       where: { followerId: params.userId },
@@ -453,7 +313,9 @@ export class UserService {
       cursor: params.cursor ? { id: params.cursor } : undefined,
       include: {
         following: {
-          ...UserQueryBuilder.basicProfile(),
+          include: {
+            profile: true,
+          },
         },
       },
       orderBy: { createdAt: 'desc' },
@@ -465,13 +327,35 @@ export class UserService {
       nextCursor = nextItem!.id
     }
 
+    // Check if viewer follows these users
+    let followingStatus: Record<string, boolean> = {}
+    if (params.viewerId) {
+      const viewerFollowing = await this.db.follow.findMany({
+        where: {
+          followerId: params.viewerId,
+          followingId: {
+            in: following.map(f => f.following.id),
+          },
+        },
+        select: { followingId: true },
+      })
+
+      followingStatus = viewerFollowing.reduce((acc, f) => {
+        acc[f.followingId] = true
+        return acc
+      }, {} as Record<string, boolean>)
+    }
+
     return {
-      items: following.map(f => f.following),
+      items: following.map(f => ({
+        ...f.following,
+        isFollowing: followingStatus[f.following.id] || false,
+      })),
       nextCursor,
     }
   }
 
-  async isFollowing(followerId: string, followingId: string): Promise<boolean> {
+  async isFollowing(followerId: string, followingId: string) {
     const follow = await this.db.follow.findUnique({
       where: {
         followerId_followingId: {
@@ -481,76 +365,27 @@ export class UserService {
       },
     })
 
-    return !!follow
+    return { isFollowing: !!follow }
   }
 
   async getUserStats(userId: string) {
-    const cacheKey = `stats:${userId}`
-    const cached = await this.cacheService.get(cacheKey, CacheType.STATS)
-    if (cached) return cached
-
     const stats = await this.db.userStats.findUnique({
       where: { userId },
     })
 
     if (!stats) {
-      // Create stats if they don't exist
-      const newStats = await this.db.userStats.create({
+      // Create default stats
+      return this.db.userStats.create({
         data: { userId },
       })
-      await this.cacheService.set(cacheKey, newStats, undefined, CacheType.STATS)
-      return newStats
     }
 
-    await this.cacheService.set(cacheKey, stats, undefined, CacheType.STATS)
     return stats
   }
 
-  async blockUser(blockerId: string, blockedId: string) {
-    try {
-      // Create block in transaction
-      await this.db.$transaction(async (tx) => {
-        // Create block
-        await tx.block.create({
-          data: {
-            blockerId,
-            blockedId,
-          },
-        })
-
-        // Remove any existing follows
-        await tx.follow.deleteMany({
-          where: {
-            OR: [
-              { followerId: blockerId, followingId: blockedId },
-              { followerId: blockedId, followingId: blockerId },
-            ],
-          },
-        })
-      })
-
-      // Invalidate caches
-      await Promise.all([
-        this.cacheService.invalidate(`user:${blockerId}`),
-        this.cacheService.invalidate(`user:${blockedId}`),
-      ])
-
-      return { success: true }
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === 'P2002') {
-          throw new TRPCError({
-            code: 'CONFLICT',
-            message: 'User already blocked',
-          })
-        }
-      }
-      throw error
-    }
-  }
-
-  async unblockUser(blockerId: string, blockedId: string) {
-    await this.db.block.delete({
+  async blockUser(blockerId: string, blockedId: string, reason?: string) {
+    // Check if already blocked
+    const existingBlock = await this.db.block.findUnique({
       where: {
         blockerId_blockedId: {
           blockerId,
@@ -558,6 +393,55 @@ export class UserService {
         },
       },
     })
+
+    if (existingBlock) {
+      throw new TRPCError({
+        code: 'CONFLICT',
+        message: 'User already blocked',
+      })
+    }
+
+    // Create block with transaction
+    const result = await this.db.$transaction(async (tx) => {
+      // Create block
+      const block = await tx.block.create({
+        data: {
+          blockerId,
+          blockedId,
+          reason,
+        },
+      })
+
+      // Remove follow relationships
+      await tx.follow.deleteMany({
+        where: {
+          OR: [
+            { followerId: blockerId, followingId: blockedId },
+            { followerId: blockedId, followingId: blockerId },
+          ],
+        },
+      })
+
+      return block
+    })
+
+    return result
+  }
+
+  async unblockUser(blockerId: string, blockedId: string) {
+    const deleted = await this.db.block.deleteMany({
+      where: {
+        blockerId,
+        blockedId,
+      },
+    })
+
+    if (deleted.count === 0) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'User not blocked',
+      })
+    }
 
     return { success: true }
   }
@@ -567,153 +451,330 @@ export class UserService {
       where: { blockerId: userId },
       include: {
         blocked: {
-          ...UserQueryBuilder.basicProfile(),
+          include: {
+            profile: true,
+          },
         },
       },
+      orderBy: { createdAt: 'desc' },
     })
 
-    return blocks.map(b => b.blocked)
+    return blocks.map(b => ({
+      ...b.blocked,
+      blockedAt: b.createdAt,
+      reason: b.reason,
+    }))
   }
 
-  async searchUsers(query: string, limit: number) {
-    return this.db.user.findMany({
-      where: {
-        OR: [
-          { username: { contains: query, mode: 'insensitive' } },
-          { bio: { contains: query, mode: 'insensitive' } },
-          { profile: { displayName: { contains: query, mode: 'insensitive' } } },
-        ],
-        status: UserStatus.ACTIVE,
-      },
-      ...UserQueryBuilder.basicProfile(),
-      orderBy: [
-        { verified: 'desc' },
-        { stats: { totalFollowers: 'desc' } },
-        { createdAt: 'desc' },
+  async searchUsers(params: {
+    query: string
+    limit: number
+    excludeIds?: string[]
+    type: 'all' | 'mentions' | 'creators'
+    currentUserId?: string
+  }) {
+    const whereConditions: Prisma.UserWhereInput = {
+      AND: [
+        {
+          OR: [
+            {
+              username: {
+                contains: params.query,
+                mode: 'insensitive' as const,
+              },
+            },
+            {
+              profile: {
+                displayName: {
+                  contains: params.query,
+                  mode: 'insensitive' as const,
+                },
+              },
+            },
+          ],
+        },
+        {
+          id: {
+            notIn: params.excludeIds || [],
+          },
+        },
+        {
+          status: UserStatus.ACTIVE,
+        },
+        {
+          deleted: false,
+        },
       ],
-      take: limit,
+    }
+
+    // Add type-specific filters
+    if (params.type === 'creators') {
+      whereConditions.AND!.push({
+        role: {
+          in: [UserRole.CREATOR, UserRole.VERIFIED_CREATOR],
+        },
+      })
+    }
+
+    const users = await this.db.user.findMany({
+      where: whereConditions,
+      select: {
+        id: true,
+        username: true,
+        image: true,
+        verified: true,
+        role: true,
+        profile: {
+          select: {
+            displayName: true,
+          },
+        },
+        _count: {
+          select: {
+            followers: true,
+          },
+        },
+      },
+      take: params.limit,
+      orderBy: [
+        {
+          verified: 'desc',
+        },
+        {
+          followers: {
+            _count: 'desc',
+          },
+        },
+      ],
     })
+
+    return users
   }
 
   async getRecommendedUsers(userId: string, limit: number) {
-    // Get user's follows
-    const userFollows = await this.db.follow.findMany({
+    // Get user's following
+    const following = await this.db.follow.findMany({
       where: { followerId: userId },
       select: { followingId: true },
     })
-    const followingIds = userFollows.map(f => f.followingId)
 
-    // Get followers of users they follow (2nd degree connections)
+    const followingIds = following.map(f => f.followingId)
+
+    // Get users followed by people you follow
     const recommendations = await this.db.user.findMany({
       where: {
         AND: [
-          { id: { not: userId } },
-          { id: { notIn: followingIds } },
-          { status: UserStatus.ACTIVE },
+          {
+            id: {
+              notIn: [...followingIds, userId],
+            },
+          },
           {
             followers: {
               some: {
-                followerId: { in: followingIds },
+                followerId: {
+                  in: followingIds,
+                },
               },
             },
           },
+          {
+            status: UserStatus.ACTIVE,
+          },
+          {
+            deleted: false,
+          },
         ],
       },
-      ...UserQueryBuilder.basicProfile(),
-      orderBy: [
-        { stats: { totalFollowers: 'desc' } },
-        { stats: { engagementRate: 'desc' } },
-      ],
+      include: {
+        profile: true,
+        _count: {
+          select: {
+            followers: true,
+            posts: true,
+          },
+        },
+      },
       take: limit,
+      orderBy: {
+        followers: {
+          _count: 'desc',
+        },
+      },
     })
 
     return recommendations
   }
 
-  async verifyPassword(userId: string, password: string): Promise<boolean> {
+  async getOnlineStatus(userIds: string[]) {
+    const users = await this.db.user.findMany({
+      where: {
+        id: { in: userIds },
+      },
+      select: {
+        id: true,
+        onlineStatus: true,
+        lastSeenAt: true,
+      },
+    })
+
+    return users.reduce((acc, user) => {
+      acc[user.id] = {
+        isOnline: user.onlineStatus,
+        lastSeenAt: user.lastSeenAt,
+      }
+      return acc
+    }, {} as Record<string, { isOnline: boolean; lastSeenAt: Date | null }>)
+  }
+
+  async updateOnlineStatus(userId: string, isOnline: boolean) {
+    return this.db.user.update({
+      where: { id: userId },
+      data: {
+        onlineStatus: isOnline,
+        lastSeenAt: new Date(),
+      },
+    })
+  }
+
+  async getUserAchievements(userId: string, showcasedOnly: boolean) {
+    const where: Prisma.UserAchievementWhereInput = {
+      userId,
+      deleted: false,
+    }
+
+    if (showcasedOnly) {
+      where.showcased = true
+    }
+
+    return this.db.userAchievement.findMany({
+      where,
+      include: {
+        achievement: true,
+      },
+      orderBy: showcasedOnly
+        ? { showcaseOrder: 'asc' }
+        : { unlockedAt: 'desc' },
+    })
+  }
+
+  async verifyPassword(userId: string, password: string) {
     const user = await this.db.user.findUnique({
       where: { id: userId },
       select: { hashedPassword: true },
     })
 
-    if (!user?.hashedPassword) return false
+    if (!user || !user.hashedPassword) {
+      return false
+    }
 
     return bcrypt.compare(password, user.hashedPassword)
   }
 
   async deleteAccount(userId: string) {
-    // Soft delete the user
-    await this.db.user.update({
-      where: { id: userId },
-      data: {
-        status: UserStatus.DELETED,
-        deletedAt: new Date(),
-        email: `deleted_${userId}@deleted.com`,
-        username: `deleted_${userId}`,
-      },
-    })
-
-    // Invalidate all caches for this user
-    await this.cacheService.invalidate(`user:${userId}`)
-  }
-
-  private async checkProfileCompletion(userId: string) {
+    // Get user's current data for preservation
     const user = await this.db.user.findUnique({
       where: { id: userId },
-      include: { profile: true },
+      select: { username: true },
     })
 
-    if (!user) return
+    if (!user) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'User not found',
+      })
+    }
 
-    let completeness = 0
-    if (user.image) completeness += 10
-    if (user.bio) completeness += 10
-    if (user.profile?.displayName) completeness += 10
-    if (user.profile?.location) completeness += 10
-    if (user.profile?.website) completeness += 10
-    if (user.profile?.interests?.length) completeness += 10
-    if (user.profile?.skills?.length) completeness += 10
-    if (user.profile?.pronouns) completeness += 10
-    if (user.profile?.youtubeChannelId) completeness += 20
+    // Use transaction for atomic deletion
+    await this.db.$transaction(async (tx) => {
+      // Preserve author names in content
+      await tx.post.updateMany({
+        where: { authorId: userId },
+        data: { 
+          authorName: user.username,
+          authorId: null, // Disconnect user but preserve name
+        },
+      })
 
-    await this.db.profile.update({
-      where: { userId },
+      await tx.comment.updateMany({
+        where: { authorId: userId },
+        data: { 
+          authorName: user.username,
+          authorId: null,
+        },
+      })
+
+      await tx.group.updateMany({
+        where: { ownerId: userId },
+        data: { 
+          ownerName: user.username,
+          ownerId: null,
+        },
+      })
+
+      await tx.event.updateMany({
+        where: { hostId: userId },
+        data: { 
+          hostName: user.username,
+          hostId: null,
+        },
+      })
+
+      await tx.postSeries.updateMany({
+        where: { authorId: userId },
+        data: { 
+          authorName: user.username,
+          authorId: null,
+        },
+      })
+
+      // Soft delete user
+      await tx.user.update({
+        where: { id: userId },
+        data: {
+          deleted: true,
+          deletedAt: new Date(),
+          status: UserStatus.DELETED,
+          email: `deleted_${userId}@deleted.com`, // Anonymize
+          username: `deleted_${userId}`, // Free up username
+          version: { increment: 1 },
+        },
+      })
+    })
+
+    return { success: true }
+  }
+
+  async reportUser(params: {
+    userId: string
+    reporterId: string
+    reason: string
+    description: string
+    evidence?: any
+  }) {
+    return this.db.report.create({
       data: {
-        profileCompleteness: completeness,
-        profileCompleted: completeness >= 80,
+        entityType: 'user',
+        reportedUserId: params.userId,
+        reporterId: params.reporterId,
+        reason: params.reason as ReportReason,
+        description: params.description,
+        evidence: params.evidence,
       },
     })
-
-    // Check achievement
-    if (completeness >= 100) {
-      await this.checkAchievement(userId, 'PROFILE_COMPLETE')
-    }
   }
 
-  private async checkFollowAchievements(userId: string) {
-    const stats = await this.getUserStats(userId)
-    
-    // Check follow milestones
-    const milestones = [
-      { count: 10, code: 'FOLLOWING_10' },
-      { count: 50, code: 'FOLLOWING_50' },
-      { count: 100, code: 'FOLLOWING_100' },
+  private calculateProfileCompleteness(data: any): number {
+    const fields = [
+      'displayName',
+      'bio',
+      'location',
+      'website',
+      'interests',
+      'skills',
     ]
 
-    for (const milestone of milestones) {
-      if (stats.totalFollowing >= milestone.count) {
-        await this.checkAchievement(userId, milestone.code)
-      }
-    }
-  }
-
-  private async checkAchievement(userId: string, achievementCode: string) {
-    const achievement = await this.db.achievement.findUnique({
-      where: { code: achievementCode },
-    })
-
-    if (achievement) {
-      await this.gamificationService.checkAndUnlockAchievements(userId, 'follow')
-    }
+    const filledFields = fields.filter(field => data[field] && data[field].length > 0)
+    return Math.round((filledFields.length / fields.length) * 100)
   }
 }

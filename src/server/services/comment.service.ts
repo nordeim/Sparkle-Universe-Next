@@ -18,10 +18,10 @@ export class CommentService {
   private activityService: ActivityService
   private moderationService: ModerationService
 
-  constructor(private db: PrismaClient) {
-    this.notificationService = new NotificationService(db)
-    this.activityService = new ActivityService(db)
-    this.moderationService = new ModerationService(db)
+  constructor(private db: PrismaClient | Prisma.TransactionClient) {
+    this.notificationService = new NotificationService(db as PrismaClient)
+    this.activityService = new ActivityService(db as PrismaClient)
+    this.moderationService = new ModerationService(db as PrismaClient)
   }
 
   async createComment(input: {
@@ -37,7 +37,8 @@ export class CommentService {
       where: { id: input.postId },
       select: { 
         id: true, 
-        authorId: true, 
+        authorId: true,
+        authorName: true, // Preserved author name
         allowComments: true,
         title: true,
       },
@@ -101,7 +102,20 @@ export class CommentService {
     if (recentCommentCount >= 5) {
       throw new TRPCError({
         code: 'TOO_MANY_REQUESTS',
-        message: 'Please wait before posting another comment',
+        message: 'Please wait before posting another comment (5 per minute limit)',
+      })
+    }
+
+    // Get author's current username for preservation
+    const author = await this.db.user.findUnique({
+      where: { id: input.authorId },
+      select: { username: true },
+    })
+
+    if (!author) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Author not found',
       })
     }
 
@@ -117,17 +131,19 @@ export class CommentService {
       ? ModerationStatus.PENDING
       : ModerationStatus.AUTO_APPROVED
 
-    // Create comment
+    // Create comment with author name preservation
     const comment = await this.db.comment.create({
       data: {
         content: input.content,
         postId: input.postId,
         authorId: input.authorId,
+        authorName: author.username, // Preserve author name
         parentId: input.parentId,
         youtubeTimestamp: input.youtubeTimestamp,
-        quotedTimestamp: input.quotedTimestamp, // Now properly included
+        quotedTimestamp: input.quotedTimestamp,
         moderationStatus,
         moderationNotes: moderationResult.reasons?.join(', '),
+        version: 0, // Initialize version for optimistic locking
       },
       include: {
         author: {
@@ -145,15 +161,27 @@ export class CommentService {
     })
 
     // Update post stats
-    await this.db.postStats.update({
+    await this.db.postStats.upsert({
       where: { postId: input.postId },
-      data: { commentCount: { increment: 1 } },
+      create: {
+        postId: input.postId,
+        commentCount: 1,
+      },
+      update: {
+        commentCount: { increment: 1 },
+      },
     })
 
     // Update user stats
-    await this.db.userStats.update({
+    await this.db.userStats.upsert({
       where: { userId: input.authorId },
-      data: { totalComments: { increment: 1 } },
+      create: {
+        userId: input.authorId,
+        totalComments: 1,
+      },
+      update: {
+        totalComments: { increment: 1 },
+      },
     })
 
     // Track activity
@@ -185,6 +213,7 @@ export class CommentService {
         deleted: true,
         content: true,
         editHistory: true,
+        version: true,
       },
     })
 
@@ -209,9 +238,6 @@ export class CommentService {
       })
     }
 
-    // Note: Edit window removed as per requirements
-    // Users can edit their comments at any time
-
     // Check moderation
     const moderationResult = await this.moderationService.checkContent(
       content,
@@ -228,13 +254,18 @@ export class CommentService {
       },
     ]
 
-    return this.db.comment.update({
-      where: { id: commentId },
+    // Update with version check for optimistic locking
+    const updatedComment = await this.db.comment.update({
+      where: { 
+        id: commentId,
+        version: comment.version, // Optimistic locking
+      },
       data: { 
         content,
         edited: true,
         editedAt: new Date(),
-        editHistory: editHistory as any, // Prisma Json type
+        editHistory: editHistory as any,
+        version: { increment: 1 }, // Increment version
         moderationStatus: moderationResult.shouldBlock 
           ? ModerationStatus.REJECTED
           : moderationResult.requiresReview
@@ -255,6 +286,189 @@ export class CommentService {
         },
       },
     })
+
+    return updatedComment
+  }
+
+  async updateCommentWithVersion(
+    commentId: string, 
+    userId: string, 
+    content: string,
+    expectedVersion?: number
+  ) {
+    const comment = await this.db.comment.findUnique({
+      where: { id: commentId },
+      select: { 
+        authorId: true,
+        version: true,
+        content: true,
+        editHistory: true,
+        deleted: true,
+        postId: true,
+      },
+    })
+
+    if (!comment) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Comment not found',
+      })
+    }
+
+    if (comment.deleted) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'Cannot edit deleted comment',
+      })
+    }
+
+    if (comment.authorId !== userId) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'Not authorized to edit this comment',
+      })
+    }
+
+    // Check version for optimistic locking
+    if (expectedVersion !== undefined && comment.version !== expectedVersion) {
+      throw new TRPCError({
+        code: 'CONFLICT',
+        message: 'Comment has been modified by another user. Please refresh and try again.',
+      })
+    }
+
+    // Check moderation
+    const moderationResult = await this.moderationService.checkContent(
+      content,
+      'comment'
+    )
+
+    // Store edit history
+    const editHistory: EditHistoryEntry[] = [
+      ...(comment.editHistory as EditHistoryEntry[] || []),
+      {
+        content: comment.content,
+        editedAt: new Date().toISOString(),
+        editorId: userId,
+      },
+    ]
+
+    try {
+      const updatedComment = await this.db.comment.update({
+        where: { 
+          id: commentId,
+          version: comment.version, // Ensure version hasn't changed
+        },
+        data: { 
+          content,
+          edited: true,
+          editedAt: new Date(),
+          editHistory: editHistory as any,
+          version: { increment: 1 },
+          moderationStatus: moderationResult.shouldBlock 
+            ? ModerationStatus.REJECTED
+            : moderationResult.requiresReview
+            ? ModerationStatus.PENDING
+            : ModerationStatus.AUTO_APPROVED,
+        },
+        include: {
+          author: {
+            include: {
+              profile: true,
+            },
+          },
+          _count: {
+            select: {
+              reactions: true,
+              replies: true,
+            },
+          },
+        },
+      })
+
+      return { ...updatedComment, postId: comment.postId }
+    } catch (error) {
+      // If update fails due to version mismatch, throw conflict error
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'Comment has been modified. Please refresh and try again.',
+        })
+      }
+      throw error
+    }
+  }
+
+  async deleteComment(commentId: string, userId: string) {
+    const comment = await this.db.comment.findUnique({
+      where: { id: commentId },
+      include: {
+        post: {
+          select: { authorId: true },
+        },
+        _count: {
+          select: { replies: true },
+        },
+      },
+    })
+
+    if (!comment) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Comment not found',
+      })
+    }
+
+    // Allow deletion by comment author or post author
+    if (comment.authorId !== userId && comment.post.authorId !== userId) {
+      // Check if user is admin/moderator
+      const user = await this.db.user.findUnique({
+        where: { id: userId },
+        select: { role: true },
+      })
+
+      if (!user || !['ADMIN', 'MODERATOR'].includes(user.role)) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Not authorized to delete this comment',
+        })
+      }
+    }
+
+    // If comment has replies, soft delete to preserve thread
+    if (comment._count.replies > 0) {
+      await this.db.comment.update({
+        where: { id: commentId },
+        data: {
+          deleted: true,
+          deletedAt: new Date(),
+          deletedBy: userId,
+          content: '[deleted]',
+          // Keep authorName to show who posted the deleted comment
+        },
+      })
+    } else {
+      // Hard delete if no replies
+      await this.db.comment.delete({
+        where: { id: commentId },
+      })
+    }
+
+    // Update post stats
+    await this.db.postStats.update({
+      where: { postId: comment.postId },
+      data: { commentCount: { decrement: 1 } },
+    })
+
+    // Update user stats
+    if (comment.authorId) {
+      await this.db.userStats.update({
+        where: { userId: comment.authorId },
+        data: { totalComments: { decrement: 1 } },
+      })
+    }
+
+    return { success: true, postId: comment.postId }
   }
 
   async addReaction(commentId: string, userId: string, type: ReactionType) {
@@ -280,7 +494,7 @@ export class CommentService {
             select: { authorId: true },
           })
 
-          if (comment && comment.authorId !== userId) {
+          if (comment?.authorId && comment.authorId !== userId) {
             await this.db.userStats.update({
               where: { userId: comment.authorId },
               data: { totalLikesReceived: { decrement: 1 } },
@@ -288,7 +502,7 @@ export class CommentService {
           }
         }
 
-        return { success: true, action: 'removed' }
+        return { success: true, action: 'removed' as const }
       } else {
         // Different reaction - update it
         await this.db.reaction.update({
@@ -296,7 +510,7 @@ export class CommentService {
           data: { type },
         })
 
-        return { success: true, action: 'updated' }
+        return { success: true, action: 'updated' as const }
       }
     }
 
@@ -318,7 +532,7 @@ export class CommentService {
       },
     })
 
-    if (comment && comment.authorId !== userId) {
+    if (comment?.authorId && comment.authorId !== userId) {
       // Update stats if it's a like
       if (type === ReactionType.LIKE) {
         await this.db.userStats.update({
@@ -344,26 +558,28 @@ export class CommentService {
       })
     }
 
-    return { success: true, action: 'added' }
+    return { success: true, action: 'added' as const }
   }
 
   async removeReaction(commentId: string, userId: string, type: ReactionType) {
-    await this.db.reaction.delete({
+    const deleted = await this.db.reaction.deleteMany({
       where: {
-        commentId_userId_type: {
-          commentId,
-          userId,
-          type,
-        },
+        commentId,
+        userId,
+        type,
       },
     })
+
+    if (deleted.count === 0) {
+      return { success: false }
+    }
 
     const comment = await this.db.comment.findUnique({
       where: { id: commentId },
       select: { authorId: true },
     })
 
-    if (comment && comment.authorId !== userId && type === ReactionType.LIKE) {
+    if (comment?.authorId && comment.authorId !== userId && type === ReactionType.LIKE) {
       await this.db.userStats.update({
         where: { userId: comment.authorId },
         data: { totalLikesReceived: { decrement: 1 } },
@@ -389,6 +605,7 @@ export class CommentService {
       [ReactionType.LAUGH]: 0,
       [ReactionType.CRY]: 0,
       [ReactionType.ANGRY]: 0,
+      [ReactionType.CUSTOM]: 0,
       total: 0,
     }
 
@@ -398,67 +615,6 @@ export class CommentService {
     })
 
     return counts
-  }
-
-  async deleteComment(commentId: string, userId: string) {
-    const comment = await this.db.comment.findUnique({
-      where: { id: commentId },
-      include: {
-        post: {
-          select: { authorId: true },
-        },
-        _count: {
-          select: { replies: true },
-        },
-      },
-    })
-
-    if (!comment) {
-      throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Comment not found',
-      })
-    }
-
-    // Allow deletion by comment author or post author
-    if (comment.authorId !== userId && comment.post.authorId !== userId) {
-      throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Not authorized to delete this comment',
-      })
-    }
-
-    // If comment has replies, soft delete
-    if (comment._count.replies > 0) {
-      await this.db.comment.update({
-        where: { id: commentId },
-        data: {
-          deleted: true,
-          deletedAt: new Date(),
-          deletedBy: userId,
-          content: '[deleted]',
-        },
-      })
-    } else {
-      // Hard delete if no replies
-      await this.db.comment.delete({
-        where: { id: commentId },
-      })
-    }
-
-    // Update post stats
-    await this.db.postStats.update({
-      where: { postId: comment.postId },
-      data: { commentCount: { decrement: 1 } },
-    })
-
-    // Update user stats
-    await this.db.userStats.update({
-      where: { userId: comment.authorId },
-      data: { totalComments: { decrement: 1 } },
-    })
-
-    return { success: true, postId: comment.postId }
   }
 
   async listComments(params: {
@@ -550,8 +706,17 @@ export class CommentService {
           ? comment.reactions[0].type 
           : null
 
+        // Use authorName if author is deleted
+        const displayAuthor = comment.author || {
+          id: comment.authorId,
+          username: comment.authorName || '[deleted user]',
+          image: null,
+          profile: null,
+        }
+
         return {
           ...comment,
+          author: displayAuthor,
           reactionCounts,
           userReaction: {
             hasReacted: !!userReaction,
@@ -619,8 +784,17 @@ export class CommentService {
       ? comment.reactions[0].type 
       : null
 
+    // Use authorName if author is deleted
+    const displayAuthor = comment.author || {
+      id: comment.authorId,
+      username: comment.authorName || '[deleted user]',
+      image: null,
+      profile: null,
+    }
+
     return {
       ...comment,
+      author: displayAuthor,
       reactionCounts,
       userReaction: {
         hasReacted: !!userReaction,
@@ -679,8 +853,16 @@ export class CommentService {
           ? comment.reactions[0].type 
           : null
 
+        const displayAuthor = comment.author || {
+          id: comment.authorId,
+          username: comment.authorName || '[deleted user]',
+          image: null,
+          profile: null,
+        }
+
         return {
           ...comment,
+          author: displayAuthor,
           reactionCounts,
           userReaction: {
             hasReacted: !!userReaction,
@@ -695,15 +877,6 @@ export class CommentService {
       items: threadWithReactions,
       nextCursor,
     }
-  }
-
-  // Legacy like/unlike methods for backward compatibility
-  async likeComment(commentId: string, userId: string) {
-    return this.addReaction(commentId, userId, ReactionType.LIKE)
-  }
-
-  async unlikeComment(commentId: string, userId: string) {
-    return this.removeReaction(commentId, userId, ReactionType.LIKE)
   }
 
   async togglePinComment(commentId: string, userId: string) {
@@ -731,7 +904,7 @@ export class CommentService {
       })
     }
 
-    // Unpin other comments first
+    // Unpin other comments first if pinning
     if (!comment.pinned) {
       await this.db.comment.updateMany({
         where: {
@@ -742,9 +915,12 @@ export class CommentService {
       })
     }
 
-    return this.db.comment.update({
+    const updatedComment = await this.db.comment.update({
       where: { id: commentId },
-      data: { pinned: !comment.pinned },
+      data: { 
+        pinned: !comment.pinned,
+        version: { increment: 1 }, // Update version
+      },
       include: {
         author: {
           include: {
@@ -759,6 +935,8 @@ export class CommentService {
         },
       },
     })
+
+    return { ...updatedComment, postId: comment.postId }
   }
 
   async reportComment(params: {
@@ -894,7 +1072,7 @@ export class CommentService {
     const notificationPromises = []
 
     // Notify post author (if not self-comment)
-    if (post.authorId !== comment.authorId) {
+    if (post.authorId && post.authorId !== comment.authorId) {
       notificationPromises.push(
         this.notificationService.createNotification({
           type: NotificationType.POST_COMMENTED,
@@ -919,10 +1097,10 @@ export class CommentService {
         select: { authorId: true },
       })
 
-      if (parentComment && parentComment.authorId !== comment.authorId) {
+      if (parentComment?.authorId && parentComment.authorId !== comment.authorId) {
         notificationPromises.push(
           this.notificationService.createNotification({
-            type: NotificationType.POST_COMMENTED, // Using existing type
+            type: NotificationType.POST_COMMENTED,
             userId: parentComment.authorId,
             actorId: comment.authorId,
             entityId: comment.id,

@@ -28,6 +28,7 @@ const updateCommentSchema = z.object({
   content: z.string()
     .min(1, 'Comment cannot be empty')
     .max(5000, 'Comment must be less than 5000 characters'),
+  version: z.number().int().optional(), // For optimistic locking
 })
 
 export const commentRouter = createTRPCRouter({
@@ -38,22 +39,35 @@ export const commentRouter = createTRPCRouter({
       const commentService = new CommentService(ctx.db)
       const eventService = new EventService()
       const mentionService = new MentionService(ctx.db)
+      const cacheService = new CacheService()
       
-      // Create comment
-      const comment = await commentService.createComment({
-        ...input,
-        authorId: ctx.session.user.id,
+      // Create comment with transaction
+      const comment = await ctx.db.$transaction(async (tx) => {
+        const commentService = new CommentService(tx as any)
+        const mentionService = new MentionService(tx as any)
+        
+        // Create the comment
+        const newComment = await commentService.createComment({
+          ...input,
+          authorId: ctx.session.user.id,
+        })
+
+        // Process mentions if any
+        if (input.mentions && input.mentions.length > 0) {
+          await mentionService.processMentions({
+            mentionerId: ctx.session.user.id,
+            mentionedUsernames: input.mentions,
+            commentId: newComment.id,
+            postId: input.postId,
+          })
+        }
+
+        return newComment
       })
 
-      // Process mentions
-      if (input.mentions && input.mentions.length > 0) {
-        await mentionService.processMentions({
-          mentionerId: ctx.session.user.id,
-          mentionedUsernames: input.mentions,
-          commentId: comment.id,
-          postId: input.postId,
-        })
-      }
+      // Invalidate caches
+      await cacheService.delPattern(`comments:${input.postId}`)
+      await cacheService.delPattern(`post:${input.postId}`)
 
       // Emit real-time event
       await eventService.emit('comment.created', {
@@ -71,24 +85,31 @@ export const commentRouter = createTRPCRouter({
       return comment
     }),
 
-  // Update existing comment
+  // Update existing comment with optimistic locking
   update: protectedProcedure
     .input(updateCommentSchema)
     .mutation(async ({ ctx, input }) => {
       const commentService = new CommentService(ctx.db)
       const eventService = new EventService()
+      const cacheService = new CacheService()
       
-      const comment = await commentService.updateComment(
+      const comment = await commentService.updateCommentWithVersion(
         input.id,
         ctx.session.user.id,
-        input.content
+        input.content,
+        input.version
       )
+
+      // Invalidate caches
+      await cacheService.delPattern(`comments:${comment.postId}`)
+      await cacheService.del(`comment:${input.id}`)
 
       // Emit real-time event
       await eventService.emit('comment.updated', {
         postId: comment.postId,
         commentId: comment.id,
         content: comment.content,
+        edited: true,
       })
 
       return comment
@@ -102,11 +123,16 @@ export const commentRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const commentService = new CommentService(ctx.db)
       const eventService = new EventService()
+      const cacheService = new CacheService()
       
       const result = await commentService.deleteComment(
         input.id, 
         ctx.session.user.id
       )
+
+      // Invalidate caches
+      await cacheService.delPattern(`comments:${result.postId}`)
+      await cacheService.del(`comment:${input.id}`)
 
       // Emit real-time event
       await eventService.emit('comment.deleted', {
@@ -127,6 +153,7 @@ export const commentRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const commentService = new CommentService(ctx.db)
       const eventService = new EventService()
+      const cacheService = new CacheService()
       
       let result
       if (input.remove) {
@@ -146,6 +173,9 @@ export const commentRouter = createTRPCRouter({
       // Get updated reaction counts
       const reactionCounts = await commentService.getCommentReactions(input.commentId)
 
+      // Invalidate comment cache
+      await cacheService.del(`comment:${input.commentId}`)
+
       // Emit real-time event
       await eventService.emit('comment.reaction', {
         commentId: input.commentId,
@@ -156,54 +186,6 @@ export const commentRouter = createTRPCRouter({
       })
 
       return { ...result, reactionCounts }
-    }),
-
-  // Legacy like endpoint (for backward compatibility)
-  like: protectedProcedure
-    .input(z.object({
-      commentId: z.string().cuid(),
-    }))
-    .mutation(async ({ ctx, input }) => {
-      const commentService = new CommentService(ctx.db)
-      const eventService = new EventService()
-      
-      const result = await commentService.likeComment(
-        input.commentId, 
-        ctx.session.user.id
-      )
-
-      // Emit real-time event
-      await eventService.emit('comment.liked', {
-        commentId: input.commentId,
-        userId: ctx.session.user.id,
-        likes: result.likes,
-      })
-
-      return result
-    }),
-
-  // Legacy unlike endpoint
-  unlike: protectedProcedure
-    .input(z.object({
-      commentId: z.string().cuid(),
-    }))
-    .mutation(async ({ ctx, input }) => {
-      const commentService = new CommentService(ctx.db)
-      const eventService = new EventService()
-      
-      const result = await commentService.unlikeComment(
-        input.commentId, 
-        ctx.session.user.id
-      )
-
-      // Emit real-time event
-      await eventService.emit('comment.unliked', {
-        commentId: input.commentId,
-        userId: ctx.session.user.id,
-        likes: result.likes,
-      })
-
-      return result
     }),
 
   // List comments for a post
@@ -219,9 +201,11 @@ export const commentRouter = createTRPCRouter({
       const commentService = new CommentService(ctx.db)
       const cacheService = new CacheService()
       
-      // Try cache for first page of top-level comments
+      // Cache key for first page of top-level comments
+      const cacheKey = `comments:${input.postId}:${input.sortBy}:${input.limit}`
+      
+      // Try cache for first page
       if (!input.cursor && !input.parentId && input.sortBy === 'newest') {
-        const cacheKey = `comments:${input.postId}:${input.limit}`
         const cached = await cacheService.get(cacheKey)
         if (cached) return cached
       }
@@ -233,7 +217,6 @@ export const commentRouter = createTRPCRouter({
 
       // Cache first page
       if (!input.cursor && !input.parentId && input.sortBy === 'newest') {
-        const cacheKey = `comments:${input.postId}:${input.limit}`
         await cacheService.set(cacheKey, result, 60) // 1 minute cache
       }
 
@@ -247,7 +230,22 @@ export const commentRouter = createTRPCRouter({
     }))
     .query(async ({ ctx, input }) => {
       const commentService = new CommentService(ctx.db)
-      return commentService.getComment(input.id, ctx.session?.user?.id)
+      const cacheService = new CacheService()
+      
+      // Try cache first
+      const cacheKey = `comment:${input.id}`
+      const cached = await cacheService.get(cacheKey)
+      if (cached) return cached
+      
+      const comment = await commentService.getComment(
+        input.id, 
+        ctx.session?.user?.id
+      )
+      
+      // Cache for 5 minutes
+      await cacheService.set(cacheKey, comment, 300)
+      
+      return comment
     }),
 
   // Get comment thread (all replies)
@@ -272,10 +270,25 @@ export const commentRouter = createTRPCRouter({
     }))
     .mutation(async ({ ctx, input }) => {
       const commentService = new CommentService(ctx.db)
-      return commentService.togglePinComment(
+      const eventService = new EventService()
+      const cacheService = new CacheService()
+      
+      const result = await commentService.togglePinComment(
         input.commentId,
         ctx.session.user.id
       )
+
+      // Invalidate caches
+      await cacheService.delPattern(`comments:${result.postId}`)
+
+      // Emit event
+      await eventService.emit('comment.pinned', {
+        postId: result.postId,
+        commentId: input.commentId,
+        pinned: result.pinned,
+      })
+
+      return result
     }),
 
   // Report a comment
@@ -287,7 +300,10 @@ export const commentRouter = createTRPCRouter({
         'INAPPROPRIATE',
         'HARASSMENT',
         'MISINFORMATION',
+        'COPYRIGHT',
+        'NSFW',
         'HATE_SPEECH',
+        'SELF_HARM',
         'OTHER',
       ]),
       description: z.string().max(1000).optional(),
@@ -348,5 +364,58 @@ export const commentRouter = createTRPCRouter({
       )
 
       return { success: true }
+    }),
+
+  // Legacy endpoints for backward compatibility
+  like: protectedProcedure
+    .input(z.object({
+      commentId: z.string().cuid(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      // Redirect to react endpoint
+      const commentService = new CommentService(ctx.db)
+      const eventService = new EventService()
+      
+      const result = await commentService.addReaction(
+        input.commentId,
+        ctx.session.user.id,
+        ReactionType.LIKE
+      )
+
+      const reactionCounts = await commentService.getCommentReactions(input.commentId)
+
+      await eventService.emit('comment.liked', {
+        commentId: input.commentId,
+        userId: ctx.session.user.id,
+        likes: reactionCounts[ReactionType.LIKE],
+      })
+
+      return { ...result, likes: reactionCounts[ReactionType.LIKE] }
+    }),
+
+  unlike: protectedProcedure
+    .input(z.object({
+      commentId: z.string().cuid(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      // Redirect to react endpoint
+      const commentService = new CommentService(ctx.db)
+      const eventService = new EventService()
+      
+      const result = await commentService.removeReaction(
+        input.commentId,
+        ctx.session.user.id,
+        ReactionType.LIKE
+      )
+
+      const reactionCounts = await commentService.getCommentReactions(input.commentId)
+
+      await eventService.emit('comment.unliked', {
+        commentId: input.commentId,
+        userId: ctx.session.user.id,
+        likes: reactionCounts[ReactionType.LIKE],
+      })
+
+      return { ...result, likes: reactionCounts[ReactionType.LIKE] }
     }),
 })
