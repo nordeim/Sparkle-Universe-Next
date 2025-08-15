@@ -7,7 +7,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)]()
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC)]()
 [![Prisma](https://img.shields.io/badge/Prisma-5.8.1-2D3748)]()
-[![Schema Version](https://img.shields.io/badge/Schema-v4.5-orange)]()
+[![Schema Version](https://img.shields.io/badge/Schema-v4.6-orange)]()
 
 > **Sparkle Universe** — The premier next-generation fan community platform for Sparkle YouTube fans, featuring rich content creation, real-time interaction, watch parties, creator tools, advanced gamification, and AI-powered experiences with enterprise-grade performance optimizations.
 
@@ -1079,7 +1079,6 @@ interface StoreItem {
   maxPerUser?: number;
 }
 
-// Note: StoreBundle uses Int for prices (schema inconsistency)
 interface StoreBundle {
   priceSparkle?: number;    // Decimal(19,4)
   pricePremium?: number;    // Decimal(19,4)
