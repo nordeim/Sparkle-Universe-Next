@@ -1160,7 +1160,7 @@ export default function ModerationPage() {
                   <SelectItem value="ai-flagged">AI Flagged</SelectItem>
                   <SelectItem value="user-reported">User Reported</SelectItem>
                   <SelectItem value="escalated">Escalated</SelectItem>
-                  <SelectItem value="new">New (< 1 hour)</SelectItem>
+                  <SelectItem value="new">New (less than 1 hour)</SelectItem>
                 </SelectContent>
               </Select>
               <Button
