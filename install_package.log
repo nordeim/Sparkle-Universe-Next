@@ -1,0 +1,54 @@
+$ rm -rf package-lock.json node_modules/
+(venv) pete@pop-os:/test
+$ npm install
+npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+
+> sparkle-universe@0.1.0 postinstall
+> prisma generate
+
+Prisma schema loaded from prisma/schema.prisma
+
+✔ Generated Prisma Client (v6.14.0) to ./node_modules/@prisma/client in 1.65s
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
+
+
+> sparkle-universe@0.1.0 prepare
+> husky install
+
+husky - install command is DEPRECATED
+
+added 1221 packages, and audited 1222 packages in 3m
+
+298 packages are looking for funding
+  run `npm fund` for details
+
+3 low severity vulnerabilities
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+(venv) pete@pop-os:/test
+$ npm install @tiptap/extension-image @tiptap/extension-youtube @tiptap/extension-code-block-lowlight canvas-confetti isomorphic-dompurify jsonwebtoken algoliasearch
+
+added 37 packages, removed 8 packages, and audited 1251 packages in 9s
+
+301 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+(venv) pete@pop-os:/test
+$ npm install -D @types/jsonwebtoken
+
+added 2 packages, and audited 1253 packages in 3s
+
+301 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+
