@@ -750,9 +750,9 @@ enum AuditAction {
 
 ### Critical Model Documentation
 
-#### User Model (EXTREME Query Complexity - 70+ Relations)
+#### User Model (EXTREME Query Complexity - 126 Relations)
 
-**⚠️ PERFORMANCE WARNING**: The User model has 70+ relations. Never use `include: { _count: true }` or load all relations.
+**⚠️ PERFORMANCE WARNING**: The User model has 126 relations. Never use `include: { _count: true }` or load all relations.
 
 ```typescript
 // GOOD: Selective field loading
