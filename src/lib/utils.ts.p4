@@ -1,7 +1,7 @@
 // src/lib/utils.ts - COMPLETE MERGED VERSION
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
-import { format, formatDistance, isValid } from 'date-fns'
+import { format, formatDistance, formatRelative, isValid } from 'date-fns'
 
 /**
  * Core Tailwind CSS class merger
@@ -30,43 +30,38 @@ export function formatRelativeDate(date: Date | string | number): string {
   return formatDistance(d, new Date(), { addSuffix: true })
 }
 
-// ============ CONTENT PROCESSING ============
+// ============ CONTENT PROCESSING (CRITICAL FROM PHASE 2) ============
 
 export function extractExcerpt(content: string, maxLength: number = 160): string {
   // Strip HTML tags
-  const text = content.replace(/<[^>]*>/g, '').trim()
+  const text = content.replace(/<[^>]*>/g, '')
+  
   if (text.length <= maxLength) return text
-
+  
   const truncated = text.substring(0, maxLength)
   const lastSpace = truncated.lastIndexOf(' ')
-  if (lastSpace <= 0) {
-    // no space found — return truncated with ellipsis
-    return truncated + '...'
-  }
+  
   return truncated.substring(0, lastSpace) + '...'
 }
 
 export function calculateReadingTime(content: string): number {
   const wordsPerMinute = 225
-  const normalized = (content || '').trim()
-  if (!normalized) return 1
-  const wordCount = normalized.split(/\s+/).filter(Boolean).length
+  const wordCount = content.split(/\s+/).length
   const readingTime = Math.ceil(wordCount / wordsPerMinute)
   return Math.max(1, readingTime)
 }
 
 // ============ STRING MANIPULATION ============
 
-export function generateUsername(emailOrName: string): string {
-  const maybeEmail = (emailOrName || '').toLowerCase()
-  const base = maybeEmail.includes('@') ? maybeEmail.split('@')[0] : maybeEmail
-  const cleanBase = base.replace(/[^a-z0-9]/g, '') || 'user'
+export function generateUsername(email: string): string {
+  const base = email.split('@')[0].toLowerCase()
+  const cleanBase = base.replace(/[^a-z0-9]/g, '')
   const random = Math.random().toString(36).substring(2, 6)
   return `${cleanBase}${random}`
 }
 
 export function generateSlug(title: string): string {
-  return (title || '')
+  return title
     .toLowerCase()
     .trim()
     .replace(/[^\w\s-]/g, '')
@@ -76,25 +71,21 @@ export function generateSlug(title: string): string {
 }
 
 export function truncate(text: string, maxLength: number): string {
-  if (!text) return ''
   if (text.length <= maxLength) return text
   return text.slice(0, maxLength - 3) + '...'
 }
 
 export function stripHtml(html: string): string {
-  if (typeof window !== 'undefined' && typeof DOMParser !== 'undefined') {
+  if (typeof window !== 'undefined') {
     const doc = new DOMParser().parseFromString(html, 'text/html')
-    return (doc.body.textContent || '').trim()
+    return doc.body.textContent || ''
   }
-  return (html || '').replace(/<[^>]*>/g, '').trim()
+  return html.replace(/<[^>]*>/g, '').trim()
 }
 
 export function getInitials(name: string): string {
-  if (!name) return ''
   return name
     .split(' ')
-    .map(n => n.trim())
-    .filter(Boolean)
     .map(n => n[0])
     .join('')
     .toUpperCase()
@@ -139,18 +130,17 @@ export function formatDuration(seconds: number): string {
   const hours = Math.floor(seconds / 3600)
   const minutes = Math.floor((seconds % 3600) / 60)
   const secs = seconds % 60
-
+  
   if (hours > 0) {
     return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
   }
   return `${minutes}:${secs.toString().padStart(2, '0')}`
 }
 
-// ============ YOUTUBE UTILITIES ============
+// ============ YOUTUBE UTILITIES (CRITICAL) ============
 
 export function getYouTubeVideoId(url: string): string | null {
-  const regex =
-    /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/
+  const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/
   const match = url.match(regex)
   return match ? match[1] : null
 }
@@ -172,26 +162,12 @@ export function isValidUrl(string: string): boolean {
 }
 
 export function getQueryParams(url: string): Record<string, string> {
-  try {
-    const params = new URL(url).searchParams
-    const result: Record<string, string> = {}
-    params.forEach((value, key) => {
-      result[key] = value
-    })
-    return result
-  } catch {
-    // fallback for relative URLs
-    try {
-      const params = new URL(url, 'http://localhost').searchParams
-      const result: Record<string, string> = {}
-      params.forEach((value, key) => {
-        result[key] = value
-      })
-      return result
-    } catch {
-      return {}
-    }
-  }
+  const params = new URLSearchParams(new URL(url).search)
+  const result: Record<string, string> = {}
+  params.forEach((value, key) => {
+    result[key] = value
+  })
+  return result
 }
 
 // ============ PERFORMANCE UTILITIES ============
@@ -200,14 +176,11 @@ export function debounce<T extends (...args: any[]) => any>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
-  let timeout: ReturnType<typeof setTimeout> | null = null
-
+  let timeout: NodeJS.Timeout | null = null
+  
   return (...args: Parameters<T>) => {
-    if (timeout !== null) clearTimeout(timeout)
-    timeout = setTimeout(() => {
-      // ignore return value intentionally
-      func(...args)
-    }, wait)
+    if (timeout) clearTimeout(timeout)
+    timeout = setTimeout(() => func(...args), wait)
   }
 }
 
@@ -215,8 +188,8 @@ export function throttle<T extends (...args: any[]) => any>(
   func: T,
   limit: number
 ): (...args: Parameters<T>) => void {
-  let inThrottle = false
-
+  let inThrottle: boolean = false
+  
   return (...args: Parameters<T>) => {
     if (!inThrottle) {
       func(...args)
@@ -232,15 +205,14 @@ export function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message
   if (typeof error === 'string') return error
   if (error && typeof error === 'object' && 'message' in error) {
-    // @ts-expect-error -- dynamic object
-    return String((error as any).message)
+    return String(error.message)
   }
   return 'An unexpected error occurred'
 }
 
 export function safeJsonParse<T>(json: string, fallback: T): T {
   try {
-    return JSON.parse(json) as T
+    return JSON.parse(json)
   } catch {
     return fallback
   }
@@ -269,7 +241,7 @@ export async function retry<T>(
     onRetry,
   } = options
 
-  let lastError: Error = new Error('Retry failed')
+  let lastError: Error
 
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
@@ -282,7 +254,7 @@ export async function retry<T>(
       }
 
       const waitTime = Math.min(delay * Math.pow(factor, attempt), maxDelay)
-
+      
       if (onRetry) {
         onRetry(lastError, attempt + 1)
       }
@@ -291,7 +263,7 @@ export async function retry<T>(
     }
   }
 
-  throw lastError
+  throw lastError!
 }
 
 // ============ ENVIRONMENT CHECKS ============
@@ -328,7 +300,7 @@ export function pick<T extends object, K extends keyof T>(
   const result = {} as Pick<T, K>
   keys.forEach(key => {
     if (key in obj) {
-      ;(result as any)[key] = (obj as any)[key]
+      result[key] = obj[key]
     }
   })
   return result
@@ -338,9 +310,9 @@ export function omit<T extends object, K extends keyof T>(
   obj: T,
   keys: K[]
 ): Omit<T, K> {
-  const result = { ...(obj as any) }
+  const result = { ...obj }
   keys.forEach(key => {
-    delete result[key as any]
+    delete result[key]
   })
   return result as Omit<T, K>
 }
@@ -349,15 +321,8 @@ export function omit<T extends object, K extends keyof T>(
 
 export function generateRandomColor(): string {
   const colors = [
-    '#FF6B6B',
-    '#4ECDC4',
-    '#45B7D1',
-    '#FFA07A',
-    '#98D8C8',
-    '#6C5CE7',
-    '#A29BFE',
-    '#FD79A8',
-    '#FDCB6E',
+    '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8',
+    '#6C5CE7', '#A29BFE', '#FD79A8', '#FDCB6E', '#6C5CE7',
   ]
   return colors[Math.floor(Math.random() * colors.length)]
 }

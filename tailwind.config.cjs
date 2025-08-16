@@ -1,7 +1,7 @@
 module.exports = {
   content: [
     "./src/app/**/*.{js,ts,jsx,tsx}",
-    "./src/pages/**/*.{js,ts,jsx,tsx}",
+    "./src/pages/**/*.{js,ts,jsx,tsx}", // OK to keep (harmless) if you have pages dir
     "./src/components/**/*.{js,ts,jsx,tsx}",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
@@ -10,6 +10,6 @@ module.exports = {
     extend: {},
   },
   plugins: [
-    require("tailwindcss-animate"), // optional, remove if you don't use it
+    require("tailwindcss-animate"), // optional: ensure the package is installed if you use it
   ],
 };
