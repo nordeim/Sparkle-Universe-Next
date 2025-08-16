@@ -46,7 +46,7 @@ npm run db:reset     # Reset database completely
 
 ### Core Technology Stack
 - **Framework**: Next.js 15 (App Router) with TypeScript strict mode
-- **Database**: PostgreSQL 15+ with Prisma ORM and advanced indexing
+- **Database**: PostgreSQL 16 with Prisma ORM and advanced indexing
 - **Authentication**: NextAuth.js v5 (beta) with multiple providers
 - **API**: tRPC for type-safe client-server communication
 - **State**: TanStack Query + Zustand for efficient state management
