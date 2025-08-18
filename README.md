@@ -143,11 +143,11 @@ const frontend = {
 // Backend Stack
 const backend = {
   database: "PostgreSQL 16" /* JSONB, GIN indexes, pg_trgm, pgcrypto */,
-  orm: "Prisma 5.8.1" /* Type-safe database access, v4.6 optimizations */,
+  orm: "Prisma 5.22.0" /* Type-safe database access, v4.6 optimizations */,
   api: "tRPC 10.45.0" /* End-to-end type safety */,
   cache: "Redis (ioredis 5.3.2)" /* Sessions, rate limiting, pub/sub */,
   realtime: "Socket.IO 4.7.4" /* WebSocket with fallbacks */,
-  auth: "NextAuth 5.0.0-beta.4" /* OAuth + credentials */,
+  auth: "NextAuth 4.24.11" /* OAuth + credentials */,
   validation: "Zod 3.22.4" /* Runtime type validation */,
   precision: "PostgreSQL Decimal" /* Decimal(19,4) for financial calculations */
 };
