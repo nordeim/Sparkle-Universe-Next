@@ -6,7 +6,6 @@
 [![Next.js](https://img.shields.io/badge/Next.js-14.0-black)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)]()
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC)]()
-[![Prisma](https://img.shields.io/badge/Prisma-5.8.1-2D3748)]()
 [![Schema Version](https://img.shields.io/badge/Schema-v4.6-orange)]()
 
 > **Sparkle Universe** — The premier next-generation fan community platform for Sparkle YouTube fans, featuring rich content creation, real-time interaction, watch parties, creator tools, advanced gamification, and AI-powered experiences with enterprise-grade performance optimizations.
@@ -143,8 +142,8 @@ const frontend = {
 // Backend Stack
 const backend = {
   database: "PostgreSQL 16" /* JSONB, GIN indexes, pg_trgm, pgcrypto */,
-  orm: "Prisma 5.22.0" /* Type-safe database access, v4.6 optimizations */,
-  api: "tRPC 10.45.0" /* End-to-end type safety */,
+  orm: "Prisma 6.14.0" /* Type-safe database access, v4.6 optimizations */,
+  api: "tRPC 11.4.4" /* End-to-end type safety */,
   cache: "Redis (ioredis 5.3.2)" /* Sessions, rate limiting, pub/sub */,
   realtime: "Socket.IO 4.7.4" /* WebSocket with fallbacks */,
   auth: "NextAuth 4.24.11" /* OAuth + credentials */,
@@ -158,7 +157,7 @@ const infrastructure = {
   monitoring: ["Vercel Analytics", "Vercel Speed Insights"],
   node: ">=20.0.0" /* LTS version */,
   packageManager: "npm 10.2.5" /* Specified version */,
-  schemaVersion: "4.5" /* Performance Optimization Release */
+  schemaVersion: "4.6" /* Performance Optimization Release */
 };
 ```
 
@@ -481,7 +480,7 @@ Sparkle-Universe-Next/
 
 ### Schema Implementation Overview
 
-The database uses PostgreSQL 16 with Prisma ORM v5.8.1, implementing a comprehensive 126-model schema (v4.6) with:
+The database uses PostgreSQL 16 with Prisma ORM v6.14.0, implementing a comprehensive 126-model schema (v4.6) with:
 
 1. **Performance Optimizations**: Strategic composite indexes and JSON GIN indexes
 2. **Soft Deletes**: `deleted`, `deletedAt`, `deletedBy` pattern for data recovery
