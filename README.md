@@ -3,7 +3,7 @@
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)]() 
 [![License](https://img.shields.io/badge/license-MIT-blue)]() 
-[![Next.js](https://img.shields.io/badge/Next.js-15.0-black)]()
+[![Next.js](https://img.shields.io/badge/Next.js-14.0-black)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)]()
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC)]()
 [![Prisma](https://img.shields.io/badge/Prisma-5.8.1-2D3748)]()
@@ -128,7 +128,7 @@
 ```typescript
 // Frontend Stack
 const frontend = {
-  framework: "Next.js 15.0.0" /* App Router, Server Components */,
+  framework: "Next.js 14.2.31" /* App Router, Server Components */,
   language: "TypeScript 5.3.3" /* Strict mode, noUncheckedIndexedAccess */,
   styling: "Tailwind CSS 3.4.1" /* JIT, custom design tokens */,
   components: "shadcn/ui + Radix UI" /* Accessible primitives */,
