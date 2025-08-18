@@ -1533,7 +1533,7 @@ const RATE_LIMITS = {
 
 ```json
 {
-  "jest": "^29.7.0",
+  "jest": "^30.0.5",
   "@testing-library/react": "^16.3.0",
   "@testing-library/jest-dom": "^6.7.0",
   "@playwright/test": "^1.54.2"
