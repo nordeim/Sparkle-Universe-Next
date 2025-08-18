@@ -818,7 +818,7 @@ const user = await prisma.user.findMany({
 
 ### Authentication Implementation
 
-Based on NextAuth v5 with comprehensive security:
+Based on NextAuth v4 with comprehensive security:
 
 ```typescript
 // OAuth Providers (All Configured in Schema)
