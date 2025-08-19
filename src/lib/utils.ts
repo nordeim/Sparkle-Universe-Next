@@ -482,14 +482,374 @@ export function formatFileSize(bytes: number | null | undefined): string {
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${units[i]}`
 }
 
-// Rest of the utilities remain the same...
-// [Previous utility functions continue unchanged]
+// ============ BADGE & RARITY UTILITIES ============
 
-export default {
+export function getBadgeRarityColor(rarity: string): string {
+  return SPARKLE_CONSTANTS.BADGE_RARITY_COLORS[rarity as keyof typeof SPARKLE_CONSTANTS.BADGE_RARITY_COLORS] || '#9CA3AF'
+}
+
+export function getBadgeRarityClass(rarity: string): string {
+  const rarityLower = rarity.toLowerCase().replace('_', '-')
+  return `badge-${rarityLower}`
+}
+
+export function calculateBadgeRarityPercentage(rarity: string): string {
+  const percentages = {
+    COMMON: '50%+',
+    UNCOMMON: '30-50%',
+    RARE: '10-30%',
+    EPIC: '5-10%',
+    LEGENDARY: '1-5%',
+    MYTHIC: '<1%',
+    LIMITED_EDITION: 'Limited',
+    SEASONAL: 'Seasonal',
+  }
+  return percentages[rarity as keyof typeof percentages] || 'Unknown'
+}
+
+// ============ SOCKET.IO UTILITIES ============
+
+export function createSocketRoom(type: string, id: string): string {
+  return `${type}:${id}`
+}
+
+export function parseSocketRoom(room: string): { type: string; id: string } | null {
+  const parts = room.split(':')
+  if (parts.length !== 2) return null
+  return { type: parts[0], id: parts[1] }
+}
+
+export function createSocketEvent(type: string, action: string): string {
+  return `${type}:${action}`
+}
+
+// ============ REACTION UTILITIES ============
+
+export const REACTION_EMOJIS = {
+  LIKE: '👍',
+  LOVE: '❤️',
+  FIRE: '🔥',
+  SPARKLE: '✨',
+  MIND_BLOWN: '🤯',
+  LAUGH: '😂',
+  CRY: '😢',
+  ANGRY: '😠',
+  CUSTOM: '⭐',
+}
+
+export function getReactionEmoji(type: string): string {
+  return REACTION_EMOJIS[type as keyof typeof REACTION_EMOJIS] || '👍'
+}
+
+// ============ PERFORMANCE UTILITIES ============
+
+export function debounce<T extends (...args: any[]) => any>(
+  func: T,
+  wait: number,
+  options: { leading?: boolean; trailing?: boolean } = {}
+): (...args: Parameters<T>) => void {
+  let timeout: NodeJS.Timeout | null = null
+  let lastArgs: Parameters<T> | null = null
+  const { leading = false, trailing = true } = options
+  
+  return function debounced(...args: Parameters<T>) {
+    lastArgs = args
+    
+    if (!timeout && leading) {
+      func(...args)
+    }
+    
+    if (timeout) clearTimeout(timeout)
+    
+    timeout = setTimeout(() => {
+      if (trailing && lastArgs) {
+        func(...lastArgs)
+      }
+      timeout = null
+      lastArgs = null
+    }, wait)
+  }
+}
+
+export function throttle<T extends (...args: any[]) => any>(
+  func: T,
+  limit: number
+): (...args: Parameters<T>) => void {
+  let inThrottle = false
+  let lastFunc: NodeJS.Timeout | null = null
+  let lastRan: number | null = null
+  
+  return function throttled(...args: Parameters<T>) {
+    if (!inThrottle) {
+      func(...args)
+      lastRan = Date.now()
+      inThrottle = true
+    } else {
+      if (lastFunc) clearTimeout(lastFunc)
+      lastFunc = setTimeout(() => {
+        if (lastRan && Date.now() - lastRan >= limit) {
+          func(...args)
+          lastRan = Date.now()
+        }
+      }, limit - (Date.now() - (lastRan || 0)))
+    }
+  }
+}
+
+// ============ ERROR HANDLING ============
+
+export function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message
+  if (typeof error === 'string') return error
+  if (error && typeof error === 'object' && 'message' in error) {
+    return String(error.message)
+  }
+  return 'An unexpected error occurred'
+}
+
+export function safeJsonParse<T>(json: string, fallback: T): T {
+  try {
+    return JSON.parse(json) as T
+  } catch {
+    return fallback
+  }
+}
+
+export function parseZodError(error: ZodError): Record<string, string> {
+  const fieldErrors: Record<string, string> = {}
+  
+  error.errors.forEach((err) => {
+    const path = err.path.join('.')
+    fieldErrors[path] = err.message
+  })
+  
+  return fieldErrors
+}
+
+// ============ URL UTILITIES ============
+
+export function absoluteUrl(path: string): string {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  if (path.startsWith('http')) return path
+  return `${baseUrl}${path.startsWith('/') ? path : `/${path}`}`
+}
+
+export function isValidUrl(string: string): boolean {
+  try {
+    const url = new URL(string)
+    return url.protocol === 'http:' || url.protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
+export function getQueryParams(url: string): Record<string, string> {
+  const params = new URLSearchParams(new URL(url).search)
+  return Object.fromEntries(params.entries())
+}
+
+export function buildQueryString(params: Record<string, any>): string {
+  const searchParams = new URLSearchParams()
+  
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      searchParams.append(key, String(value))
+    }
+  })
+  
+  const queryString = searchParams.toString()
+  return queryString ? `?${queryString}` : ''
+}
+
+// ============ ASYNC UTILITIES ============
+
+export const sleep = (ms: number): Promise<void> => 
+  new Promise(resolve => setTimeout(resolve, ms))
+
+export const wait = sleep
+
+export async function retry<T>(
+  fn: () => Promise<T>,
+  options: {
+    retries?: number
+    delay?: number
+    maxDelay?: number
+    factor?: number
+    onRetry?: (error: Error, attempt: number) => void
+  } = {}
+): Promise<T> {
+  const {
+    retries = 3,
+    delay = 1000,
+    maxDelay = 30000,
+    factor = 2,
+    onRetry,
+  } = options
+
+  let lastError: Error
+
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await fn()
+    } catch (error) {
+      lastError = error as Error
+
+      if (attempt === retries) {
+        throw lastError
+      }
+
+      const waitTime = Math.min(delay * Math.pow(factor, attempt), maxDelay)
+      
+      if (onRetry) {
+        onRetry(lastError, attempt + 1)
+      }
+
+      await sleep(waitTime)
+    }
+  }
+
+  throw lastError!
+}
+
+// ============ ENVIRONMENT & PLATFORM ============
+
+export const isClient = typeof window !== 'undefined'
+export const isServer = !isClient
+export const isDevelopment = process.env.NODE_ENV === 'development'
+export const isProduction = process.env.NODE_ENV === 'production'
+export const isTest = process.env.NODE_ENV === 'test'
+
+// ============ SPARKLE UI UTILITIES ============
+
+export function generateSparkleGradient(angle: number = 135): string {
+  return `linear-gradient(${angle}deg, #8B5CF6, #EC4899, #10B981)`
+}
+
+export function generateRandomSparkleColor(): string {
+  const colors = ['#8B5CF6', '#EC4899', '#3B82F6', '#10B981', '#F59E0B']
+  return colors[Math.floor(Math.random() * colors.length)]
+}
+
+export function generateSparkleParticles(count: number = 5): Array<{
+  id: string
+  x: number
+  y: number
+  size: number
+  duration: number
+  delay: number
+}> {
+  return Array.from({ length: count }, (_, i) => ({
+    id: `sparkle-${i}-${Date.now()}`,
+    x: Math.random() * 100,
+    y: Math.random() * 100,
+    size: Math.random() * 20 + 10,
+    duration: Math.random() * 2 + 1,
+    delay: Math.random() * 2,
+  }))
+}
+
+// ============ DEFAULT EXPORT ============
+
+const utils = {
   cn,
+  
+  // New Utils
   formatPercentage,
   formatDuration,
   formatRelativeTime,
   generateUniqueCode,
-  // ... include all other exports
+
+  // Constants
+  SPARKLE_CONSTANTS,
+  
+  // Gamification
+  calculateLevel,
+  calculateXpForLevel,
+  calculateXpProgress,
+  applyXpMultiplier,
+  
+  // Monetization
+  usdToPremiumPoints,
+  premiumPointsToUsd,
+  sparkleToPremium,
+  calculateCreatorPayout,
+  
+  // YouTube
+  getYouTubeVideoId,
+  getYouTubeThumbnail,
+  formatYouTubeTimestamp,
+  parseYouTubeTimestamp,
+  
+  // Dates
+  formatDate,
+  formatDateTime,
+  formatRelativeDate,
+  formatTimeAgo,
+  
+  // Content
+  extractExcerpt,
+  calculateReadingTime,
+  formatReadingTime,
+  
+  // Strings
+  generateUsername,
+  generateSlug,
+  truncate,
+  stripHtml,
+  getInitials,
+  
+  // Numbers
+  formatNumber,
+  formatLongNumber,
+  formatCurrency,
+  formatPoints,
+  formatFileSize,
+  
+  // Badges
+  getBadgeRarityColor,
+  getBadgeRarityClass,
+  calculateBadgeRarityPercentage,
+  
+  // Socket.IO
+  createSocketRoom,
+  parseSocketRoom,
+  createSocketEvent,
+  
+  // Reactions
+  REACTION_EMOJIS,
+  getReactionEmoji,
+  
+  // Performance
+  debounce,
+  throttle,
+  
+  // Error Handling
+  getErrorMessage,
+  safeJsonParse,
+  parseZodError,
+  
+  // URLs
+  absoluteUrl,
+  isValidUrl,
+  getQueryParams,
+  buildQueryString,
+  
+  // Async
+  sleep,
+  wait,
+  retry,
+  
+  // Environment
+  isClient,
+  isServer,
+  isDevelopment,
+  isProduction,
+  isTest,
+  
+  // Sparkle UI
+  generateSparkleGradient,
+  generateRandomSparkleColor,
+  generateSparkleParticles,
 }
+
+export default utils
