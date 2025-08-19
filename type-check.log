@@ -2,18 +2,6 @@
 > sparkle-universe@0.1.0 type-check
 > tsc --noEmit
 
-phase1/src/lib/utils.ts(196,16): error TS2322: Type 'string | undefined' is not assignable to type 'string | null'.
-  Type 'undefined' is not assignable to type 'string | null'.
-phase1/src/lib/utils.ts(318,16): error TS2532: Object is possibly 'undefined'.
-phase1/src/lib/utils.ts(361,12): error TS2532: Object is possibly 'undefined'.
-phase1/src/lib/utils.ts(450,12): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-  Type 'undefined' is not assignable to type 'string'.
-phase1/src/lib/utils.ts(450,28): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-  Type 'undefined' is not assignable to type 'string'.
-phase1/src/lib/utils.ts(661,3): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-  Type 'undefined' is not assignable to type 'string'.
-src/app/(main)/create/page.tsx(13,23): error TS2307: Cannot find module '@/components/ui/label' or its corresponding type declarations.
-src/app/(main)/create/page.tsx(27,23): error TS2307: Cannot find module '@/hooks/use-toast' or its corresponding type declarations.
 src/app/(main)/create/page.tsx(50,5): error TS2322: Type 'Resolver<{ content: string; title: string; excerpt?: string | undefined; categoryId?: string | undefined; seriesId?: string | undefined; seriesOrder?: number | undefined; isDraft?: boolean | undefined; youtubeVideoId?: string | undefined; tags?: string[] | undefined; }, any, { ...; }>' is not assignable to type 'Resolver<{ content: string; title: string; isDraft: boolean; tags: string[]; excerpt?: string | undefined; categoryId?: string | undefined; seriesId?: string | undefined; seriesOrder?: number | undefined; youtubeVideoId?: string | undefined; }, any, { ...; }>'.
   Types of parameters 'options' and 'options' are incompatible.
     Type 'ResolverOptions<{ content: string; title: string; isDraft: boolean; tags: string[]; excerpt?: string | undefined; categoryId?: string | undefined; seriesId?: string | undefined; seriesOrder?: number | undefined; youtubeVideoId?: string | undefined; }>' is not assignable to type 'ResolverOptions<{ content: string; title: string; excerpt?: string | undefined; categoryId?: string | undefined; seriesId?: string | undefined; seriesOrder?: number | undefined; isDraft?: boolean | undefined; youtubeVideoId?: string | undefined; tags?: string[] | undefined; }>'.
@@ -29,43 +17,47 @@ src/app/(main)/create/page.tsx(282,46): error TS2345: Argument of type '(data: C
     Type 'TFieldValues' is not assignable to type '{ content: string; title: string; isDraft: boolean; tags: string[]; excerpt?: string | undefined; categoryId?: string | undefined; seriesId?: string | undefined; seriesOrder?: number | undefined; youtubeVideoId?: string | undefined; }'.
       Type 'FieldValues' is missing the following properties from type '{ content: string; title: string; isDraft: boolean; tags: string[]; excerpt?: string | undefined; categoryId?: string | undefined; seriesId?: string | undefined; seriesOrder?: number | undefined; youtubeVideoId?: string | undefined; }': content, title, isDraft, tags
 src/app/(main)/create/page.tsx(314,37): error TS7006: Parameter 'category' implicitly has an 'any' type.
-src/app/admin/dashboard/page.tsx(9,41): error TS2307: Cannot find module '@/components/ui/alert' or its corresponding type declarations.
-src/app/admin/dashboard/page.tsx(38,32): error TS2307: Cannot find module '@/components/admin/analytics-chart' or its corresponding type declarations.
-src/app/admin/dashboard/page.tsx(39,33): error TS2307: Cannot find module '@/components/admin/realtime-metrics' or its corresponding type declarations.
-src/app/admin/dashboard/page.tsx(40,32): error TS2307: Cannot find module '@/components/admin/recent-activity' or its corresponding type declarations.
-src/app/admin/dashboard/page.tsx(41,28): error TS2307: Cannot find module '@/components/admin/top-content' or its corresponding type declarations.
-src/app/admin/dashboard/page.tsx(42,30): error TS2307: Cannot find module '@/components/admin/system-health' or its corresponding type declarations.
-src/app/admin/dashboard/page.tsx(43,32): error TS2307: Cannot find module '@/components/admin/moderator-queue' or its corresponding type declarations.
 src/app/admin/dashboard/page.tsx(44,33): error TS2307: Cannot find module '@/components/admin/charts/user-growth-chart' or its corresponding type declarations.
 src/app/admin/dashboard/page.tsx(45,35): error TS2307: Cannot find module '@/components/admin/charts/engagement-heatmap' or its corresponding type declarations.
 src/app/admin/dashboard/page.tsx(46,36): error TS2307: Cannot find module '@/components/admin/charts/content-performance' or its corresponding type declarations.
-src/app/admin/dashboard/page.tsx(47,24): error TS2614: Module '"@/lib/utils"' has no exported member 'formatPercentage'. Did you mean to use 'import formatPercentage from "@/lib/utils"' instead?
-src/app/admin/dashboard/page.tsx(47,42): error TS2614: Module '"@/lib/utils"' has no exported member 'formatDuration'. Did you mean to use 'import formatDuration from "@/lib/utils"' instead?
 src/app/admin/dashboard/page.tsx(65,39): error TS2322: Type 'TimePeriod' is not assignable to type '"week" | "day" | "month" | "quarter" | "year"'.
   Type '"today"' is not assignable to type '"week" | "day" | "month" | "quarter" | "year"'. Did you mean '"day"'?
-src/app/admin/dashboard/page.tsx(92,42): error TS2345: Argument of type '"admin:newUser"' is not assignable to parameter of type 'keyof ServerToClientEvents'.
-src/app/admin/dashboard/page.tsx(96,42): error TS2345: Argument of type '"admin:newPost"' is not assignable to parameter of type 'keyof ServerToClientEvents'.
-src/app/admin/dashboard/page.tsx(100,40): error TS2345: Argument of type '"admin:alert"' is not assignable to parameter of type 'keyof ServerToClientEvents'.
 src/app/admin/dashboard/page.tsx(250,62): error TS2554: Expected 2 arguments, but got 1.
-src/app/admin/layout.tsx(5,29): error TS2307: Cannot find module '@/components/admin/admin-header' or its corresponding type declarations.
-src/app/admin/layout.tsx(7,25): error TS2307: Cannot find module '@/components/ui/toaster' or its corresponding type declarations.
-src/app/admin/layout.tsx(9,36): error TS2307: Cannot find module '@/components/admin/admin-notifications' or its corresponding type declarations.
-src/app/admin/layout.tsx(10,38): error TS2307: Cannot find module '@/components/admin/admin-activity-monitor' or its corresponding type declarations.
-src/app/admin/layout.tsx(39,7): error TS2740: Type '{ id: string; username: string; role: UserRole; image: string | null; email: string; }' is missing the following properties from type '{ id: string; email: string; status: UserStatus; username: string; hashedPassword: string; authProvider: AuthProvider; emailVerified: Date | null; phoneNumber: string | null; ... 39 more ...; lastPayoutDate: Date | null; }': status, hashedPassword, authProvider, emailVerified, and 39 more.
+src/app/admin/dashboard/page.tsx(300,27): error TS2322: Type '{ data: any; }' is not assignable to type 'IntrinsicAttributes'.
+  Property 'data' does not exist on type 'IntrinsicAttributes'.
+src/app/admin/dashboard/page.tsx(377,19): error TS2322: Type '{ data: any; type: string; height: number; }' is not assignable to type 'IntrinsicAttributes'.
+  Property 'data' does not exist on type 'IntrinsicAttributes'.
+src/app/admin/dashboard/page.tsx(394,33): error TS2322: Type '{ limit: number; }' is not assignable to type 'IntrinsicAttributes'.
+  Property 'limit' does not exist on type 'IntrinsicAttributes'.
+src/app/admin/dashboard/page.tsx(406,29): error TS2322: Type '{ limit: number; period: TimePeriod; }' is not assignable to type 'IntrinsicAttributes'.
+  Property 'limit' does not exist on type 'IntrinsicAttributes'.
+src/app/admin/dashboard/page.tsx(446,19): error TS2322: Type '{ data: any; type: string; height: number; showLegend: true; }' is not assignable to type 'IntrinsicAttributes'.
+  Property 'data' does not exist on type 'IntrinsicAttributes'.
+src/app/admin/dashboard/page.tsx(459,25): error TS2322: Type '{ data: any; type: string; height: number; }' is not assignable to type 'IntrinsicAttributes'.
+  Property 'data' does not exist on type 'IntrinsicAttributes'.
+src/app/admin/dashboard/page.tsx(472,25): error TS2322: Type '{ data: any; type: string; height: number; }' is not assignable to type 'IntrinsicAttributes'.
+  Property 'data' does not exist on type 'IntrinsicAttributes'.
+src/app/admin/dashboard/page.tsx(507,19): error TS2322: Type '{ data: any; type: string; height: number; horizontal: true; }' is not assignable to type 'IntrinsicAttributes'.
+  Property 'data' does not exist on type 'IntrinsicAttributes'.
+src/app/admin/dashboard/page.tsx(521,19): error TS2322: Type '{ data: any; type: string; height: number; }' is not assignable to type 'IntrinsicAttributes'.
+  Property 'data' does not exist on type 'IntrinsicAttributes'.
+src/app/admin/dashboard/page.tsx(570,19): error TS2322: Type '{ data: any; type: string; height: number; showLegend: true; }' is not assignable to type 'IntrinsicAttributes'.
+  Property 'data' does not exist on type 'IntrinsicAttributes'.
+src/app/admin/dashboard/page.tsx(628,31): error TS2322: Type '{ limit: number; }' is not assignable to type 'IntrinsicAttributes'.
+  Property 'limit' does not exist on type 'IntrinsicAttributes'.
+src/app/admin/dashboard/page.tsx(638,17): error TS2322: Type '{ data: any; type: string; height: number; showLegend: true; }' is not assignable to type 'IntrinsicAttributes'.
+  Property 'data' does not exist on type 'IntrinsicAttributes'.
+src/app/admin/layout.tsx(39,7): error TS2740: Type '{ id: string; username: string; role: UserRole; image: string | null; email: string; }' is missing the following properties from type '{ id: string; email: string; username: string; hashedPassword: string; authProvider: AuthProvider; emailVerified: Date | null; phoneNumber: string | null; phoneNumberHash: string | null; ... 39 more ...; lastPayoutDate: Date | null; }': hashedPassword, authProvider, emailVerified, phoneNumber, and 39 more.
+src/app/admin/layout.tsx(62,13): error TS2741: Property 'name' is missing in type '{ id: string; username: string; role: UserRole; image: string | null; email: string; }' but required in type '{ id: string; name: string; email: string; avatar?: string | undefined; role: string; }'.
 src/app/admin/layout.tsx(69,15): error TS2322: Type '(error: any, reset: any) => Element' is not assignable to type 'ComponentType<{ error: Error; reset: () => void; }> | undefined'.
   Type '(error: any, reset: any) => Element' is not assignable to type 'FunctionComponent<{ error: Error; reset: () => void; }>'.
     Target signature provides too few arguments. Expected 2 or more, but got 1.
 src/app/admin/layout.tsx(69,26): error TS7006: Parameter 'error' implicitly has an 'any' type.
 src/app/admin/layout.tsx(69,33): error TS7006: Parameter 'reset' implicitly has an 'any' type.
-src/app/admin/moderation/page.tsx(9,53): error TS2307: Cannot find module '@/components/ui/alert' or its corresponding type declarations.
-src/app/admin/moderation/page.tsx(52,38): error TS2307: Cannot find module '@/components/admin/content-preview-dialog' or its corresponding type declarations.
 src/app/admin/moderation/page.tsx(53,35): error TS2307: Cannot find module '@/components/admin/moderation-history' or its corresponding type declarations.
 src/app/admin/moderation/page.tsx(54,33): error TS2307: Cannot find module '@/components/admin/ai-analysis-panel' or its corresponding type declarations.
 src/app/admin/moderation/page.tsx(55,33): error TS2307: Cannot find module '@/components/admin/moderation-stats' or its corresponding type declarations.
-src/app/admin/moderation/page.tsx(56,22): error TS2614: Module '"@/lib/utils"' has no exported member 'formatDuration'. Did you mean to use 'import formatDuration from "@/lib/utils"' instead?
 src/app/admin/moderation/page.tsx(58,23): error TS2307: Cannot find module '@/components/ui/use-toast' or its corresponding type declarations.
-src/app/admin/moderation/page.tsx(145,44): error TS2345: Argument of type '"moderation:newReport"' is not assignable to parameter of type 'keyof ServerToClientEvents'.
-src/app/admin/moderation/page.tsx(149,41): error TS2345: Argument of type '"moderation:aiFlag"' is not assignable to parameter of type 'keyof ServerToClientEvents'.
 src/app/admin/moderation/page.tsx(168,7): error TS7006: Parameter 'item' implicitly has an 'any' type.
 src/app/admin/moderation/page.tsx(173,35): error TS7006: Parameter 'item' implicitly has an 'any' type.
 src/app/admin/moderation/page.tsx(286,23): error TS2339: Property 'pending' does not exist on type '{ pendingCount: number; reviewedToday: number; autoBlockedToday: number; averageReviewTime: number; }'.
@@ -74,12 +66,12 @@ src/app/admin/moderation/page.tsx(316,23): error TS2339: Property 'rejectedToday
 src/app/admin/moderation/page.tsx(331,25): error TS2339: Property 'aiAccuracy' does not exist on type '{ pendingCount: number; reviewedToday: number; autoBlockedToday: number; averageReviewTime: number; }'.
 src/app/admin/moderation/page.tsx(346,38): error TS2339: Property 'avgModerationTime' does not exist on type '{ pendingCount: number; reviewedToday: number; autoBlockedToday: number; averageReviewTime: number; }'.
 src/app/admin/moderation/page.tsx(623,44): error TS2339: Property 'aiStats' does not exist on type '{ pendingCount: number; reviewedToday: number; autoBlockedToday: number; averageReviewTime: number; }'.
+src/app/admin/moderation/page.tsx(645,11): error TS2322: Type '{ content: any; onClose: () => void; onModerate: (action: any) => void; }' is not assignable to type 'IntrinsicAttributes & ContentPreviewDialogProps'.
+  Property 'onClose' does not exist on type 'IntrinsicAttributes & ContentPreviewDialogProps'.
 src/app/admin/moderation/page.tsx(646,24): error TS7006: Parameter 'action' implicitly has an 'any' type.
-src/app/admin/users/page.tsx(10,41): error TS2307: Cannot find module '@/components/ui/alert' or its corresponding type declarations.
 src/app/admin/users/page.tsx(68,35): error TS2307: Cannot find module '@/components/admin/user-details-dialog' or its corresponding type declarations.
 src/app/admin/users/page.tsx(69,34): error TS2307: Cannot find module '@/components/admin/bulk-action-dialog' or its corresponding type declarations.
 src/app/admin/users/page.tsx(70,31): error TS2307: Cannot find module '@/components/admin/user-analytics' or its corresponding type declarations.
-src/app/admin/users/page.tsx(73,29): error TS2307: Cannot find module '@/hooks/use-debounce' or its corresponding type declarations.
 src/app/admin/users/page.tsx(74,23): error TS2307: Cannot find module '@/components/ui/use-toast' or its corresponding type declarations.
 src/app/admin/users/page.tsx(180,11): error TS18048: 'data.users.length' is possibly 'undefined'.
 src/app/admin/users/page.tsx(180,37): error TS18048: 'data' is possibly 'undefined'.
@@ -92,35 +84,130 @@ src/app/admin/users/page.tsx(697,53): error TS2345: Argument of type '{ userId: 
   Property 'reason' is missing in type '{ userId: string; }' but required in type '{ userId: string; reason: string; deleteContent?: boolean | undefined; }'.
 src/app/admin/users/page.tsx(752,22): error TS7006: Parameter 'action' implicitly has an 'any' type.
 src/app/admin/users/page.tsx(752,30): error TS7006: Parameter 'params' implicitly has an 'any' type.
-src/app/api-docs/page.tsx(5,23): error TS2307: Cannot find module 'swagger-ui-react' or its corresponding type declarations.
 src/app/api/admin/jobs/route.ts(44,10): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ send: (payload: any) => Promise<Job<any, any, string>>; bulk: (payload: any) => Promise<Job<any, any, string>>; digest: (userId: string) => Promise<Job<any, any, string>>; } | { ...; } | { ...; } | { ...; } | { ...; }'.
 src/app/api/admin/jobs/route.ts(52,31): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ send: (payload: any) => Promise<Job<any, any, string>>; bulk: (payload: any) => Promise<Job<any, any, string>>; digest: (userId: string) => Promise<Job<any, any, string>>; } | { ...; } | { ...; } | { ...; } | { ...; }'.
 src/app/api/trpc/[trpc]/route.ts(15,44): error TS2345: Argument of type '{ req: NextRequest; }' is not assignable to parameter of type 'FetchCreateContextFnOptions | CreateNextContextOptions'.
   Type '{ req: NextRequest; }' is missing the following properties from type 'CreateNextContextOptions': res, info
+src/app/layout.tsx(7,31): error TS2307: Cannot find module '@/components/providers/theme-provider' or its corresponding type declarations.
+src/app/layout.tsx(8,31): error TS2307: Cannot find module '@/components/providers/query-provider' or its corresponding type declarations.
+src/components/admin/admin-activity-monitor.tsx(76,27): error TS2554: Expected 1 arguments, but got 0.
+src/components/admin/admin-activity-monitor.tsx(119,11): error TS2322: Type '{ id: string; userId: string; username: string; avatar: string; role: string | undefined; device: any; browser: string | undefined; os: string | undefined; location: string | undefined; ... 5 more ...; status: any; }[]' is not assignable to type 'ActiveSession[]'.
+  Type '{ id: string; userId: string; username: string; avatar: string; role: string | undefined; device: any; browser: string | undefined; os: string | undefined; location: string | undefined; ... 5 more ...; status: any; }' is not assignable to type 'ActiveSession'.
+    Types of property 'role' are incompatible.
+      Type 'string | undefined' is not assignable to type 'string'.
+        Type 'undefined' is not assignable to type 'string'.
+src/components/admin/admin-activity-monitor.tsx(137,11): error TS2322: Type '{ id: string; userId: string; username: string; action: string | undefined; target: string | undefined; timestamp: Date; }[]' is not assignable to type 'ActivityLog[]'.
+  Type '{ id: string; userId: string; username: string; action: string | undefined; target: string | undefined; timestamp: Date; }' is not assignable to type 'ActivityLog'.
+    Types of property 'action' are incompatible.
+      Type 'string | undefined' is not assignable to type 'string'.
+        Type 'undefined' is not assignable to type 'string'.
+src/components/admin/analytics-chart.tsx(10,153): error TS2307: Cannot find module 'recharts' or its corresponding type declarations.
+src/components/admin/content-preview-dialog.tsx(312,18): error TS2304: Cannot find name 'Card'.
+src/components/admin/content-preview-dialog.tsx(313,20): error TS2304: Cannot find name 'CardHeader'.
+src/components/admin/content-preview-dialog.tsx(314,22): error TS2304: Cannot find name 'CardTitle'.
+src/components/admin/content-preview-dialog.tsx(314,69): error TS2304: Cannot find name 'CardTitle'.
+src/components/admin/content-preview-dialog.tsx(315,21): error TS2304: Cannot find name 'CardHeader'.
+src/components/admin/content-preview-dialog.tsx(316,20): error TS2304: Cannot find name 'CardContent'.
+src/components/admin/content-preview-dialog.tsx(323,21): error TS2304: Cannot find name 'CardContent'.
+src/components/admin/content-preview-dialog.tsx(324,19): error TS2304: Cannot find name 'Card'.
+src/components/admin/content-preview-dialog.tsx(326,18): error TS2304: Cannot find name 'Card'.
+src/components/admin/content-preview-dialog.tsx(327,20): error TS2304: Cannot find name 'CardHeader'.
+src/components/admin/content-preview-dialog.tsx(328,22): error TS2304: Cannot find name 'CardTitle'.
+src/components/admin/content-preview-dialog.tsx(328,68): error TS2304: Cannot find name 'CardTitle'.
+src/components/admin/content-preview-dialog.tsx(329,21): error TS2304: Cannot find name 'CardHeader'.
+src/components/admin/content-preview-dialog.tsx(330,20): error TS2304: Cannot find name 'CardContent'.
+src/components/admin/content-preview-dialog.tsx(337,21): error TS2304: Cannot find name 'CardContent'.
+src/components/admin/content-preview-dialog.tsx(338,19): error TS2304: Cannot find name 'Card'.
+src/components/admin/content-preview-dialog.tsx(340,18): error TS2304: Cannot find name 'Card'.
+src/components/admin/content-preview-dialog.tsx(341,20): error TS2304: Cannot find name 'CardHeader'.
+src/components/admin/content-preview-dialog.tsx(342,22): error TS2304: Cannot find name 'CardTitle'.
+src/components/admin/content-preview-dialog.tsx(342,65): error TS2304: Cannot find name 'CardTitle'.
+src/components/admin/content-preview-dialog.tsx(343,21): error TS2304: Cannot find name 'CardHeader'.
+src/components/admin/content-preview-dialog.tsx(344,20): error TS2304: Cannot find name 'CardContent'.
+src/components/admin/content-preview-dialog.tsx(351,21): error TS2304: Cannot find name 'CardContent'.
+src/components/admin/content-preview-dialog.tsx(352,19): error TS2304: Cannot find name 'Card'.
+src/components/admin/content-preview-dialog.tsx(354,18): error TS2304: Cannot find name 'Card'.
+src/components/admin/content-preview-dialog.tsx(355,20): error TS2304: Cannot find name 'CardHeader'.
+src/components/admin/content-preview-dialog.tsx(356,22): error TS2304: Cannot find name 'CardTitle'.
+src/components/admin/content-preview-dialog.tsx(356,65): error TS2304: Cannot find name 'CardTitle'.
+src/components/admin/content-preview-dialog.tsx(357,21): error TS2304: Cannot find name 'CardHeader'.
+src/components/admin/content-preview-dialog.tsx(358,20): error TS2304: Cannot find name 'CardContent'.
+src/components/admin/content-preview-dialog.tsx(366,21): error TS2304: Cannot find name 'CardContent'.
+src/components/admin/content-preview-dialog.tsx(367,19): error TS2304: Cannot find name 'Card'.
+src/components/admin/moderator-queue.tsx(62,13): error TS2322: Type '{ id: string; type: any; entityId: string; reason: string | undefined; reportCount: number; priority: number; status: any; createdAt: Date; content: string; author: { id: string; username: string; ... 5 more ...; createdAt: Date; }; reporter: { ...; }; aiAnalysis: { ...; } | undefined; }[]' is not assignable to type 'QueueItem[]'.
+  Type '{ id: string; type: any; entityId: string; reason: string | undefined; reportCount: number; priority: number; status: any; createdAt: Date; content: string; author: { id: string; username: string; ... 5 more ...; createdAt: Date; }; reporter: { ...; }; aiAnalysis: { ...; } | undefined; }' is not assignable to type 'QueueItem'.
+    Types of property 'reason' are incompatible.
+      Type 'string | undefined' is not assignable to type 'string'.
+        Type 'undefined' is not assignable to type 'string'.
+src/components/admin/moderator-queue.tsx(346,24): error TS2552: Cannot find name 'Progress'. Did you mean 'onprogress'?
+src/components/admin/realtime-metrics.tsx(123,26): error TS2554: Expected 1 arguments, but got 0.
+src/components/admin/realtime-metrics.tsx(134,60): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(137,26): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(140,38): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(143,38): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(146,52): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(149,51): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(150,15): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(153,52): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(154,15): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(157,38): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(160,38): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(163,38): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(169,13): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(171,13): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(173,13): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(176,11): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(180,15): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(181,17): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(181,33): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(181,63): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(181,84): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(181,105): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(182,71): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(187,31): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(187,67): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(187,82): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(191,24): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(191,40): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(191,69): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(191,90): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(191,111): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(192,71): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(197,31): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(197,75): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(197,90): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(210,16): error TS2345: Argument of type '(prev: Record<string, RealtimeMetric>) => { activeUsers: { value: number; label?: string | undefined; unit?: string | undefined; trend?: "up" | "down" | "stable" | undefined; percentage?: number | undefined; threshold?: { ...; } | undefined; icon?: ElementType<...> | undefined; color?: string | undefined; }; ... 6 m...' is not assignable to parameter of type 'SetStateAction<Record<string, RealtimeMetric>>'.
+  Type '(prev: Record<string, RealtimeMetric>) => { activeUsers: { value: number; label?: string | undefined; unit?: string | undefined; trend?: "up" | "down" | "stable" | undefined; percentage?: number | undefined; threshold?: { ...; } | undefined; icon?: ElementType<...> | undefined; color?: string | undefined; }; ... 6 m...' is not assignable to type '(prevState: Record<string, RealtimeMetric>) => Record<string, RealtimeMetric>'.
+    Type '{ activeUsers: { value: number; label?: string | undefined; unit?: string | undefined; trend?: "up" | "down" | "stable" | undefined; percentage?: number; threshold?: { warning: number; critical: number; }; icon?: ElementType<...> | undefined; color?: string | undefined; }; ... 6 more ...; responseTime: { ...; }; }' is not assignable to type 'Record<string, RealtimeMetric>'.
+      Property 'activeUsers' is incompatible with index signature.
+        Type '{ value: number; label?: string | undefined; unit?: string | undefined; trend?: "up" | "down" | "stable" | undefined; percentage?: number; threshold?: { warning: number; critical: number; }; icon?: ElementType<...> | undefined; color?: string | undefined; }' is not assignable to type 'RealtimeMetric'.
+          Types of property 'label' are incompatible.
+            Type 'string | undefined' is not assignable to type 'string'.
+              Type 'undefined' is not assignable to type 'string'.
+src/components/admin/recent-activity.tsx(122,15): error TS18048: 'activity' is possibly 'undefined'.
+src/components/admin/recent-activity.tsx(123,17): error TS18048: 'activity' is possibly 'undefined'.
+src/components/admin/recent-activity.tsx(137,19): error TS18048: 'activity' is possibly 'undefined'.
+src/components/admin/top-content.tsx(92,5): error TS2322: Type '{ id: string; title: string; author: { id: string; name: string; avatar: string; verified: boolean; }; type: string; metrics: { views: number; likes: number; comments: number; shares: number; engagement: number; }; createdAt: Date; tags: string[]; trending: boolean; featured: boolean; }[]' is not assignable to type 'ContentItem[]'.
+  Type '{ id: string; title: string; author: { id: string; name: string; avatar: string; verified: boolean; }; type: string; metrics: { views: number; likes: number; comments: number; shares: number; engagement: number; }; createdAt: Date; tags: string[]; trending: boolean; featured: boolean; }' is not assignable to type 'ContentItem'.
+    Types of property 'type' are incompatible.
+      Type 'string' is not assignable to type '"post" | "comment" | "video"'.
 src/components/error-boundary.tsx(32,3): error TS4114: This member must have an 'override' modifier because it overrides a member in the base class 'Component<ErrorBoundaryProps, ErrorBoundaryState, any>'.
 src/components/error-boundary.tsx(44,3): error TS4114: This member must have an 'override' modifier because it overrides a member in the base class 'Component<ErrorBoundaryProps, ErrorBoundaryState, any>'.
-src/components/features/comments/comment-form.tsx(14,23): error TS2307: Cannot find module '@/hooks/use-toast' or its corresponding type declarations.
-src/components/features/comments/comment-form.tsx(18,29): error TS2307: Cannot find module '@/components/ui/emoji-picker' or its corresponding type declarations.
-src/components/features/comments/comment-form.tsx(19,29): error TS2307: Cannot find module '@/hooks/use-debounce' or its corresponding type declarations.
 src/components/features/comments/comment-form.tsx(136,24): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'SetStateAction<string>'.
   Type 'undefined' is not assignable to type 'SetStateAction<string>'.
 src/components/features/comments/comment-form.tsx(207,39): error TS2339: Property 'isLoading' does not exist on type 'UseTRPCMutationResult<{ _count: { reactions: number; replies: number; }; author: ({ profile: { id: string; createdAt: Date; updatedAt: Date; userId: string; bannerImage: string | null; location: string | null; ... 26 more ...; profileCompleteness: number; } | null; } & { ...; }) | null; } & { ...; }, TRPCClientError...'.
   Property 'isLoading' does not exist on type 'TRPCHookResult & Override<MutationObserverIdleResult<{ _count: { reactions: number; replies: number; }; author: ({ profile: { id: string; createdAt: Date; updatedAt: Date; userId: string; ... 28 more ...; profileCompleteness: number; } | null; } & { ...; }) | null; } & { ...; }, TRPCClientErrorLike<...>, { ...; }, u...'.
 src/components/features/comments/comment-form.tsx(207,67): error TS2339: Property 'isLoading' does not exist on type 'UseTRPCMutationResult<{ postId: string; _count: { reactions: number; replies: number; }; author: ({ profile: { id: string; createdAt: Date; updatedAt: Date; userId: string; bannerImage: string | null; ... 27 more ...; profileCompleteness: number; } | null; } & { ...; }) | null; ... 21 more ...; pinned: boolean; }, T...'.
   Property 'isLoading' does not exist on type 'TRPCHookResult & Override<MutationObserverIdleResult<{ postId: string; _count: { reactions: number; replies: number; }; author: ({ profile: { id: string; createdAt: Date; updatedAt: Date; userId: string; ... 28 more ...; profileCompleteness: number; } | null; } & { ...; }) | null; ... 21 more ...; pinned: boolean; }...'.
+src/components/features/comments/comment-form.tsx(265,30): error TS2322: Type '{ onSelect: (emoji: string) => void; }' is not assignable to type 'IntrinsicAttributes & EmojiPickerProps'.
+  Property 'onSelect' does not exist on type 'IntrinsicAttributes & EmojiPickerProps'.
 src/components/features/comments/comment-form.tsx(332,19): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
   Type 'undefined' is not assignable to type 'string'.
-src/components/features/comments/comment-item.tsx(21,23): error TS2307: Cannot find module '@/hooks/use-toast' or its corresponding type declarations.
 src/components/features/comments/comment-item.tsx(343,70): error TS18046: 'count' is of type 'unknown'.
 src/components/features/comments/comment-item.tsx(347,27): error TS2322: Type 'unknown' is not assignable to type 'ReactNode'.
 src/components/features/comments/comment-item.tsx(411,73): error TS7006: Parameter 'reply' implicitly has an 'any' type.
-src/components/features/comments/comment-thread.tsx(9,26): error TS2307: Cannot find module '@/components/ui/skeleton' or its corresponding type declarations.
-src/components/features/comments/comment-thread.tsx(75,10): error TS2345: Argument of type '"comment.created"' is not assignable to parameter of type 'keyof ServerToClientEvents'.
-src/components/features/comments/comment-thread.tsx(98,10): error TS2345: Argument of type '"comment.updated"' is not assignable to parameter of type 'keyof ServerToClientEvents'.
 src/components/features/comments/comment-thread.tsx(109,41): error TS7006: Parameter 'comment' implicitly has an 'any' type.
-src/components/features/comments/comment-thread.tsx(122,10): error TS2345: Argument of type '"comment.deleted"' is not assignable to parameter of type 'keyof ServerToClientEvents'.
 src/components/features/comments/comment-thread.tsx(133,44): error TS7006: Parameter 'comment' implicitly has an 'any' type.
-src/components/features/comments/comment-thread.tsx(142,10): error TS2345: Argument of type '"comment.typing"' is not assignable to parameter of type 'keyof ServerToClientEvents'.
 src/components/features/comments/mention-suggestions.tsx(25,7): error TS2769: No overload matches this call.
   Overload 1 of 2, '(input: { query: string; type?: "mentions" | "all" | "creators" | undefined; limit?: number | undefined; excludeIds?: string[] | undefined; } | typeof skipToken, opts: DefinedUseTRPCQueryOptions<any, any, TRPCClientErrorLike<...>, any>): DefinedUseTRPCQueryResult<...>', gave the following error.
     Object literal may only specify known properties, and 'keepPreviousData' does not exist in type 'DefinedUseTRPCQueryOptions<any, any, TRPCClientErrorLike<{ errorShape: { data: { zodError: typeToFlattenedError<any, string> | null; code: "PARSE_ERROR" | "BAD_REQUEST" | "INTERNAL_SERVER_ERROR" | ... 16 more ... | "CLIENT_CLOSED_REQUEST"; httpStatus: number; path?: string | undefined; stack?: string | undefined; };...'.
@@ -133,21 +220,15 @@ src/components/features/comments/reaction-picker.tsx(192,30): error TS2339: Prop
 src/components/features/comments/reaction-picker.tsx(246,61): error TS2339: Property 'filled' does not exist on type '{ icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>; label: string; color: string; bgColor: string; animation: string; } | ... 7 more ... | { ...; }'.
   Property 'filled' does not exist on type '{ icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>; label: string; color: string; bgColor: string; animation: string; }'.
 src/components/features/editor/rich-text-editor.tsx(11,10): error TS2305: Module '"lowlight"' has no exported member 'lowlight'.
-src/components/features/editor/rich-text-editor.tsx(13,24): error TS2307: Cannot find module '@/components/ui/toggle' or its corresponding type declarations.
-src/components/features/gamification/achievement-details-modal.tsx(41,36): error TS2724: '"@/lib/utils"' has no exported member named 'formatRelativeTime'. Did you mean 'formatRelativeDate'?
-src/components/features/gamification/achievement-details-modal.tsx(42,23): error TS2307: Cannot find module '@/hooks/use-toast' or its corresponding type declarations.
 src/components/features/gamification/achievement-details-modal.tsx(396,39): error TS2339: Property 'badgeId' does not exist on type '{ stats: { totalUnlocked: number; completionRate: number; firstUnlockedBy: { id: string; username: string; } | undefined; avgTimeToUnlock: any; unlockRate: number; }; _count: { userAchievements: number; }; ... 29 more ...; maxAchievers: number | null; }'.
 src/components/features/gamification/achievement-details-modal.tsx(517,37): error TS2339: Property 'tips' does not exist on type '{ stats: { totalUnlocked: number; completionRate: number; firstUnlockedBy: { id: string; username: string; } | undefined; avgTimeToUnlock: any; unlockRate: number; }; _count: { userAchievements: number; }; ... 29 more ...; maxAchievers: number | null; }'.
 src/components/features/gamification/achievement-details-modal.tsx(521,42): error TS2339: Property 'tips' does not exist on type '{ stats: { totalUnlocked: number; completionRate: number; firstUnlockedBy: { id: string; username: string; } | undefined; avgTimeToUnlock: any; unlockRate: number; }; _count: { userAchievements: number; }; ... 29 more ...; maxAchievers: number | null; }'.
-src/components/features/post/post-card.tsx(35,23): error TS2307: Cannot find module '@/hooks/use-toast' or its corresponding type declarations.
 src/components/features/post/post-card.tsx(65,20): error TS7006: Parameter 'prev' implicitly has an 'any' type.
 src/components/features/post/post-card.tsx(69,20): error TS7006: Parameter 'prev' implicitly has an 'any' type.
 src/components/features/post/post-card.tsx(81,20): error TS7006: Parameter 'prev' implicitly has an 'any' type.
 src/components/features/post/post-card.tsx(85,20): error TS7006: Parameter 'prev' implicitly has an 'any' type.
 src/components/features/post/post-card.tsx(309,42): error TS7006: Parameter 'tag' implicitly has an 'any' type.
 src/components/features/post/post-card.tsx(321,24): error TS2322: Type '"ghost"' is not assignable to type '"secondary" | "destructive" | "default" | "outline" | null | undefined'.
-src/components/features/youtube/youtube-embed.tsx(9,26): error TS2307: Cannot find module '@/components/ui/skeleton' or its corresponding type declarations.
-src/components/features/youtube/youtube-embed.tsx(23,24): error TS2614: Module '"@/lib/utils"' has no exported member 'formatDuration'. Did you mean to use 'import formatDuration from "@/lib/utils"' instead?
 src/components/features/youtube/youtube-embed.tsx(85,32): error TS2339: Property 'YT' does not exist on type 'Window & typeof globalThis'.
 src/components/features/youtube/youtube-embed.tsx(87,31): error TS2339: Property 'YT' does not exist on type 'Window & typeof globalThis'.
 src/components/features/youtube/youtube-embed.tsx(105,37): error TS2339: Property 'YT' does not exist on type 'Window & typeof globalThis'.
@@ -155,46 +236,25 @@ src/components/features/youtube/youtube-embed.tsx(108,44): error TS2339: Propert
 src/components/features/youtube/youtube-embed.tsx(111,44): error TS2339: Property 'YT' does not exist on type 'Window & typeof globalThis'.
 src/components/features/youtube/youtube-embed.tsx(135,37): error TS2339: Property 'YT' does not exist on type 'Window & typeof globalThis'.
 src/components/features/youtube/youtube-embed.tsx(136,29): error TS2339: Property 'YT' does not exist on type 'Window & typeof globalThis'.
-src/components/features/youtube/youtube-embed.tsx(361,33): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
-  Type 'undefined' is not assignable to type 'number'.
-src/components/features/youtube/youtube-embed.tsx(365,33): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
-  Type 'undefined' is not assignable to type 'number'.
 src/components/features/youtube/youtube-embed.tsx(388,24): error TS2322: Type '"ghost"' is not assignable to type '"secondary" | "destructive" | "default" | "outline" | null | undefined'.
 src/components/features/youtube/youtube-embed.tsx(408,46): error TS2339: Property 'YT' does not exist on type 'Window & typeof globalThis'.
 src/components/features/youtube/youtube-embed.tsx(412,3): error TS18048: 'firstScriptTag' is possibly 'undefined'.
 src/components/features/youtube/youtube-embed.tsx(412,48): error TS2345: Argument of type 'HTMLScriptElement | undefined' is not assignable to parameter of type 'Node | null'.
   Type 'undefined' is not assignable to type 'Node | null'.
-src/components/providers/admin-provider.tsx(65,35): error TS2345: Argument of type '"admin:notification"' is not assignable to parameter of type 'keyof ServerToClientEvents'.
+src/components/ui/emoji-picker.tsx(8,8): error TS2307: Cannot find module '@/components/ui/popover' or its corresponding type declarations.
+src/components/ui/emoji-picker.tsx(162,12): error TS2339: Property 'custom' does not exist on type '{ recent: { label: string; icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>; emojis: string[]; }; ... 4 more ...; objects: { ...; }; }'.
 src/hooks/use-auth.ts(68,13): error TS2741: Property 'SYSTEM' is missing in type '{ USER: number; CREATOR: number; VERIFIED_CREATOR: number; MODERATOR: number; ADMIN: number; }' but required in type 'Record<UserRole, number>'.
-src/hooks/use-socket.ts(8,23): error TS2307: Cannot find module './use-toast' or its corresponding type declarations.
-src/hooks/use-socket.ts(295,35): error TS2345: Argument of type 'ServerToClientEvents[K]' is not assignable to parameter of type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never>'.
-  Type '((error: { message: string; code?: string | undefined; }) => void) | (() => void) | ((notification: { data: JsonValue; type: NotificationType; id: string; message: string; title: string; ... 18 more ...; dismissedAt: Date | null; }) => void) | ... 24 more ... | ((message: string) => void)' is not assignable to type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never>'.
-    Type '(error: { message: string; code?: string | undefined; }) => void' is not assignable to type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never>'.
-src/hooks/use-socket.ts(301,37): error TS2345: Argument of type 'ServerToClientEvents[K]' is not assignable to parameter of type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never> | undefined'.
-  Type '((error: { message: string; code?: string | undefined; }) => void) | (() => void) | ((notification: { data: JsonValue; type: NotificationType; id: string; message: string; title: string; ... 18 more ...; dismissedAt: Date | null; }) => void) | ... 24 more ... | ((message: string) => void)' is not assignable to type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never> | undefined'.
-    Type '(error: { message: string; code?: string | undefined; }) => void' is not assignable to type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never>'.
-      Type 'ServerToClientEvents[K]' is not assignable to type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never>'.
-        Type '((error: { message: string; code?: string | undefined; }) => void) | (() => void) | ((notification: { data: JsonValue; type: NotificationType; id: string; message: string; title: string; ... 18 more ...; dismissedAt: Date | null; }) => void) | ... 24 more ... | ((message: string) => void)' is not assignable to type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never>'.
-          Type '(error: { message: string; code?: string | undefined; }) => void' is not assignable to type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never>'.
-src/hooks/use-socket.ts(311,37): error TS2345: Argument of type 'ServerToClientEvents[K]' is not assignable to parameter of type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never>'.
-  Type '((error: { message: string; code?: string | undefined; }) => void) | (() => void) | ((notification: { data: JsonValue; type: NotificationType; id: string; message: string; title: string; ... 18 more ...; dismissedAt: Date | null; }) => void) | ... 24 more ... | ((message: string) => void)' is not assignable to type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never>'.
-    Type '(error: { message: string; code?: string | undefined; }) => void' is not assignable to type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never>'.
-src/hooks/use-socket.ts(315,37): error TS2345: Argument of type 'ServerToClientEvents[K]' is not assignable to parameter of type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never> | undefined'.
-  Type '((error: { message: string; code?: string | undefined; }) => void) | (() => void) | ((notification: { data: JsonValue; type: NotificationType; id: string; message: string; title: string; ... 18 more ...; dismissedAt: Date | null; }) => void) | ... 24 more ... | ((message: string) => void)' is not assignable to type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never> | undefined'.
-    Type '(error: { message: string; code?: string | undefined; }) => void' is not assignable to type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never>'.
-      Type 'ServerToClientEvents[K]' is not assignable to type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never>'.
-        Type '((error: { message: string; code?: string | undefined; }) => void) | (() => void) | ((notification: { data: JsonValue; type: NotificationType; id: string; message: string; title: string; ... 18 more ...; dismissedAt: Date | null; }) => void) | ... 24 more ... | ((message: string) => void)' is not assignable to type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never>'.
-          Type '(error: { message: string; code?: string | undefined; }) => void' is not assignable to type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never>'.
-src/hooks/use-socket.ts(326,37): error TS2345: Argument of type 'ServerToClientEvents[K]' is not assignable to parameter of type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never> | undefined'.
-  Type '((error: { message: string; code?: string | undefined; }) => void) | (() => void) | ((notification: { data: JsonValue; type: NotificationType; id: string; message: string; title: string; ... 18 more ...; dismissedAt: Date | null; }) => void) | ... 24 more ... | ((message: string) => void)' is not assignable to type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never> | undefined'.
-    Type '(error: { message: string; code?: string | undefined; }) => void' is not assignable to type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never>'.
-      Type 'ServerToClientEvents[K]' is not assignable to type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never>'.
-        Type '((error: { message: string; code?: string | undefined; }) => void) | (() => void) | ((notification: { data: JsonValue; type: NotificationType; id: string; message: string; title: string; ... 18 more ...; dismissedAt: Date | null; }) => void) | ... 24 more ... | ((message: string) => void)' is not assignable to type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never>'.
-          Type '(error: { message: string; code?: string | undefined; }) => void' is not assignable to type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never>'.
-src/hooks/use-socket.ts(586,28): error TS2554: Expected 1 arguments, but got 0.
+src/hooks/use-socket.ts(252,54): error TS2554: Expected 1 arguments, but got 2.
+src/hooks/use-socket.ts(460,28): error TS2554: Expected 1 arguments, but got 0.
 src/lib/api.ts(7,28): error TS2552: Cannot find name 'inferRouterInputs'. Did you mean 'RouterInputs'?
 src/lib/api.ts(8,29): error TS2552: Cannot find name 'inferRouterOutputs'. Did you mean 'RouterOutputs'?
-src/lib/auth/auth.config.ts(3,31): error TS2307: Cannot find module '@auth/prisma-adapter' or its corresponding type declarations.
+src/lib/auth/auth.config.ts(38,3): error TS2322: Type 'import("/Home1/test2/node_modules/@auth/prisma-adapter/node_modules/@auth/core/adapters").Adapter' is not assignable to type 'import("/Home1/test2/node_modules/next-auth/adapters").Adapter'.
+  Types of property 'getUser' are incompatible.
+    Type '((id: string) => import("/Home1/test2/node_modules/@auth/prisma-adapter/node_modules/@auth/core/types").Awaitable<import("/Home1/test2/node_modules/@auth/prisma-adapter/node_modules/@auth/core/adapters").AdapterUser | null>) | undefined' is not assignable to type '((id: string) => import("/Home1/test2/node_modules/next-auth/core/types").Awaitable<import("/Home1/test2/node_modules/next-auth/adapters").AdapterUser | null>) | undefined'.
+      Type '(id: string) => import("/Home1/test2/node_modules/@auth/prisma-adapter/node_modules/@auth/core/types").Awaitable<import("/Home1/test2/node_modules/@auth/prisma-adapter/node_modules/@auth/core/adapters").AdapterUser | null>' is not assignable to type '(id: string) => import("/Home1/test2/node_modules/next-auth/core/types").Awaitable<import("/Home1/test2/node_modules/next-auth/adapters").AdapterUser | null>'.
+        Type 'import("/Home1/test2/node_modules/@auth/prisma-adapter/node_modules/@auth/core/types").Awaitable<import("/Home1/test2/node_modules/@auth/prisma-adapter/node_modules/@auth/core/adapters").AdapterUser | null>' is not assignable to type 'import("/Home1/test2/node_modules/next-auth/core/types").Awaitable<import("/Home1/test2/node_modules/next-auth/adapters").AdapterUser | null>'.
+          Type 'AdapterUser' is not assignable to type 'Awaitable<AdapterUser | null>'.
+            Type 'AdapterUser' is missing the following properties from type 'AdapterUser': username, role
 src/lib/auth/auth.ts(74,7): error TS2741: Property 'SYSTEM' is missing in type '{ USER: number; CREATOR: number; VERIFIED_CREATOR: number; MODERATOR: number; ADMIN: number; }' but required in type 'Record<UserRole, number>'.
 src/lib/db.ts(51,4): error TS2339: Property '$use' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
 src/lib/db.ts(51,16): error TS7006: Parameter 'params' implicitly has an 'any' type.
@@ -225,53 +285,53 @@ src/lib/rate-limit.ts(33,25): error TS18048: 'config' is possibly 'undefined'.
 src/lib/rate-limit.ts(34,14): error TS18048: 'config' is possibly 'undefined'.
 src/lib/rate-limit.ts(43,38): error TS18048: 'config' is possibly 'undefined'.
 src/lib/rate-limit.ts(46,11): error TS2304: Cannot find name 'redis'.
-src/lib/redis.ts(65,9): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+src/lib/redis.ts(74,9): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
   Type 'undefined' is not assignable to type 'string'.
-src/lib/redis.ts(66,27): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+src/lib/redis.ts(75,27): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
   Type 'undefined' is not assignable to type 'string'.
-src/lib/security.ts(38,19): error TS2532: Object is possibly 'undefined'.
-src/lib/security.ts(77,26): error TS2769: No overload matches this call.
+src/lib/security.ts(7,23): error TS2307: Cannot find module 'speakeasy' or its corresponding type declarations.
+src/lib/security.ts(8,20): error TS2307: Cannot find module 'qrcode' or its corresponding type declarations.
+src/lib/security.ts(56,19): error TS2532: Object is possibly 'undefined'.
+src/lib/security.ts(183,26): error TS2769: No overload matches this call.
   Overload 1 of 4, '(arrayBuffer: WithImplicitCoercion<ArrayBufferLike>, byteOffset?: number | undefined, length?: number | undefined): Buffer<ArrayBufferLike>', gave the following error.
     Argument of type 'string | undefined' is not assignable to parameter of type 'WithImplicitCoercion<ArrayBufferLike>'.
       Type 'undefined' is not assignable to type 'WithImplicitCoercion<ArrayBufferLike>'.
   Overload 2 of 4, '(string: WithImplicitCoercion<string>, encoding?: BufferEncoding | undefined): Buffer<ArrayBuffer>', gave the following error.
     Argument of type 'string | undefined' is not assignable to parameter of type 'WithImplicitCoercion<string>'.
       Type 'undefined' is not assignable to type 'WithImplicitCoercion<string>'.
-src/lib/security.ts(78,31): error TS2769: No overload matches this call.
+src/lib/security.ts(184,31): error TS2769: No overload matches this call.
   Overload 1 of 4, '(arrayBuffer: WithImplicitCoercion<ArrayBufferLike>, byteOffset?: number | undefined, length?: number | undefined): Buffer<ArrayBufferLike>', gave the following error.
     Argument of type 'string | undefined' is not assignable to parameter of type 'WithImplicitCoercion<ArrayBufferLike>'.
       Type 'undefined' is not assignable to type 'WithImplicitCoercion<ArrayBufferLike>'.
   Overload 2 of 4, '(string: WithImplicitCoercion<string>, encoding?: BufferEncoding | undefined): Buffer<ArrayBuffer>', gave the following error.
     Argument of type 'string | undefined' is not assignable to parameter of type 'WithImplicitCoercion<string>'.
       Type 'undefined' is not assignable to type 'WithImplicitCoercion<string>'.
-src/lib/security.ts(84,35): error TS2769: No overload matches this call.
+src/lib/security.ts(190,35): error TS2769: No overload matches this call.
   Overload 1 of 4, '(data: ArrayBufferView<ArrayBufferLike>, inputEncoding: undefined, outputEncoding: Encoding): string', gave the following error.
     Argument of type 'string | undefined' is not assignable to parameter of type 'ArrayBufferView<ArrayBufferLike>'.
       Type 'undefined' is not assignable to type 'ArrayBufferView<ArrayBufferLike>'.
   Overload 2 of 4, '(data: string, inputEncoding: Encoding | undefined, outputEncoding: Encoding): string', gave the following error.
     Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
       Type 'undefined' is not assignable to type 'string'.
-src/lib/security.ts(85,3): error TS2322: Type 'string' is not assignable to type 'Buffer<ArrayBufferLike> & string'.
+src/lib/security.ts(191,3): error TS2322: Type 'string' is not assignable to type 'Buffer<ArrayBufferLike> & string'.
   Type 'string' is not assignable to type 'Buffer<ArrayBufferLike>'.
-src/lib/security.ts(113,12): error TS2532: Object is possibly 'undefined'.
-src/lib/socket/socket-server.ts(4,23): error TS7016: Could not find a declaration file for module 'cookie'. '/Home1/test/node_modules/cookie/index.js' implicitly has an 'any' type.
-  Try `npm i --save-dev @types/cookie` if it exists or add a new declaration (.d.ts) file containing `declare module 'cookie';`
-src/lib/socket/socket-server.ts(7,17): error TS2614: Module '"@/lib/redis"' has no exported member 'redisPub'. Did you mean to use 'import redisPub from "@/lib/redis"' instead?
-src/lib/socket/socket-server.ts(7,27): error TS2614: Module '"@/lib/redis"' has no exported member 'redisSub'. Did you mean to use 'import redisSub from "@/lib/redis"' instead?
+src/lib/security.ts(254,9): error TS2353: Object literal may only specify known properties, and 'timestamp' does not exist in type 'Without<LoginHistoryCreateInput, LoginHistoryUncheckedCreateInput> & LoginHistoryUncheckedCreateInput'.
+src/lib/security.ts(310,9): error TS2353: Object literal may only specify known properties, and 'message' does not exist in type 'Without<SecurityAlertCreateInput, SecurityAlertUncheckedCreateInput> & SecurityAlertUncheckedCreateInput'.
+src/lib/security.ts(396,12): error TS2532: Object is possibly 'undefined'.
 src/lib/socket/socket-server.ts(630,43): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
   Type 'undefined' is not assignable to type 'string'.
 src/lib/socket/socket-server.ts(652,5): error TS2322: Type '(string | undefined)[]' is not assignable to type 'string[]'.
   Type 'string | undefined' is not assignable to type 'string'.
     Type 'undefined' is not assignable to type 'string'.
-src/lib/utils.ts(196,16): error TS2322: Type 'string | undefined' is not assignable to type 'string | null'.
+src/lib/utils.ts(249,16): error TS2322: Type 'string | undefined' is not assignable to type 'string | null'.
   Type 'undefined' is not assignable to type 'string | null'.
-src/lib/utils.ts(318,16): error TS2532: Object is possibly 'undefined'.
-src/lib/utils.ts(361,12): error TS2532: Object is possibly 'undefined'.
-src/lib/utils.ts(450,12): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+src/lib/utils.ts(379,16): error TS2532: Object is possibly 'undefined'.
+src/lib/utils.ts(426,12): error TS2532: Object is possibly 'undefined'.
+src/lib/utils.ts(519,12): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
   Type 'undefined' is not assignable to type 'string'.
-src/lib/utils.ts(450,28): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+src/lib/utils.ts(519,28): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
   Type 'undefined' is not assignable to type 'string'.
-src/lib/utils.ts(661,3): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+src/lib/utils.ts(730,3): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
   Type 'undefined' is not assignable to type 'string'.
 src/middleware.ts(4,10): error TS2724: '"@/lib/rate-limit"' has no exported member named 'rateLimit'. Did you mean 'ratelimit'?
 src/middleware.ts(4,21): error TS2305: Module '"@/lib/rate-limit"' has no exported member 'rateLimitConfigs'.
@@ -361,8 +421,7 @@ src/server/services/post.service.ts(881,33): error TS2353: Object literal may on
 src/server/services/post.service.ts(1096,57): error TS2345: Argument of type '{ type: "USER_POSTED"; userId: string; actorId: any; entityId: any; entityType: string; message: string; title: string; }' is not assignable to parameter of type '{ type: NotificationType; userId: string; actorId?: string | undefined; entityId?: string | undefined; entityType?: string | undefined; title: string; message: string; data?: any; imageUrl?: string | undefined; actionUrl?: string | undefined; priority?: number | undefined; }'.
   Types of property 'type' are incompatible.
     Type '"USER_POSTED"' is not assignable to type 'NotificationType'.
-src/server/services/realtime.service.ts(6,10): error TS2614: Module '"@/lib/redis"' has no exported member 'redisClient'. Did you mean to use 'import redisClient from "@/lib/redis"' instead?
-src/server/services/search.service.ts(3,8): error TS2613: Module '"/Home1/test/node_modules/algoliasearch/dist/browser"' has no default export. Did you mean to use 'import { algoliasearch } from "/Home1/test/node_modules/algoliasearch/dist/browser"' instead?
+src/server/services/search.service.ts(3,8): error TS2613: Module '"/Home1/test2/node_modules/algoliasearch/dist/browser"' has no default export. Did you mean to use 'import { algoliasearch } from "/Home1/test2/node_modules/algoliasearch/dist/browser"' instead?
 src/server/services/search.service.ts(3,39): error TS2305: Module '"algoliasearch"' has no exported member 'SearchIndex'.
 src/server/services/search.service.ts(56,23): error TS2531: Object is possibly 'null'.
 src/server/services/search.service.ts(56,42): error TS2339: Property 'initIndex' does not exist on type '{ transporter: Transporter; appId: string; apiKey: string; clearCache(): Promise<void>; readonly _ua: string; addAlgoliaAgent(segment: string, version?: string | undefined): void; ... 76 more ...; updateApiKey({ key, apiKey }: UpdateApiKeyProps, requestOptions?: RequestOptions | undefined): Promise<...>; }'.
@@ -415,10 +474,8 @@ src/server/services/youtube.service.ts(683,48): error TS2345: Argument of type '
   Type 'null' is not assignable to type 'string | undefined'.
 src/server/services/youtube.service.ts(888,10): error TS2300: Duplicate identifier 'PrismaClient'.
 src/server/services/youtube.service.ts(889,10): error TS2300: Duplicate identifier 'TRPCError'.
-src/server/services/youtube.service.ts(890,10): error TS2614: Module '"@/lib/utils"' has no exported member 'generateUniqueCode'. Did you mean to use 'import generateUniqueCode from "@/lib/utils"' instead?
 src/server/services/youtube.service.ts(1118,11): error TS2532: Object is possibly 'undefined'.
-src/server/websocket/socket.server.ts(4,23): error TS7016: Could not find a declaration file for module 'cookie'. '/Home1/test/node_modules/cookie/index.js' implicitly has an 'any' type.
-  Try `npm i --save-dev @types/cookie` if it exists or add a new declaration (.d.ts) file containing `declare module 'cookie';`
+src/server/services/youtube.service.ts(1177,33): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
 src/server/websocket/socket.server.ts(7,10): error TS2724: '"@/lib/rate-limit"' has no exported member named 'RateLimiter'. Did you mean 'ratelimit'?
 src/server/websocket/socket.server.ts(319,9): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
   Type 'undefined' is not assignable to type 'string'.
@@ -427,40 +484,51 @@ src/server/websocket/socket.server.ts(328,11): error TS2345: Argument of type 's
 src/server/websocket/socket.server.ts(351,9): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
   Type 'undefined' is not assignable to type 'string'.
 src/server/websocket/socket.server.ts(596,24): error TS2532: Object is possibly 'undefined'.
-src/server/websocket/socket.server.ts(781,31): error TS2345: Argument of type '"collab:cursor"' is not assignable to parameter of type '"error" | "post:created" | "post:updated" | "post:deleted" | "post:liked" | "comment:created" | "comment:updated" | "comment:deleted" | "reconnect" | "user:online" | "user:offline" | ... 12 more ... | "watchParty:message"'.
-src/server/websocket/socket.server.ts(814,31): error TS2345: Argument of type '"collab:change"' is not assignable to parameter of type '"error" | "post:created" | "post:updated" | "post:deleted" | "post:liked" | "comment:created" | "comment:updated" | "comment:deleted" | "reconnect" | "user:online" | "user:offline" | ... 12 more ... | "watchParty:message"'.
+src/server/websocket/socket.server.ts(781,31): error TS2345: Argument of type '"collab:cursor"' is not assignable to parameter of type '"error" | "post:created" | "post:updated" | "post:deleted" | "post:liked" | "comment:created" | "comment:updated" | "comment:deleted" | "reconnect" | "comment:typing" | "user:online" | ... 12 more ... | "watchParty:playbackSync"'.
+src/server/websocket/socket.server.ts(814,31): error TS2345: Argument of type '"collab:change"' is not assignable to parameter of type '"error" | "post:created" | "post:updated" | "post:deleted" | "post:liked" | "comment:created" | "comment:updated" | "comment:deleted" | "reconnect" | "comment:typing" | "user:online" | ... 12 more ... | "watchParty:playbackSync"'.
 src/server/websocket/socket.server.ts(911,31): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
   Type 'undefined' is not assignable to type 'string'.
 src/server/websocket/socket.server.ts(956,9): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
   Type 'undefined' is not assignable to type 'string'.
-src/services/auth.service.ts(3,17): error TS2614: Module '"@/lib/redis"' has no exported member 'redisHelpers'. Did you mean to use 'import redisHelpers from "@/lib/redis"' instead?
-src/services/auth.service.ts(8,3): error TS2305: Module '"@/lib/security"' has no exported member 'generateVerificationCode'.
-src/services/auth.service.ts(9,3): error TS2305: Module '"@/lib/security"' has no exported member 'trackLoginAttempt'.
-src/services/auth.service.ts(10,3): error TS2305: Module '"@/lib/security"' has no exported member 'createSecurityAlert'.
-src/services/auth.service.ts(11,3): error TS2305: Module '"@/lib/security"' has no exported member 'twoFactorAuth'.
-src/services/auth.service.ts(12,3): error TS2305: Module '"@/lib/security"' has no exported member 'generateCorrelationId'.
-src/services/auth.service.ts(13,3): error TS2305: Module '"@/lib/security"' has no exported member 'generateRequestId'.
+src/services/auth.service.ts(193,38): error TS2345: Argument of type 'string' is not assignable to parameter of type 'boolean'.
+src/services/auth.service.ts(239,45): error TS2339: Property 'decryptSecret' does not exist on type '{ generateSecret(email: string): { secret: string; qrCode: Promise<string>; backupCodes: string[]; }; verifyToken(secret: string, token: string): boolean; generateBackupCodes(): string[]; }'.
+src/services/auth.service.ts(264,11): error TS2554: Expected 1 arguments, but got 5.
+src/services/auth.service.ts(273,36): error TS2345: Argument of type 'string' is not assignable to parameter of type 'boolean'.
 src/services/auth.service.ts(289,50): error TS2554: Expected 0-1 arguments, but got 2.
+src/services/auth.service.ts(300,24): error TS2339: Property 'session' does not exist on type '{ getJSON<T>(key: string): Promise<T | null>; setJSON<T>(key: string, value: T, ttl?: number | undefined): Promise<void>; incrementWithExpiry(key: string, ttl: number): Promise<...>; ... 24 more ...; ping(): Promise<...>; }'.
 src/services/auth.service.ts(313,67): error TS2353: Object literal may only specify known properties, and 'correlationId' does not exist in type '{ userId: string; ipAddress: string; }'.
+src/services/auth.service.ts(343,47): error TS2339: Property 'generateQRCode' does not exist on type '{ generateSecret(email: string): { secret: string; qrCode: Promise<string>; backupCodes: string[]; }; verifyToken(secret: string, token: string): boolean; generateBackupCodes(): string[]; }'.
+src/services/auth.service.ts(346,59): error TS2554: Expected 0 arguments, but got 1.
+src/services/auth.service.ts(349,43): error TS2339: Property 'encryptSecret' does not exist on type '{ generateSecret(email: string): { secret: string; qrCode: Promise<string>; backupCodes: string[]; }; verifyToken(secret: string, token: string): boolean; generateBackupCodes(): string[]; }'.
+src/services/auth.service.ts(388,43): error TS2339: Property 'decryptSecret' does not exist on type '{ generateSecret(email: string): { secret: string; qrCode: Promise<string>; backupCodes: string[]; }; verifyToken(secret: string, token: string): boolean; generateBackupCodes(): string[]; }'.
+src/services/auth.service.ts(411,7): error TS2554: Expected 1 arguments, but got 5.
 src/services/auth.service.ts(417,23): error TS2345: Argument of type '"auth:2faEnabled"' is not assignable to parameter of type 'keyof SystemEvents'.
+src/services/auth.service.ts(455,43): error TS2339: Property 'decryptSecret' does not exist on type '{ generateSecret(email: string): { secret: string; qrCode: Promise<string>; backupCodes: string[]; }; verifyToken(secret: string, token: string): boolean; generateBackupCodes(): string[]; }'.
+src/services/auth.service.ts(475,7): error TS2554: Expected 1 arguments, but got 5.
 src/services/auth.service.ts(481,23): error TS2345: Argument of type '"auth:2faDisabled"' is not assignable to parameter of type 'keyof SystemEvents'.
+src/services/auth.service.ts(494,41): error TS2339: Property 'incrWithExpire' does not exist on type '{ getJSON<T>(key: string): Promise<T | null>; setJSON<T>(key: string, value: T, ttl?: number | undefined): Promise<void>; incrementWithExpiry(key: string, ttl: number): Promise<...>; ... 24 more ...; ping(): Promise<...>; }'.
+src/services/auth.service.ts(499,36): error TS2345: Argument of type 'string' is not assignable to parameter of type 'boolean'.
+src/services/auth.service.ts(525,9): error TS2554: Expected 1 arguments, but got 5.
 src/services/auth.service.ts(563,55): error TS2353: Object literal may only specify known properties, and 'correlationId' does not exist in type '{ userId: string; }'.
-src/services/auth.service.ts(585,13): error TS2339: Property 'canRequestPasswordReset' does not exist on type 'typeof import("/Home1/test/src/lib/security")'.
 src/services/auth.service.ts(592,48): error TS2554: Expected 0-1 arguments, but got 2.
 src/services/auth.service.ts(627,23): error TS2345: Argument of type '"auth:passwordResetRequested"' is not assignable to parameter of type 'keyof SystemEvents'.
-src/services/auth.service.ts(645,13): error TS2339: Property 'validatePasswordStrength' does not exist on type 'typeof import("/Home1/test/src/lib/security")'.
+src/services/auth.service.ts(676,26): error TS2339: Property 'session' does not exist on type '{ getJSON<T>(key: string): Promise<T | null>; setJSON<T>(key: string, value: T, ttl?: number | undefined): Promise<void>; incrementWithExpiry(key: string, ttl: number): Promise<...>; ... 24 more ...; ping(): Promise<...>; }'.
+src/services/auth.service.ts(686,7): error TS2554: Expected 1 arguments, but got 5.
 src/services/auth.service.ts(694,7): error TS2353: Object literal may only specify known properties, and 'correlationId' does not exist in type '{ userId: string; }'.
+src/services/auth.service.ts(703,44): error TS2339: Property 'session' does not exist on type '{ getJSON<T>(key: string): Promise<T | null>; setJSON<T>(key: string, value: T, ttl?: number | undefined): Promise<void>; incrementWithExpiry(key: string, ttl: number): Promise<...>; ... 24 more ...; ping(): Promise<...>; }'.
+src/services/auth.service.ts(706,24): error TS2339: Property 'session' does not exist on type '{ getJSON<T>(key: string): Promise<T | null>; setJSON<T>(key: string, value: T, ttl?: number | undefined): Promise<void>; incrementWithExpiry(key: string, ttl: number): Promise<...>; ... 24 more ...; ping(): Promise<...>; }'.
 src/services/auth.service.ts(717,7): error TS2353: Object literal may only specify known properties, and 'userId' does not exist in type '{ sessionToken: string; }'.
-src/services/email.service.ts(3,24): error TS2307: Cannot find module '@react-email/render' or its corresponding type declarations.
-src/services/email.service.ts(5,17): error TS2614: Module '"@/lib/redis"' has no exported member 'redisHelpers'. Did you mean to use 'import redisHelpers from "@/lib/redis"' instead?
+src/services/auth.service.ts(724,44): error TS2339: Property 'session' does not exist on type '{ getJSON<T>(key: string): Promise<T | null>; setJSON<T>(key: string, value: T, ttl?: number | undefined): Promise<void>; incrementWithExpiry(key: string, ttl: number): Promise<...>; ... 24 more ...; ping(): Promise<...>; }'.
+src/services/auth.service.ts(738,26): error TS2339: Property 'session' does not exist on type '{ getJSON<T>(key: string): Promise<T | null>; setJSON<T>(key: string, value: T, ttl?: number | undefined): Promise<void>; incrementWithExpiry(key: string, ttl: number): Promise<...>; ... 24 more ...; ping(): Promise<...>; }'.
+src/services/auth.service.ts(749,24): error TS2339: Property 'session' does not exist on type '{ getJSON<T>(key: string): Promise<T | null>; setJSON<T>(key: string, value: T, ttl?: number | undefined): Promise<void>; incrementWithExpiry(key: string, ttl: number): Promise<...>; ... 24 more ...; ping(): Promise<...>; }'.
 src/services/email.service.ts(115,71): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'LogContext | undefined'.
+src/services/email.service.ts(307,34): error TS2345: Argument of type 'Promise<string>' is not assignable to parameter of type 'string'.
+src/services/email.service.ts(309,14): error TS2322: Type 'Promise<string>' is not assignable to type 'string'.
 src/services/email.service.ts(340,23): error TS2345: Argument of type '"email:sent"' is not assignable to parameter of type 'keyof SystemEvents'.
 src/services/email.service.ts(533,20): error TS2353: Object literal may only specify known properties, and 'likes' does not exist in type 'PostOrderByWithRelationInput | PostOrderByWithRelationInput[]'.
-src/services/notification.service.ts(3,17): error TS2614: Module '"@/lib/redis"' has no exported member 'redisHelpers'. Did you mean to use 'import redisHelpers from "@/lib/redis"' instead?
 src/services/notification.service.ts(187,18): error TS7053: Element implicitly has an 'any' type because expression of type 'NotificationType' can't be used to index type '{ SYSTEM: number; ACHIEVEMENT_UNLOCKED: number; LEVEL_UP: number; CONTENT_FEATURED: number; MILESTONE_REACHED: number; default: number; }'.
   Property 'POST_LIKED' does not exist on type '{ SYSTEM: number; ACHIEVEMENT_UNLOCKED: number; LEVEL_UP: number; CONTENT_FEATURED: number; MILESTONE_REACHED: number; default: number; }'.
 src/services/notification.service.ts(286,34): error TS2532: Object is possibly 'undefined'.
-src/services/upload.service.ts(3,17): error TS2614: Module '"@/lib/redis"' has no exported member 'redisHelpers'. Did you mean to use 'import redisHelpers from "@/lib/redis"' instead?
 src/services/upload.service.ts(121,25): error TS2345: Argument of type '"file:uploaded"' is not assignable to parameter of type 'keyof SystemEvents'.
 src/services/upload.service.ts(166,50): error TS2345: Argument of type 'Buffer<ArrayBufferLike> | Uint8Array<ArrayBufferLike>' is not assignable to parameter of type 'Buffer<ArrayBufferLike>'.
   Type 'Uint8Array<ArrayBufferLike>' is missing the following properties from type 'Buffer<ArrayBufferLike>': write, toJSON, equals, compare, and 66 more.
@@ -470,18 +538,16 @@ src/services/upload.service.ts(187,40): error TS2339: Property 'height' does not
   Property 'height' does not exist on type '{ quality: number; }'.
 src/services/upload.service.ts(417,12): error TS2532: Object is possibly 'undefined'.
 src/services/upload.service.ts(475,23): error TS2345: Argument of type '"upload:progress"' is not assignable to parameter of type 'keyof SystemEvents'.
-src/services/user.service.ts(3,17): error TS2614: Module '"@/lib/redis"' has no exported member 'redisHelpers'. Did you mean to use 'import redisHelpers from "@/lib/redis"' instead?
-src/services/user.service.ts(14,3): error TS2305: Module '"@/lib/security"' has no exported member 'validatePasswordStrength'.
-src/services/user.service.ts(15,3): error TS2305: Module '"@/lib/security"' has no exported member 'validateField'.
-src/services/user.service.ts(16,3): error TS2305: Module '"@/lib/security"' has no exported member 'SCHEMA_LIMITS'.
-src/services/user.service.ts(17,3): error TS2305: Module '"@/lib/security"' has no exported member 'generateCorrelationId'.
 src/services/user.service.ts(216,49): error TS2353: Object literal may only specify known properties, and 'correlationId' does not exist in type '{ user: any; }'.
+src/services/user.service.ts(330,55): error TS2339: Property 'BIO_MAX' does not exist on type '{ username: { min: number; max: number; }; password: { min: number; max: number; }; email: { max: number; }; bio: { max: number; }; postTitle: { min: number; max: number; }; postContent: { min: number; max: number; }; commentContent: { ...; }; tagName: { ...; }; groupName: { ...; }; groupDescription: { ...; }; }'.
+src/services/user.service.ts(331,52): error TS2339: Property 'BIO_MAX' does not exist on type '{ username: { min: number; max: number; }; password: { min: number; max: number; }; email: { max: number; }; bio: { max: number; }; postTitle: { min: number; max: number; }; postContent: { min: number; max: number; }; commentContent: { ...; }; tagName: { ...; }; groupName: { ...; }; groupDescription: { ...; }; }'.
 src/services/user.service.ts(385,47): error TS2353: Object literal may only specify known properties, and 'correlationId' does not exist in type '{ user: any; }'.
 src/services/user.service.ts(483,7): error TS2353: Object literal may only specify known properties, and 'correlationId' does not exist in type '{ user: any; status: string; reason?: string | undefined; }'.
 src/services/user.service.ts(624,11): error TS2353: Object literal may only specify known properties, and 'correlationId' does not exist in type '{ userId: string; oldLevel: number; newLevel: number; }'.
 src/services/user.service.ts(774,25): error TS2551: Property 'status' does not exist on type '{ id: string; username: string; image: string | null; bio: string | null; role: UserRole; verified: boolean; level: number; lastSeenAt: Date | null; createdAt: Date; profile: { ...; } | null; stats: { ...; } | null; _count: { ...; }; }'. Did you mean 'stats'?
 src/services/user.service.ts(862,49): error TS2353: Object literal may only specify known properties, and 'correlationId' does not exist in type '{ userId: string; }'.
-src/types/comment.ts(49,18): error TS2430: Interface 'CommentWithRelations' incorrectly extends interface '{ content: string; id: string; userAgent: string | null; version: number; deleted: boolean; deletedAt: Date | null; deletedBy: string | null; createdAt: Date; updatedAt: Date; ... 13 more ...; pinned: boolean; }'.
+src/types/comment.ts(49,18): error TS2430: Interface 'CommentWithRelations' incorrectly extends interface '{ content: string; userAgent: string | null; id: string; version: number; deleted: boolean; deletedAt: Date | null; deletedBy: string | null; createdAt: Date; updatedAt: Date; ... 13 more ...; pinned: boolean; }'.
   Types of property 'editHistory' are incompatible.
     Type 'EditHistoryEntry[] | undefined' is not assignable to type 'JsonValue[]'.
       Type 'undefined' is not assignable to type 'JsonValue[]'.
+src/types/index.ts(12,3): error TS2305: Module '"@prisma/client"' has no exported member 'JsonValue'.
