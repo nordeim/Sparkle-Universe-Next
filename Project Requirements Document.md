@@ -42,8 +42,8 @@
 
 ### 1.4 Technical Foundation
 
-- **Frontend**: Next.js 15.0 (App Router), TypeScript 5.3, Tailwind CSS 3.4
-- **Backend**: PostgreSQL 16, Prisma ORM 5.8.1 (v4.6 schema), tRPC 10.45.0
+- **Frontend**: Next.js 14.0 (App Router), TypeScript 5.3, Tailwind CSS 3.4
+- **Backend**: PostgreSQL 16, Prisma ORM 6.14.0 (v4.6 schema), tRPC 11.4.4
 - **Infrastructure**: Vercel Edge Functions, Redis caching, Socket.IO real-time
 - **Financial Precision**: PostgreSQL Decimal(19,4) for all monetary values
 - **Currency System**: Integer-based points (sparklePoints, premiumPoints)
@@ -405,11 +405,11 @@ Sparkle Universe is a comprehensive community platform implementing:
 ┌─────────────────────────────────────────────────────────────┐
 │                        Client Layer                           │
 ├─────────────────────────────────────────────────────────────┤
-│  Next.js 15 App │ Mobile PWA │ TypeScript 5.3 │ Tailwind 3.4│
+│  Next.js 14 App │ Mobile PWA │ TypeScript 5.3 │ Tailwind 3.4│
 └──────────────────┬──────────────────────────────────────────┘
                    │
 ┌──────────────────▼──────────────────────────────────────────┐
-│                     API Gateway (tRPC 10.45.0)               │
+│                     API Gateway (tRPC 11.4.4)               │
 ├─────────────────────────────────────────────────────────────┤
 │  Type-safe APIs │ Rate Limiting │ Auth │ Request Validation │
 └──────────────────┬──────────────────────────────────────────┘
@@ -424,7 +424,7 @@ Sparkle Universe is a comprehensive community platform implementing:
 ┌──────────────────▼──────────────────────────────────────────┐
 │                    Data Layer                                │
 ├─────────────────────────────────────────────────────────────┤
-│ PostgreSQL 16 │ Prisma 5.8.1 │ Redis │ S3 │ 126 Models     │
+│ PostgreSQL 16 │ Prisma 6.14.0 │ Redis │ S3 │ 126 Models     │
 │ pgcrypto ext  │ pg_trgm ext  │ Cache │ CDN│ v4.6 Schema    │
 └─────────────────────────────────────────────────────────────┘
 ```
