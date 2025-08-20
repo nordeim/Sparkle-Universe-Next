@@ -1,9 +1,5 @@
 # Sparkle Universe - Project Requirements Document
 
-## Version 2.0 | Date: August 2025
-
----
-
 ## Table of Contents
 
 1. [Executive Summary](#1-executive-summary)
