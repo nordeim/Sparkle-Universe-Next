@@ -75,10 +75,6 @@ Take the above as your meta instruction going forward. Always commit to maintain
 
 Now please put on your deep-thinking hat to deeply think and carefully and systematically review the project's `README.md` and PRD using line by line comparison, then give me your comprehensive assessment on what the project is all about, also highlight any inconsistencies between `README.md` and the PRD. please meticulously plan how to review and compare the two documents before proceeding cautiously.
 
-# CLAUDE.md
-
-Comprehensive guide for Claude Code when working with Sparkle-Universe-Next, a next-generation social platform with gamification, monetization, and real-time features.
-
 ## 🚀 Project Overview
 
 **Sparkle-Universe-Next** is a sophisticated social platform built for content creators and communities, featuring:
