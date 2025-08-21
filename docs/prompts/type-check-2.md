@@ -5,91 +5,108 @@ Now, put on your deep thinking hat to think deeply and thoroughly, to carefully 
 1) what node modules are missing and need to be installed
 2)  list of files giving errors and the detailed suggestion and plan to fix them
 
+---
 
 > sparkle-universe@0.1.0 type-check
 > tsc --noEmit
 
-phase1/src/lib/utils.ts(196,16): error TS2322: Type 'string | undefined' is not assignable to type 'string | null'.
-  Type 'undefined' is not assignable to type 'string | null'.
-phase1/src/lib/utils.ts(318,16): error TS2532: Object is possibly 'undefined'.
-phase1/src/lib/utils.ts(361,12): error TS2532: Object is possibly 'undefined'.
-phase1/src/lib/utils.ts(450,12): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-  Type 'undefined' is not assignable to type 'string'.
-phase1/src/lib/utils.ts(450,28): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-  Type 'undefined' is not assignable to type 'string'.
-phase1/src/lib/utils.ts(661,3): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-  Type 'undefined' is not assignable to type 'string'.
-src/app/(main)/create/page.tsx(13,23): error TS2307: Cannot find module '@/components/ui/label' or its corresponding type declarations.
-src/app/(main)/create/page.tsx(27,23): error TS2307: Cannot find module '@/hooks/use-toast' or its corresponding type declarations.
-src/app/(main)/create/page.tsx(50,5): error TS2322: Type 'Resolver<{ content: string; title: string; excerpt?: string | undefined; categoryId?: string | undefined; seriesId?: string | undefined; seriesOrder?: number | undefined; isDraft?: boolean | undefined; youtubeVideoId?: string | undefined; tags?: string[] | undefined; }, any, { ...; }>' is not assignable to type 'Resolver<{ content: string; title: string; isDraft: boolean; tags: string[]; excerpt?: string | undefined; categoryId?: string | undefined; seriesId?: string | undefined; seriesOrder?: number | undefined; youtubeVideoId?: string | undefined; }, any, { ...; }>'.
+src/app/(main)/create/page.tsx(93,5): error TS2322: Type 'Resolver<{ content: string; title: string; excerpt?: string | undefined; categoryId?: string | undefined; seriesId?: string | undefined; seriesOrder?: number | undefined; isDraft?: boolean | undefined; youtubeVideoId?: string | undefined; tags?: string[] | undefined; }, any, { ...; }>' is not assignable to type 'Resolver<{ content: string; title: string; isDraft: boolean; tags: string[]; excerpt?: string | undefined; categoryId?: string | undefined; seriesId?: string | undefined; seriesOrder?: number | undefined; youtubeVideoId?: string | undefined; }, any, { ...; }>'.
   Types of parameters 'options' and 'options' are incompatible.
     Type 'ResolverOptions<{ content: string; title: string; isDraft: boolean; tags: string[]; excerpt?: string | undefined; categoryId?: string | undefined; seriesId?: string | undefined; seriesOrder?: number | undefined; youtubeVideoId?: string | undefined; }>' is not assignable to type 'ResolverOptions<{ content: string; title: string; excerpt?: string | undefined; categoryId?: string | undefined; seriesId?: string | undefined; seriesOrder?: number | undefined; isDraft?: boolean | undefined; youtubeVideoId?: string | undefined; tags?: string[] | undefined; }>'.
       Type 'boolean | undefined' is not assignable to type 'boolean'.
         Type 'undefined' is not assignable to type 'boolean'.
-src/app/(main)/create/page.tsx(72,36): error TS2339: Property 'category' does not exist on type 'CreateTRPCReactBase<BuiltRouter<{ ctx: { session: Session | null; db: PrismaClient<PrismaClientOptions, never, DefaultArgs>; headers: Headers; req: Request | undefined; }; meta: object; errorShape: { ...; }; transformer: true; }, DecorateCreateRouterOptions<...>>, unknown> & DecorateRouterRecord<...>'.
-src/app/(main)/create/page.tsx(153,45): error TS2345: Argument of type '(data: CreatePostInput) => Promise<void>' is not assignable to parameter of type 'SubmitHandler<TFieldValues>'.
+src/app/(main)/create/page.tsx(131,46): error TS2339: Property 'getCategories' does not exist on type 'DecorateRouterRecord<{ ctx: { session: Session | null; db: DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { ...; }; }; model: { ...; }; query: {}; client: {}; ...'.
+src/app/(main)/create/page.tsx(240,36): error TS2345: Argument of type '(data: CreatePostInput) => Promise<void>' is not assignable to parameter of type 'SubmitHandler<TFieldValues>'.
   Types of parameters 'data' and 'data' are incompatible.
     Type 'TFieldValues' is not assignable to type '{ content: string; title: string; isDraft: boolean; tags: string[]; excerpt?: string | undefined; categoryId?: string | undefined; seriesId?: string | undefined; seriesOrder?: number | undefined; youtubeVideoId?: string | undefined; }'.
       Type 'FieldValues' is missing the following properties from type '{ content: string; title: string; isDraft: boolean; tags: string[]; excerpt?: string | undefined; categoryId?: string | undefined; seriesId?: string | undefined; seriesOrder?: number | undefined; youtubeVideoId?: string | undefined; }': content, title, isDraft, tags
-src/app/(main)/create/page.tsx(282,46): error TS2345: Argument of type '(data: CreatePostInput) => Promise<void>' is not assignable to parameter of type 'SubmitHandler<TFieldValues>'.
-  Types of parameters 'data' and 'data' are incompatible.
-    Type 'TFieldValues' is not assignable to type '{ content: string; title: string; isDraft: boolean; tags: string[]; excerpt?: string | undefined; categoryId?: string | undefined; seriesId?: string | undefined; seriesOrder?: number | undefined; youtubeVideoId?: string | undefined; }'.
-      Type 'FieldValues' is missing the following properties from type '{ content: string; title: string; isDraft: boolean; tags: string[]; excerpt?: string | undefined; categoryId?: string | undefined; seriesId?: string | undefined; seriesOrder?: number | undefined; youtubeVideoId?: string | undefined; }': content, title, isDraft, tags
-src/app/(main)/create/page.tsx(314,37): error TS7006: Parameter 'category' implicitly has an 'any' type.
-src/app/admin/dashboard/page.tsx(9,41): error TS2307: Cannot find module '@/components/ui/alert' or its corresponding type declarations.
-src/app/admin/dashboard/page.tsx(38,32): error TS2307: Cannot find module '@/components/admin/analytics-chart' or its corresponding type declarations.
-src/app/admin/dashboard/page.tsx(39,33): error TS2307: Cannot find module '@/components/admin/realtime-metrics' or its corresponding type declarations.
-src/app/admin/dashboard/page.tsx(40,32): error TS2307: Cannot find module '@/components/admin/recent-activity' or its corresponding type declarations.
-src/app/admin/dashboard/page.tsx(41,28): error TS2307: Cannot find module '@/components/admin/top-content' or its corresponding type declarations.
-src/app/admin/dashboard/page.tsx(42,30): error TS2307: Cannot find module '@/components/admin/system-health' or its corresponding type declarations.
-src/app/admin/dashboard/page.tsx(43,32): error TS2307: Cannot find module '@/components/admin/moderator-queue' or its corresponding type declarations.
-src/app/admin/dashboard/page.tsx(44,33): error TS2307: Cannot find module '@/components/admin/charts/user-growth-chart' or its corresponding type declarations.
-src/app/admin/dashboard/page.tsx(45,35): error TS2307: Cannot find module '@/components/admin/charts/engagement-heatmap' or its corresponding type declarations.
-src/app/admin/dashboard/page.tsx(46,36): error TS2307: Cannot find module '@/components/admin/charts/content-performance' or its corresponding type declarations.
-src/app/admin/dashboard/page.tsx(47,24): error TS2614: Module '"@/lib/utils"' has no exported member 'formatPercentage'. Did you mean to use 'import formatPercentage from "@/lib/utils"' instead?
-src/app/admin/dashboard/page.tsx(47,42): error TS2614: Module '"@/lib/utils"' has no exported member 'formatDuration'. Did you mean to use 'import formatDuration from "@/lib/utils"' instead?
 src/app/admin/dashboard/page.tsx(65,39): error TS2322: Type 'TimePeriod' is not assignable to type '"week" | "day" | "month" | "quarter" | "year"'.
   Type '"today"' is not assignable to type '"week" | "day" | "month" | "quarter" | "year"'. Did you mean '"day"'?
-src/app/admin/dashboard/page.tsx(92,42): error TS2345: Argument of type '"admin:newUser"' is not assignable to parameter of type 'keyof ServerToClientEvents'.
-src/app/admin/dashboard/page.tsx(96,42): error TS2345: Argument of type '"admin:newPost"' is not assignable to parameter of type 'keyof ServerToClientEvents'.
-src/app/admin/dashboard/page.tsx(100,40): error TS2345: Argument of type '"admin:alert"' is not assignable to parameter of type 'keyof ServerToClientEvents'.
 src/app/admin/dashboard/page.tsx(250,62): error TS2554: Expected 2 arguments, but got 1.
-src/app/admin/layout.tsx(5,29): error TS2307: Cannot find module '@/components/admin/admin-header' or its corresponding type declarations.
-src/app/admin/layout.tsx(7,25): error TS2307: Cannot find module '@/components/ui/toaster' or its corresponding type declarations.
-src/app/admin/layout.tsx(9,36): error TS2307: Cannot find module '@/components/admin/admin-notifications' or its corresponding type declarations.
-src/app/admin/layout.tsx(10,38): error TS2307: Cannot find module '@/components/admin/admin-activity-monitor' or its corresponding type declarations.
-src/app/admin/layout.tsx(39,7): error TS2740: Type '{ id: string; username: string; role: UserRole; image: string | null; email: string; }' is missing the following properties from type '{ id: string; email: string; status: UserStatus; username: string; hashedPassword: string; authProvider: AuthProvider; emailVerified: Date | null; phoneNumber: string | null; ... 39 more ...; lastPayoutDate: Date | null; }': status, hashedPassword, authProvider, emailVerified, and 39 more.
-src/app/admin/layout.tsx(69,15): error TS2322: Type '(error: any, reset: any) => Element' is not assignable to type 'ComponentType<{ error: Error; reset: () => void; }> | undefined'.
-  Type '(error: any, reset: any) => Element' is not assignable to type 'FunctionComponent<{ error: Error; reset: () => void; }>'.
-    Target signature provides too few arguments. Expected 2 or more, but got 1.
-src/app/admin/layout.tsx(69,26): error TS7006: Parameter 'error' implicitly has an 'any' type.
-src/app/admin/layout.tsx(69,33): error TS7006: Parameter 'reset' implicitly has an 'any' type.
-src/app/admin/moderation/page.tsx(9,53): error TS2307: Cannot find module '@/components/ui/alert' or its corresponding type declarations.
-src/app/admin/moderation/page.tsx(52,38): error TS2307: Cannot find module '@/components/admin/content-preview-dialog' or its corresponding type declarations.
-src/app/admin/moderation/page.tsx(53,35): error TS2307: Cannot find module '@/components/admin/moderation-history' or its corresponding type declarations.
-src/app/admin/moderation/page.tsx(54,33): error TS2307: Cannot find module '@/components/admin/ai-analysis-panel' or its corresponding type declarations.
-src/app/admin/moderation/page.tsx(55,33): error TS2307: Cannot find module '@/components/admin/moderation-stats' or its corresponding type declarations.
-src/app/admin/moderation/page.tsx(56,22): error TS2614: Module '"@/lib/utils"' has no exported member 'formatDuration'. Did you mean to use 'import formatDuration from "@/lib/utils"' instead?
-src/app/admin/moderation/page.tsx(58,23): error TS2307: Cannot find module '@/components/ui/use-toast' or its corresponding type declarations.
-src/app/admin/moderation/page.tsx(145,44): error TS2345: Argument of type '"moderation:newReport"' is not assignable to parameter of type 'keyof ServerToClientEvents'.
-src/app/admin/moderation/page.tsx(149,41): error TS2345: Argument of type '"moderation:aiFlag"' is not assignable to parameter of type 'keyof ServerToClientEvents'.
-src/app/admin/moderation/page.tsx(168,7): error TS7006: Parameter 'item' implicitly has an 'any' type.
-src/app/admin/moderation/page.tsx(173,35): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/app/admin/dashboard/page.tsx(300,27): error TS2322: Type '{ data: SystemHealth | undefined; }' is not assignable to type 'IntrinsicAttributes'.
+  Property 'data' does not exist on type 'IntrinsicAttributes'.
+src/app/admin/dashboard/page.tsx(315,47): error TS2339: Property 'responseTime' does not exist on type 'SystemHealth'.
+src/app/admin/dashboard/page.tsx(316,34): error TS2339: Property 'responseTime' does not exist on type 'SystemHealth'.
+src/app/admin/dashboard/page.tsx(321,62): error TS2339: Property 'uptime' does not exist on type 'SystemHealth'.
+src/app/admin/dashboard/page.tsx(377,19): error TS2322: Type '{ data: any; type: string; height: number; }' is not assignable to type 'IntrinsicAttributes'.
+  Property 'data' does not exist on type 'IntrinsicAttributes'.
+src/app/admin/dashboard/page.tsx(394,33): error TS2322: Type '{ limit: number; }' is not assignable to type 'IntrinsicAttributes'.
+  Property 'limit' does not exist on type 'IntrinsicAttributes'.
+src/app/admin/dashboard/page.tsx(406,29): error TS2322: Type '{ limit: number; period: TimePeriod; }' is not assignable to type 'IntrinsicAttributes'.
+  Property 'limit' does not exist on type 'IntrinsicAttributes'.
+src/app/admin/dashboard/page.tsx(446,19): error TS2322: Type '{ data: any; type: string; height: number; showLegend: true; }' is not assignable to type 'IntrinsicAttributes'.
+  Property 'data' does not exist on type 'IntrinsicAttributes'.
+src/app/admin/dashboard/page.tsx(459,25): error TS2322: Type '{ data: any; type: string; height: number; }' is not assignable to type 'IntrinsicAttributes'.
+  Property 'data' does not exist on type 'IntrinsicAttributes'.
+src/app/admin/dashboard/page.tsx(472,25): error TS2322: Type '{ data: any; type: string; height: number; }' is not assignable to type 'IntrinsicAttributes'.
+  Property 'data' does not exist on type 'IntrinsicAttributes'.
+src/app/admin/dashboard/page.tsx(495,17): error TS2322: Type 'TimePeriod' is not assignable to type '"week" | "day" | "month" | "quarter" | "year" | undefined'.
+  Type '"today"' is not assignable to type '"week" | "day" | "month" | "quarter" | "year" | undefined'. Did you mean '"day"'?
+src/app/admin/dashboard/page.tsx(507,19): error TS2322: Type '{ data: any; type: string; height: number; horizontal: true; }' is not assignable to type 'IntrinsicAttributes'.
+  Property 'data' does not exist on type 'IntrinsicAttributes'.
+src/app/admin/dashboard/page.tsx(521,19): error TS2322: Type '{ data: any; type: string; height: number; }' is not assignable to type 'IntrinsicAttributes'.
+  Property 'data' does not exist on type 'IntrinsicAttributes'.
+src/app/admin/dashboard/page.tsx(570,19): error TS2322: Type '{ data: any; type: string; height: number; showLegend: true; }' is not assignable to type 'IntrinsicAttributes'.
+  Property 'data' does not exist on type 'IntrinsicAttributes'.
+src/app/admin/dashboard/page.tsx(628,31): error TS2322: Type '{ limit: number; }' is not assignable to type 'IntrinsicAttributes'.
+  Property 'limit' does not exist on type 'IntrinsicAttributes'.
+src/app/admin/dashboard/page.tsx(638,17): error TS2322: Type '{ data: any; type: string; height: number; showLegend: true; }' is not assignable to type 'IntrinsicAttributes'.
+  Property 'data' does not exist on type 'IntrinsicAttributes'.
+src/app/admin/layout.tsx(39,7): error TS2740: Type '{ id: string; username: string; role: UserRole; image: string | null; email: string; level?: number | undefined; sparklePoints?: number | undefined; premiumPoints?: number | undefined; }' is missing the following properties from type '{ username: string; level: number; id: string; email: string; hashedPassword: string; authProvider: AuthProvider; emailVerified: Date | null; phoneNumber: string | null; ... 39 more ...; lastPayoutDate: Date | null; }': hashedPassword, authProvider, emailVerified, phoneNumber, and 36 more.
+src/app/admin/layout.tsx(62,13): error TS2741: Property 'name' is missing in type '{ id: string; username: string; role: UserRole; image: string | null; email: string; level?: number | undefined; sparklePoints?: number | undefined; premiumPoints?: number | undefined; }' but required in type '{ id: string; name: string; email: string; avatar?: string | undefined; role: string; }'.
+src/app/admin/layout.tsx(76,30): error TS2339: Property 'message' does not exist on type '{ error: Error; reset: () => void; }'.
+src/app/admin/moderation/page.tsx(115,7): error TS2349: This expression is not callable.
+  Type '{ success: (message: string, description?: string | undefined) => void; error: (message: string, description?: string | undefined) => void; warning: (message: string, description?: string | undefined) => void; ... 4 more ...; custom: (jsx: (id: string | number) => ReactElement<...>, data?: ExternalToast | undefined)...' has no call signatures.
+src/app/admin/moderation/page.tsx(120,7): error TS2349: This expression is not callable.
+  Type '{ success: (message: string, description?: string | undefined) => void; error: (message: string, description?: string | undefined) => void; warning: (message: string, description?: string | undefined) => void; ... 4 more ...; custom: (jsx: (id: string | number) => ReactElement<...>, data?: ExternalToast | undefined)...' has no call signatures.
+src/app/admin/moderation/page.tsx(130,7): error TS2349: This expression is not callable.
+  Type '{ success: (message: string, description?: string | undefined) => void; error: (message: string, description?: string | undefined) => void; warning: (message: string, description?: string | undefined) => void; ... 4 more ...; custom: (jsx: (id: string | number) => ReactElement<...>, data?: ExternalToast | undefined)...' has no call signatures.
+src/app/admin/moderation/page.tsx(137,7): error TS2349: This expression is not callable.
+  Type '{ success: (message: string, description?: string | undefined) => void; error: (message: string, description?: string | undefined) => void; warning: (message: string, description?: string | undefined) => void; ... 4 more ...; custom: (jsx: (id: string | number) => ReactElement<...>, data?: ExternalToast | undefined)...' has no call signatures.
+src/app/admin/moderation/page.tsx(150,7): error TS2349: This expression is not callable.
+  Type '{ success: (message: string, description?: string | undefined) => void; error: (message: string, description?: string | undefined) => void; warning: (message: string, description?: string | undefined) => void; ... 4 more ...; custom: (jsx: (id: string | number) => ReactElement<...>, data?: ExternalToast | undefined)...' has no call signatures.
+src/app/admin/moderation/page.tsx(168,20): error TS2339: Property 'aiAnalysis' does not exist on type '{ content: string | null; id: string; createdAt: Date; entityId: string; entityType: string; contentHash: string | null; aiProvider: string; aiScore: number | null; aiCategories: JsonValue; ... 10 more ...; reviewedAt: Date | null; }'.
+src/app/admin/moderation/page.tsx(168,56): error TS2339: Property 'priority' does not exist on type '{ content: string | null; id: string; createdAt: Date; entityId: string; entityType: string; contentHash: string | null; aiProvider: string; aiScore: number | null; aiCategories: JsonValue; ... 10 more ...; reviewedAt: Date | null; }'.
 src/app/admin/moderation/page.tsx(286,23): error TS2339: Property 'pending' does not exist on type '{ pendingCount: number; reviewedToday: number; autoBlockedToday: number; averageReviewTime: number; }'.
 src/app/admin/moderation/page.tsx(301,23): error TS2339: Property 'approvedToday' does not exist on type '{ pendingCount: number; reviewedToday: number; autoBlockedToday: number; averageReviewTime: number; }'.
 src/app/admin/moderation/page.tsx(316,23): error TS2339: Property 'rejectedToday' does not exist on type '{ pendingCount: number; reviewedToday: number; autoBlockedToday: number; averageReviewTime: number; }'.
 src/app/admin/moderation/page.tsx(331,25): error TS2339: Property 'aiAccuracy' does not exist on type '{ pendingCount: number; reviewedToday: number; autoBlockedToday: number; averageReviewTime: number; }'.
 src/app/admin/moderation/page.tsx(346,38): error TS2339: Property 'avgModerationTime' does not exist on type '{ pendingCount: number; reviewedToday: number; autoBlockedToday: number; averageReviewTime: number; }'.
+src/app/admin/moderation/page.tsx(359,79): error TS2322: Type '{ autoBlock: number; autoApprove: number; review: number; }' is not assignable to type 'ReactNode'.
+src/app/admin/moderation/page.tsx(360,44): error TS2339: Property 'accuracy' does not exist on type 'AISettings'.
+src/app/admin/moderation/page.tsx(435,39): error TS2345: Argument of type '(item: ModerationItem) => JSX.Element' is not assignable to parameter of type '(value: { content: string | null; id: string; createdAt: Date; entityId: string; entityType: string; contentHash: string | null; aiProvider: string; aiScore: number | null; aiCategories: JsonValue; ... 10 more ...; reviewedAt: Date | null; }, index: number, array: { ...; }[]) => Element'.
+  Types of parameters 'item' and 'value' are incompatible.
+    Type '{ content: string | null; id: string; createdAt: Date; entityId: string; entityType: string; contentHash: string | null; aiProvider: string; aiScore: number | null; aiCategories: JsonValue; ... 10 more ...; reviewedAt: Date | null; }' is missing the following properties from type 'ModerationItem': type, reports, priority, reportCount
+src/app/admin/moderation/page.tsx(610,32): error TS2322: Type '{ limit: number; }' is not assignable to type 'IntrinsicAttributes & ModerationHistoryProps'.
+  Property 'limit' does not exist on type 'IntrinsicAttributes & ModerationHistoryProps'.
+src/app/admin/moderation/page.tsx(623,30): error TS2322: Type '{ stats: any; }' is not assignable to type 'IntrinsicAttributes & AIAnalysisPanelProps'.
+  Property 'stats' does not exist on type 'IntrinsicAttributes & AIAnalysisPanelProps'.
 src/app/admin/moderation/page.tsx(623,44): error TS2339: Property 'aiStats' does not exist on type '{ pendingCount: number; reviewedToday: number; autoBlockedToday: number; averageReviewTime: number; }'.
+src/app/admin/moderation/page.tsx(637,28): error TS2322: Type '{ period: string; }' is not assignable to type 'IntrinsicAttributes & ModerationStatsProps'.
+  Property 'period' does not exist on type 'IntrinsicAttributes & ModerationStatsProps'.
+src/app/admin/moderation/page.tsx(645,11): error TS2322: Type '{ content: any; onClose: () => void; onModerate: (action: any) => void; }' is not assignable to type 'IntrinsicAttributes & ContentPreviewDialogProps'.
+  Property 'onClose' does not exist on type 'IntrinsicAttributes & ContentPreviewDialogProps'.
 src/app/admin/moderation/page.tsx(646,24): error TS7006: Parameter 'action' implicitly has an 'any' type.
-src/app/admin/users/page.tsx(10,41): error TS2307: Cannot find module '@/components/ui/alert' or its corresponding type declarations.
-src/app/admin/users/page.tsx(68,35): error TS2307: Cannot find module '@/components/admin/user-details-dialog' or its corresponding type declarations.
-src/app/admin/users/page.tsx(69,34): error TS2307: Cannot find module '@/components/admin/bulk-action-dialog' or its corresponding type declarations.
-src/app/admin/users/page.tsx(70,31): error TS2307: Cannot find module '@/components/admin/user-analytics' or its corresponding type declarations.
-src/app/admin/users/page.tsx(73,29): error TS2307: Cannot find module '@/hooks/use-debounce' or its corresponding type declarations.
-src/app/admin/users/page.tsx(74,23): error TS2307: Cannot find module '@/components/ui/use-toast' or its corresponding type declarations.
+src/app/admin/moderation/page.tsx(649,32): error TS2345: Argument of type '{ content: string | null; id: string; createdAt: Date; entityId: string; entityType: string; contentHash: string | null; aiProvider: string; aiScore: number | null; aiCategories: JsonValue; ... 10 more ...; reviewedAt: Date | null; }' is not assignable to parameter of type 'ModerationItem'.
+  Type '{ content: string | null; id: string; createdAt: Date; entityId: string; entityType: string; contentHash: string | null; aiProvider: string; aiScore: number | null; aiCategories: JsonValue; ... 10 more ...; reviewedAt: Date | null; }' is missing the following properties from type 'ModerationItem': type, reports, priority, reportCount
+src/app/admin/users/page.tsx(125,7): error TS2349: This expression is not callable.
+  Type '{ success: (message: string, description?: string | undefined) => void; error: (message: string, description?: string | undefined) => void; warning: (message: string, description?: string | undefined) => void; ... 4 more ...; custom: (jsx: (id: string | number) => ReactElement<...>, data?: ExternalToast | undefined)...' has no call signatures.
+src/app/admin/users/page.tsx(132,7): error TS2349: This expression is not callable.
+  Type '{ success: (message: string, description?: string | undefined) => void; error: (message: string, description?: string | undefined) => void; warning: (message: string, description?: string | undefined) => void; ... 4 more ...; custom: (jsx: (id: string | number) => ReactElement<...>, data?: ExternalToast | undefined)...' has no call signatures.
+src/app/admin/users/page.tsx(139,7): error TS2349: This expression is not callable.
+  Type '{ success: (message: string, description?: string | undefined) => void; error: (message: string, description?: string | undefined) => void; warning: (message: string, description?: string | undefined) => void; ... 4 more ...; custom: (jsx: (id: string | number) => ReactElement<...>, data?: ExternalToast | undefined)...' has no call signatures.
+src/app/admin/users/page.tsx(146,7): error TS2349: This expression is not callable.
+  Type '{ success: (message: string, description?: string | undefined) => void; error: (message: string, description?: string | undefined) => void; warning: (message: string, description?: string | undefined) => void; ... 4 more ...; custom: (jsx: (id: string | number) => ReactElement<...>, data?: ExternalToast | undefined)...' has no call signatures.
+src/app/admin/users/page.tsx(153,7): error TS2349: This expression is not callable.
+  Type '{ success: (message: string, description?: string | undefined) => void; error: (message: string, description?: string | undefined) => void; warning: (message: string, description?: string | undefined) => void; ... 4 more ...; custom: (jsx: (id: string | number) => ReactElement<...>, data?: ExternalToast | undefined)...' has no call signatures.
+src/app/admin/users/page.tsx(160,7): error TS2349: This expression is not callable.
+  Type '{ success: (message: string, description?: string | undefined) => void; error: (message: string, description?: string | undefined) => void; warning: (message: string, description?: string | undefined) => void; ... 4 more ...; custom: (jsx: (id: string | number) => ReactElement<...>, data?: ExternalToast | undefined)...' has no call signatures.
+src/app/admin/users/page.tsx(167,7): error TS2349: This expression is not callable.
+  Type '{ success: (message: string, description?: string | undefined) => void; error: (message: string, description?: string | undefined) => void; warning: (message: string, description?: string | undefined) => void; ... 4 more ...; custom: (jsx: (id: string | number) => ReactElement<...>, data?: ExternalToast | undefined)...' has no call signatures.
 src/app/admin/users/page.tsx(180,11): error TS18048: 'data.users.length' is possibly 'undefined'.
 src/app/admin/users/page.tsx(180,37): error TS18048: 'data' is possibly 'undefined'.
+src/app/admin/users/page.tsx(211,7): error TS2349: This expression is not callable.
+  Type '{ success: (message: string, description?: string | undefined) => void; error: (message: string, description?: string | undefined) => void; warning: (message: string, description?: string | undefined) => void; ... 4 more ...; custom: (jsx: (id: string | number) => ReactElement<...>, data?: ExternalToast | undefined)...' has no call signatures.
 src/app/admin/users/page.tsx(228,7): error TS2322: Type 'string' is not assignable to type '"email" | "role" | "delete" | "verify" | "ban" | "unban"'.
 src/app/admin/users/page.tsx(437,23): error TS2322: Type '{ checked: boolean; indeterminate: boolean | undefined; onCheckedChange: () => void; }' is not assignable to type 'IntrinsicAttributes & CheckboxProps & RefAttributes<HTMLButtonElement>'.
   Property 'indeterminate' does not exist on type 'IntrinsicAttributes & CheckboxProps & RefAttributes<HTMLButtonElement>'.
@@ -97,64 +114,166 @@ src/app/admin/users/page.tsx(563,32): error TS2532: Object is possibly 'undefine
 src/app/admin/users/page.tsx(655,35): error TS2322: Type 'string' is not assignable to type '"USER" | "MODERATOR" | "ADMIN" | "CREATOR" | "VERIFIED_CREATOR" | "SYSTEM"'.
 src/app/admin/users/page.tsx(697,53): error TS2345: Argument of type '{ userId: string; }' is not assignable to parameter of type '{ userId: string; reason: string; deleteContent?: boolean | undefined; }'.
   Property 'reason' is missing in type '{ userId: string; }' but required in type '{ userId: string; reason: string; deleteContent?: boolean | undefined; }'.
+src/app/admin/users/page.tsx(750,11): error TS2322: Type '{ userId: string; onClose: () => void; onAction: (action: any, params: any) => void; }' is not assignable to type 'IntrinsicAttributes & UserDetailsDialogProps'.
+  Property 'userId' does not exist on type 'IntrinsicAttributes & UserDetailsDialogProps'. Did you mean 'user'?
 src/app/admin/users/page.tsx(752,22): error TS7006: Parameter 'action' implicitly has an 'any' type.
 src/app/admin/users/page.tsx(752,30): error TS7006: Parameter 'params' implicitly has an 'any' type.
-src/app/api-docs/page.tsx(5,23): error TS2307: Cannot find module 'swagger-ui-react' or its corresponding type declarations.
-src/app/api/admin/jobs/route.ts(44,10): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ send: (payload: any) => Promise<Job<any, any, string>>; bulk: (payload: any) => Promise<Job<any, any, string>>; digest: (userId: string) => Promise<Job<any, any, string>>; } | { ...; } | { ...; } | { ...; } | { ...; }'.
-src/app/api/admin/jobs/route.ts(52,31): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ send: (payload: any) => Promise<Job<any, any, string>>; bulk: (payload: any) => Promise<Job<any, any, string>>; digest: (userId: string) => Promise<Job<any, any, string>>; } | { ...; } | { ...; } | { ...; } | { ...; }'.
+src/app/admin/users/page.tsx(762,9): error TS2322: Type 'string' is not assignable to type 'BulkActionType'.
+src/app/api/admin/jobs/route.ts(44,10): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ send: (payload: any) => Promise<Job<any, any, string>>; bulk: (payload: any) => Promise<Job<any, any, string>>; digest: (userId: string) => Promise<Job<any, any, string>>; } | ... 5 more ... | { ...; }'.
+src/app/api/admin/jobs/route.ts(52,31): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ send: (payload: any) => Promise<Job<any, any, string>>; bulk: (payload: any) => Promise<Job<any, any, string>>; digest: (userId: string) => Promise<Job<any, any, string>>; } | ... 5 more ... | { ...; }'.
 src/app/api/trpc/[trpc]/route.ts(15,44): error TS2345: Argument of type '{ req: NextRequest; }' is not assignable to parameter of type 'FetchCreateContextFnOptions | CreateNextContextOptions'.
   Type '{ req: NextRequest; }' is missing the following properties from type 'CreateNextContextOptions': res, info
-src/components/error-boundary.tsx(32,3): error TS4114: This member must have an 'override' modifier because it overrides a member in the base class 'Component<ErrorBoundaryProps, ErrorBoundaryState, any>'.
-src/components/error-boundary.tsx(44,3): error TS4114: This member must have an 'override' modifier because it overrides a member in the base class 'Component<ErrorBoundaryProps, ErrorBoundaryState, any>'.
-src/components/features/comments/comment-form.tsx(14,23): error TS2307: Cannot find module '@/hooks/use-toast' or its corresponding type declarations.
-src/components/features/comments/comment-form.tsx(18,29): error TS2307: Cannot find module '@/components/ui/emoji-picker' or its corresponding type declarations.
-src/components/features/comments/comment-form.tsx(19,29): error TS2307: Cannot find module '@/hooks/use-debounce' or its corresponding type declarations.
+src/components/admin/admin-activity-monitor.tsx(119,11): error TS2322: Type '{ id: string; userId: string; username: string; avatar: string; role: string | undefined; device: any; browser: string | undefined; os: string | undefined; location: string | undefined; ... 5 more ...; status: any; }[]' is not assignable to type 'ActiveSession[]'.
+  Type '{ id: string; userId: string; username: string; avatar: string; role: string | undefined; device: any; browser: string | undefined; os: string | undefined; location: string | undefined; ... 5 more ...; status: any; }' is not assignable to type 'ActiveSession'.
+    Types of property 'role' are incompatible.
+      Type 'string | undefined' is not assignable to type 'string'.
+        Type 'undefined' is not assignable to type 'string'.
+src/components/admin/admin-activity-monitor.tsx(137,11): error TS2322: Type '{ id: string; userId: string; username: string; action: string | undefined; target: string | undefined; timestamp: Date; }[]' is not assignable to type 'ActivityLog[]'.
+  Type '{ id: string; userId: string; username: string; action: string | undefined; target: string | undefined; timestamp: Date; }' is not assignable to type 'ActivityLog'.
+    Types of property 'action' are incompatible.
+      Type 'string | undefined' is not assignable to type 'string'.
+        Type 'undefined' is not assignable to type 'string'.
+src/components/admin/bulk-action-dialog.tsx(16,44): error TS2307: Cannot find module '@/components/ui/radio-group' or its corresponding type declarations.
+src/components/admin/charts/content-performance.tsx(228,7): error TS2532: Object is possibly 'undefined'.
+src/components/admin/charts/content-performance.tsx(490,65): error TS18048: 'percent' is possibly 'undefined'.
+src/components/admin/charts/content-performance.tsx(518,19): error TS2322: Type '{ data: { name: string; size: number; fill: string | undefined; }[]; dataKey: string; ratio: number; stroke: string; fill: string; }' is not assignable to type 'IntrinsicAttributes & Props'.
+  Property 'ratio' does not exist on type 'IntrinsicAttributes & Props'.
+src/components/admin/charts/user-growth-chart.tsx(113,3): error TS2339: Property 'payload' does not exist on type 'TooltipProps<number, string>'.
+src/components/admin/charts/user-growth-chart.tsx(114,3): error TS2339: Property 'label' does not exist on type 'TooltipProps<number, string>'.
+src/components/admin/charts/user-growth-chart.tsx(127,23): error TS7006: Parameter 'entry' implicitly has an 'any' type.
+src/components/admin/charts/user-growth-chart.tsx(127,30): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/components/admin/content-preview-dialog.tsx(312,18): error TS2304: Cannot find name 'Card'.
+src/components/admin/content-preview-dialog.tsx(313,20): error TS2304: Cannot find name 'CardHeader'.
+src/components/admin/content-preview-dialog.tsx(314,22): error TS2304: Cannot find name 'CardTitle'.
+src/components/admin/content-preview-dialog.tsx(314,69): error TS2304: Cannot find name 'CardTitle'.
+src/components/admin/content-preview-dialog.tsx(315,21): error TS2304: Cannot find name 'CardHeader'.
+src/components/admin/content-preview-dialog.tsx(316,20): error TS2304: Cannot find name 'CardContent'.
+src/components/admin/content-preview-dialog.tsx(323,21): error TS2304: Cannot find name 'CardContent'.
+src/components/admin/content-preview-dialog.tsx(324,19): error TS2304: Cannot find name 'Card'.
+src/components/admin/content-preview-dialog.tsx(326,18): error TS2304: Cannot find name 'Card'.
+src/components/admin/content-preview-dialog.tsx(327,20): error TS2304: Cannot find name 'CardHeader'.
+src/components/admin/content-preview-dialog.tsx(328,22): error TS2304: Cannot find name 'CardTitle'.
+src/components/admin/content-preview-dialog.tsx(328,68): error TS2304: Cannot find name 'CardTitle'.
+src/components/admin/content-preview-dialog.tsx(329,21): error TS2304: Cannot find name 'CardHeader'.
+src/components/admin/content-preview-dialog.tsx(330,20): error TS2304: Cannot find name 'CardContent'.
+src/components/admin/content-preview-dialog.tsx(337,21): error TS2304: Cannot find name 'CardContent'.
+src/components/admin/content-preview-dialog.tsx(338,19): error TS2304: Cannot find name 'Card'.
+src/components/admin/content-preview-dialog.tsx(340,18): error TS2304: Cannot find name 'Card'.
+src/components/admin/content-preview-dialog.tsx(341,20): error TS2304: Cannot find name 'CardHeader'.
+src/components/admin/content-preview-dialog.tsx(342,22): error TS2304: Cannot find name 'CardTitle'.
+src/components/admin/content-preview-dialog.tsx(342,65): error TS2304: Cannot find name 'CardTitle'.
+src/components/admin/content-preview-dialog.tsx(343,21): error TS2304: Cannot find name 'CardHeader'.
+src/components/admin/content-preview-dialog.tsx(344,20): error TS2304: Cannot find name 'CardContent'.
+src/components/admin/content-preview-dialog.tsx(351,21): error TS2304: Cannot find name 'CardContent'.
+src/components/admin/content-preview-dialog.tsx(352,19): error TS2304: Cannot find name 'Card'.
+src/components/admin/content-preview-dialog.tsx(354,18): error TS2304: Cannot find name 'Card'.
+src/components/admin/content-preview-dialog.tsx(355,20): error TS2304: Cannot find name 'CardHeader'.
+src/components/admin/content-preview-dialog.tsx(356,22): error TS2304: Cannot find name 'CardTitle'.
+src/components/admin/content-preview-dialog.tsx(356,65): error TS2304: Cannot find name 'CardTitle'.
+src/components/admin/content-preview-dialog.tsx(357,21): error TS2304: Cannot find name 'CardHeader'.
+src/components/admin/content-preview-dialog.tsx(358,20): error TS2304: Cannot find name 'CardContent'.
+src/components/admin/content-preview-dialog.tsx(366,21): error TS2304: Cannot find name 'CardContent'.
+src/components/admin/content-preview-dialog.tsx(367,19): error TS2304: Cannot find name 'Card'.
+src/components/admin/moderation-stats.tsx(124,17): error TS2323: Cannot redeclare exported variable 'ModerationStats'.
+src/components/admin/moderation-stats.tsx(425,15): error TS2323: Cannot redeclare exported variable 'ModerationStats'.
+src/components/admin/moderator-queue.tsx(62,13): error TS2322: Type '{ id: string; type: any; entityId: string; reason: string | undefined; reportCount: number; priority: number; status: any; createdAt: Date; content: string; author: { id: string; username: string; ... 5 more ...; createdAt: Date; }; reporter: { ...; }; aiAnalysis: { ...; } | undefined; }[]' is not assignable to type 'QueueItem[]'.
+  Type '{ id: string; type: any; entityId: string; reason: string | undefined; reportCount: number; priority: number; status: any; createdAt: Date; content: string; author: { id: string; username: string; ... 5 more ...; createdAt: Date; }; reporter: { ...; }; aiAnalysis: { ...; } | undefined; }' is not assignable to type 'QueueItem'.
+    Types of property 'reason' are incompatible.
+      Type 'string | undefined' is not assignable to type 'string'.
+        Type 'undefined' is not assignable to type 'string'.
+src/components/admin/moderator-queue.tsx(346,24): error TS2552: Cannot find name 'Progress'. Did you mean 'onprogress'?
+src/components/admin/realtime-metrics.tsx(134,60): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(137,26): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(140,38): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(143,38): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(146,52): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(149,51): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(150,15): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(153,52): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(154,15): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(157,38): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(160,38): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(163,38): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(169,13): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(171,13): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(173,13): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(176,11): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(180,15): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(181,17): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(181,33): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(181,63): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(181,84): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(181,105): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(182,71): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(187,31): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(187,67): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(187,82): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(191,24): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(191,40): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(191,69): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(191,90): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(191,111): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(192,71): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(197,31): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(197,75): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(197,90): error TS18048: 'metric' is possibly 'undefined'.
+src/components/admin/realtime-metrics.tsx(210,16): error TS2345: Argument of type '(prev: Record<string, RealtimeMetric>) => { activeUsers: { value: number; label?: string | undefined; unit?: string | undefined; trend?: "down" | "up" | "stable" | undefined; percentage?: number | undefined; threshold?: { ...; } | undefined; icon?: ElementType<...> | undefined; color?: string | undefined; }; ... 6 m...' is not assignable to parameter of type 'SetStateAction<Record<string, RealtimeMetric>>'.
+  Type '(prev: Record<string, RealtimeMetric>) => { activeUsers: { value: number; label?: string | undefined; unit?: string | undefined; trend?: "down" | "up" | "stable" | undefined; percentage?: number | undefined; threshold?: { ...; } | undefined; icon?: ElementType<...> | undefined; color?: string | undefined; }; ... 6 m...' is not assignable to type '(prevState: Record<string, RealtimeMetric>) => Record<string, RealtimeMetric>'.
+    Type '{ activeUsers: { value: number; label?: string | undefined; unit?: string | undefined; trend?: "down" | "up" | "stable" | undefined; percentage?: number; threshold?: { warning: number; critical: number; }; icon?: ElementType<...> | undefined; color?: string | undefined; }; ... 6 more ...; responseTime: { ...; }; }' is not assignable to type 'Record<string, RealtimeMetric>'.
+      Property 'activeUsers' is incompatible with index signature.
+        Type '{ value: number; label?: string | undefined; unit?: string | undefined; trend?: "down" | "up" | "stable" | undefined; percentage?: number; threshold?: { warning: number; critical: number; }; icon?: ElementType<...> | undefined; color?: string | undefined; }' is not assignable to type 'RealtimeMetric'.
+          Types of property 'label' are incompatible.
+            Type 'string | undefined' is not assignable to type 'string'.
+              Type 'undefined' is not assignable to type 'string'.
+src/components/admin/recent-activity.tsx(73,13): error TS7030: Not all code paths return a value.
+src/components/admin/recent-activity.tsx(122,15): error TS18048: 'activity' is possibly 'undefined'.
+src/components/admin/recent-activity.tsx(123,17): error TS18048: 'activity' is possibly 'undefined'.
+src/components/admin/recent-activity.tsx(137,19): error TS18048: 'activity' is possibly 'undefined'.
+src/components/admin/top-content.tsx(92,5): error TS2322: Type '{ id: string; title: string; author: { id: string; name: string; avatar: string; verified: boolean; }; type: string; metrics: { views: number; likes: number; comments: number; shares: number; engagement: number; }; createdAt: Date; tags: string[]; trending: boolean; featured: boolean; }[]' is not assignable to type 'ContentItem[]'.
+  Type '{ id: string; title: string; author: { id: string; name: string; avatar: string; verified: boolean; }; type: string; metrics: { views: number; likes: number; comments: number; shares: number; engagement: number; }; createdAt: Date; tags: string[]; trending: boolean; featured: boolean; }' is not assignable to type 'ContentItem'.
+    Types of property 'type' are incompatible.
+      Type 'string' is not assignable to type '"post" | "comment" | "video"'.
 src/components/features/comments/comment-form.tsx(136,24): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'SetStateAction<string>'.
   Type 'undefined' is not assignable to type 'SetStateAction<string>'.
-src/components/features/comments/comment-form.tsx(207,39): error TS2339: Property 'isLoading' does not exist on type 'UseTRPCMutationResult<{ _count: { reactions: number; replies: number; }; author: ({ profile: { id: string; createdAt: Date; updatedAt: Date; userId: string; bannerImage: string | null; location: string | null; ... 26 more ...; profileCompleteness: number; } | null; } & { ...; }) | null; } & { ...; }, TRPCClientError...'.
-  Property 'isLoading' does not exist on type 'TRPCHookResult & Override<MutationObserverIdleResult<{ _count: { reactions: number; replies: number; }; author: ({ profile: { id: string; createdAt: Date; updatedAt: Date; userId: string; ... 28 more ...; profileCompleteness: number; } | null; } & { ...; }) | null; } & { ...; }, TRPCClientErrorLike<...>, { ...; }, u...'.
-src/components/features/comments/comment-form.tsx(207,67): error TS2339: Property 'isLoading' does not exist on type 'UseTRPCMutationResult<{ postId: string; _count: { reactions: number; replies: number; }; author: ({ profile: { id: string; createdAt: Date; updatedAt: Date; userId: string; bannerImage: string | null; ... 27 more ...; profileCompleteness: number; } | null; } & { ...; }) | null; ... 21 more ...; pinned: boolean; }, T...'.
-  Property 'isLoading' does not exist on type 'TRPCHookResult & Override<MutationObserverIdleResult<{ postId: string; _count: { reactions: number; replies: number; }; author: ({ profile: { id: string; createdAt: Date; updatedAt: Date; userId: string; ... 28 more ...; profileCompleteness: number; } | null; } & { ...; }) | null; ... 21 more ...; pinned: boolean; }...'.
+src/components/features/comments/comment-form.tsx(207,39): error TS2339: Property 'isLoading' does not exist on type 'UseTRPCMutationResult<{ _count: { replies: number; reactions: number; }; author: ({ profile: { userId: string; displayName: string | null; id: string; createdAt: Date; updatedAt: Date; location: string | null; ... 26 more ...; profileCompleteness: number; } | null; } & { ...; }) | null; } & { ...; }, TRPCClientError...'.
+  Property 'isLoading' does not exist on type 'TRPCHookResult & Override<MutationObserverIdleResult<{ _count: { replies: number; reactions: number; }; author: ({ profile: { userId: string; displayName: string | null; id: string; createdAt: Date; ... 28 more ...; profileCompleteness: number; } | null; } & { ...; }) | null; } & { ...; }, TRPCClientErrorLike<...>, ...'.
+src/components/features/comments/comment-form.tsx(207,67): error TS2339: Property 'isLoading' does not exist on type 'UseTRPCMutationResult<{ postId: string; _count: { replies: number; reactions: number; }; author: ({ profile: { userId: string; displayName: string | null; id: string; createdAt: Date; updatedAt: Date; ... 27 more ...; profileCompleteness: number; } | null; } & { ...; }) | null; ... 21 more ...; pinned: boolean; }, T...'.
+  Property 'isLoading' does not exist on type 'TRPCHookResult & Override<MutationObserverIdleResult<{ postId: string; _count: { replies: number; reactions: number; }; author: ({ profile: { userId: string; displayName: string | null; id: string; createdAt: Date; ... 28 more ...; profileCompleteness: number; } | null; } & { ...; }) | null; ... 21 more ...; pinned:...'.
+src/components/features/comments/comment-form.tsx(265,30): error TS2322: Type '{ onSelect: (emoji: string) => void; }' is not assignable to type 'IntrinsicAttributes & EmojiPickerProps'.
+  Property 'onSelect' does not exist on type 'IntrinsicAttributes & EmojiPickerProps'.
 src/components/features/comments/comment-form.tsx(332,19): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
   Type 'undefined' is not assignable to type 'string'.
-src/components/features/comments/comment-item.tsx(21,23): error TS2307: Cannot find module '@/hooks/use-toast' or its corresponding type declarations.
 src/components/features/comments/comment-item.tsx(343,70): error TS18046: 'count' is of type 'unknown'.
 src/components/features/comments/comment-item.tsx(347,27): error TS2322: Type 'unknown' is not assignable to type 'ReactNode'.
 src/components/features/comments/comment-item.tsx(411,73): error TS7006: Parameter 'reply' implicitly has an 'any' type.
-src/components/features/comments/comment-thread.tsx(9,26): error TS2307: Cannot find module '@/components/ui/skeleton' or its corresponding type declarations.
-src/components/features/comments/comment-thread.tsx(75,10): error TS2345: Argument of type '"comment.created"' is not assignable to parameter of type 'keyof ServerToClientEvents'.
-src/components/features/comments/comment-thread.tsx(98,10): error TS2345: Argument of type '"comment.updated"' is not assignable to parameter of type 'keyof ServerToClientEvents'.
+src/components/features/comments/comment-thread.tsx(59,13): error TS7030: Not all code paths return a value.
 src/components/features/comments/comment-thread.tsx(109,41): error TS7006: Parameter 'comment' implicitly has an 'any' type.
-src/components/features/comments/comment-thread.tsx(122,10): error TS2345: Argument of type '"comment.deleted"' is not assignable to parameter of type 'keyof ServerToClientEvents'.
 src/components/features/comments/comment-thread.tsx(133,44): error TS7006: Parameter 'comment' implicitly has an 'any' type.
-src/components/features/comments/comment-thread.tsx(142,10): error TS2345: Argument of type '"comment.typing"' is not assignable to parameter of type 'keyof ServerToClientEvents'.
 src/components/features/comments/mention-suggestions.tsx(25,7): error TS2769: No overload matches this call.
-  Overload 1 of 2, '(input: { query: string; type?: "mentions" | "all" | "creators" | undefined; limit?: number | undefined; excludeIds?: string[] | undefined; } | typeof skipToken, opts: DefinedUseTRPCQueryOptions<any, any, TRPCClientErrorLike<...>, any>): DefinedUseTRPCQueryResult<...>', gave the following error.
+  Overload 1 of 2, '(input: { query: string; type?: "all" | "mentions" | "creators" | undefined; limit?: number | undefined; excludeIds?: string[] | undefined; } | typeof skipToken, opts: DefinedUseTRPCQueryOptions<any, any, TRPCClientErrorLike<...>, any>): DefinedUseTRPCQueryResult<...>', gave the following error.
     Object literal may only specify known properties, and 'keepPreviousData' does not exist in type 'DefinedUseTRPCQueryOptions<any, any, TRPCClientErrorLike<{ errorShape: { data: { zodError: typeToFlattenedError<any, string> | null; code: "PARSE_ERROR" | "BAD_REQUEST" | "INTERNAL_SERVER_ERROR" | ... 16 more ... | "CLIENT_CLOSED_REQUEST"; httpStatus: number; path?: string | undefined; stack?: string | undefined; };...'.
-  Overload 2 of 2, '(input: { query: string; type?: "mentions" | "all" | "creators" | undefined; limit?: number | undefined; excludeIds?: string[] | undefined; } | typeof skipToken, opts?: UseTRPCQueryOptions<any, any, TRPCClientErrorLike<...>, any> | undefined): UseTRPCQueryResult<...>', gave the following error.
-    Object literal may only specify known properties, and 'keepPreviousData' does not exist in type 'UseTRPCQueryOptions<any, any, TRPCClientErrorLike<{ input: { query: string; type?: "mentions" | "all" | "creators" | undefined; limit?: number | undefined; excludeIds?: string[] | undefined; }; output: any; transformer: true; errorShape: { ...; }; }>, any>'.
+  Overload 2 of 2, '(input: { query: string; type?: "all" | "mentions" | "creators" | undefined; limit?: number | undefined; excludeIds?: string[] | undefined; } | typeof skipToken, opts?: UseTRPCQueryOptions<any, any, TRPCClientErrorLike<...>, any> | undefined): UseTRPCQueryResult<...>', gave the following error.
+    Object literal may only specify known properties, and 'keepPreviousData' does not exist in type 'UseTRPCQueryOptions<any, any, TRPCClientErrorLike<{ input: { query: string; type?: "all" | "mentions" | "creators" | undefined; limit?: number | undefined; excludeIds?: string[] | undefined; }; output: any; transformer: true; errorShape: { ...; }; }>, any>'.
 src/components/features/comments/mention-suggestions.tsx(83,23): error TS7006: Parameter 'user' implicitly has an 'any' type.
 src/components/features/comments/mention-suggestions.tsx(83,29): error TS7006: Parameter 'index' implicitly has an 'any' type.
-src/components/features/comments/reaction-picker.tsx(106,22): error TS2554: Expected 1 arguments, but got 0.
 src/components/features/comments/reaction-picker.tsx(192,30): error TS2339: Property 'filled' does not exist on type '{ icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>; label: string; color: string; bgColor: string; animation: string; }'.
 src/components/features/comments/reaction-picker.tsx(246,61): error TS2339: Property 'filled' does not exist on type '{ icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>; label: string; color: string; bgColor: string; animation: string; } | ... 7 more ... | { ...; }'.
   Property 'filled' does not exist on type '{ icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>; label: string; color: string; bgColor: string; animation: string; }'.
 src/components/features/editor/rich-text-editor.tsx(11,10): error TS2305: Module '"lowlight"' has no exported member 'lowlight'.
-src/components/features/editor/rich-text-editor.tsx(13,24): error TS2307: Cannot find module '@/components/ui/toggle' or its corresponding type declarations.
-src/components/features/gamification/achievement-details-modal.tsx(41,36): error TS2724: '"@/lib/utils"' has no exported member named 'formatRelativeTime'. Did you mean 'formatRelativeDate'?
-src/components/features/gamification/achievement-details-modal.tsx(42,23): error TS2307: Cannot find module '@/hooks/use-toast' or its corresponding type declarations.
-src/components/features/gamification/achievement-details-modal.tsx(396,39): error TS2339: Property 'badgeId' does not exist on type '{ stats: { totalUnlocked: number; completionRate: number; firstUnlockedBy: { id: string; username: string; } | undefined; avgTimeToUnlock: any; unlockRate: number; }; _count: { userAchievements: number; }; ... 29 more ...; maxAchievers: number | null; }'.
-src/components/features/gamification/achievement-details-modal.tsx(517,37): error TS2339: Property 'tips' does not exist on type '{ stats: { totalUnlocked: number; completionRate: number; firstUnlockedBy: { id: string; username: string; } | undefined; avgTimeToUnlock: any; unlockRate: number; }; _count: { userAchievements: number; }; ... 29 more ...; maxAchievers: number | null; }'.
-src/components/features/gamification/achievement-details-modal.tsx(521,42): error TS2339: Property 'tips' does not exist on type '{ stats: { totalUnlocked: number; completionRate: number; firstUnlockedBy: { id: string; username: string; } | undefined; avgTimeToUnlock: any; unlockRate: number; }; _count: { userAchievements: number; }; ... 29 more ...; maxAchievers: number | null; }'.
-src/components/features/post/post-card.tsx(35,23): error TS2307: Cannot find module '@/hooks/use-toast' or its corresponding type declarations.
-src/components/features/post/post-card.tsx(65,20): error TS7006: Parameter 'prev' implicitly has an 'any' type.
-src/components/features/post/post-card.tsx(69,20): error TS7006: Parameter 'prev' implicitly has an 'any' type.
-src/components/features/post/post-card.tsx(81,20): error TS7006: Parameter 'prev' implicitly has an 'any' type.
-src/components/features/post/post-card.tsx(85,20): error TS7006: Parameter 'prev' implicitly has an 'any' type.
-src/components/features/post/post-card.tsx(309,42): error TS7006: Parameter 'tag' implicitly has an 'any' type.
-src/components/features/post/post-card.tsx(321,24): error TS2322: Type '"ghost"' is not assignable to type '"secondary" | "destructive" | "default" | "outline" | null | undefined'.
-src/components/features/youtube/youtube-embed.tsx(9,26): error TS2307: Cannot find module '@/components/ui/skeleton' or its corresponding type declarations.
-src/components/features/youtube/youtube-embed.tsx(23,24): error TS2614: Module '"@/lib/utils"' has no exported member 'formatDuration'. Did you mean to use 'import formatDuration from "@/lib/utils"' instead?
+src/components/features/gamification/achievement-details-modal.tsx(396,39): error TS2339: Property 'badgeId' does not exist on type '{ stats: { totalUnlocked: number; completionRate: number; firstUnlockedBy: { username: string; id: string; } | undefined; avgTimeToUnlock: any; unlockRate: number; }; _count: { userAchievements: number; }; ... 29 more ...; maxAchievers: number | null; }'.
+src/components/features/gamification/achievement-details-modal.tsx(517,37): error TS2339: Property 'tips' does not exist on type '{ stats: { totalUnlocked: number; completionRate: number; firstUnlockedBy: { username: string; id: string; } | undefined; avgTimeToUnlock: any; unlockRate: number; }; _count: { userAchievements: number; }; ... 29 more ...; maxAchievers: number | null; }'.
+src/components/features/gamification/achievement-details-modal.tsx(521,42): error TS2339: Property 'tips' does not exist on type '{ stats: { totalUnlocked: number; completionRate: number; firstUnlockedBy: { username: string; id: string; } | undefined; avgTimeToUnlock: any; unlockRate: number; }; _count: { userAchievements: number; }; ... 29 more ...; maxAchievers: number | null; }'.
+src/components/features/post/post-card.tsx(170,20): error TS18047: 'post.author' is possibly 'null'.
+src/components/features/post/post-card.tsx(223,30): error TS18047: 'post.author' is possibly 'null'.
+src/components/features/post/post-card.tsx(227,35): error TS18047: 'post.author' is possibly 'null'.
+src/components/features/post/post-card.tsx(229,20): error TS18047: 'post.author' is possibly 'null'.
+src/components/features/post/post-card.tsx(229,20): error TS2532: Object is possibly 'undefined'.
+src/components/features/post/post-card.tsx(234,49): error TS18047: 'post.author' is possibly 'null'.
+src/components/features/post/post-card.tsx(235,20): error TS18047: 'post.author' is possibly 'null'.
+src/components/features/post/post-card.tsx(310,32): error TS2339: Property 'id' does not exist on type '{ createdAt: Date; postId: string; addedBy: string | null; tagId: string; }'.
+src/components/features/post/post-card.tsx(310,54): error TS2339: Property 'name' does not exist on type '{ createdAt: Date; postId: string; addedBy: string | null; tagId: string; }'.
+src/components/features/post/post-card.tsx(316,26): error TS2339: Property 'name' does not exist on type '{ createdAt: Date; postId: string; addedBy: string | null; tagId: string; }'.
+src/components/features/post/post-card.tsx(321,24): error TS2322: Type '"ghost"' is not assignable to type '"default" | "secondary" | "destructive" | "outline" | null | undefined'.
 src/components/features/youtube/youtube-embed.tsx(85,32): error TS2339: Property 'YT' does not exist on type 'Window & typeof globalThis'.
 src/components/features/youtube/youtube-embed.tsx(87,31): error TS2339: Property 'YT' does not exist on type 'Window & typeof globalThis'.
 src/components/features/youtube/youtube-embed.tsx(105,37): error TS2339: Property 'YT' does not exist on type 'Window & typeof globalThis'.
@@ -162,149 +281,426 @@ src/components/features/youtube/youtube-embed.tsx(108,44): error TS2339: Propert
 src/components/features/youtube/youtube-embed.tsx(111,44): error TS2339: Property 'YT' does not exist on type 'Window & typeof globalThis'.
 src/components/features/youtube/youtube-embed.tsx(135,37): error TS2339: Property 'YT' does not exist on type 'Window & typeof globalThis'.
 src/components/features/youtube/youtube-embed.tsx(136,29): error TS2339: Property 'YT' does not exist on type 'Window & typeof globalThis'.
-src/components/features/youtube/youtube-embed.tsx(361,33): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
-  Type 'undefined' is not assignable to type 'number'.
-src/components/features/youtube/youtube-embed.tsx(365,33): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
-  Type 'undefined' is not assignable to type 'number'.
-src/components/features/youtube/youtube-embed.tsx(388,24): error TS2322: Type '"ghost"' is not assignable to type '"secondary" | "destructive" | "default" | "outline" | null | undefined'.
+src/components/features/youtube/youtube-embed.tsx(388,24): error TS2322: Type '"ghost"' is not assignable to type '"default" | "secondary" | "destructive" | "outline" | null | undefined'.
 src/components/features/youtube/youtube-embed.tsx(408,46): error TS2339: Property 'YT' does not exist on type 'Window & typeof globalThis'.
 src/components/features/youtube/youtube-embed.tsx(412,3): error TS18048: 'firstScriptTag' is possibly 'undefined'.
 src/components/features/youtube/youtube-embed.tsx(412,48): error TS2345: Argument of type 'HTMLScriptElement | undefined' is not assignable to parameter of type 'Node | null'.
   Type 'undefined' is not assignable to type 'Node | null'.
-src/components/providers/admin-provider.tsx(65,35): error TS2345: Argument of type '"admin:notification"' is not assignable to parameter of type 'keyof ServerToClientEvents'.
-src/hooks/use-auth.ts(68,13): error TS2741: Property 'SYSTEM' is missing in type '{ USER: number; CREATOR: number; VERIFIED_CREATOR: number; MODERATOR: number; ADMIN: number; }' but required in type 'Record<UserRole, number>'.
-src/hooks/use-socket.ts(8,23): error TS2307: Cannot find module './use-toast' or its corresponding type declarations.
-src/hooks/use-socket.ts(295,35): error TS2345: Argument of type 'ServerToClientEvents[K]' is not assignable to parameter of type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never>'.
-  Type '((error: { message: string; code?: string | undefined; }) => void) | (() => void) | ((notification: { data: JsonValue; type: NotificationType; id: string; message: string; title: string; ... 18 more ...; dismissedAt: Date | null; }) => void) | ... 24 more ... | ((message: string) => void)' is not assignable to type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never>'.
-    Type '(error: { message: string; code?: string | undefined; }) => void' is not assignable to type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never>'.
-src/hooks/use-socket.ts(301,37): error TS2345: Argument of type 'ServerToClientEvents[K]' is not assignable to parameter of type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never> | undefined'.
-  Type '((error: { message: string; code?: string | undefined; }) => void) | (() => void) | ((notification: { data: JsonValue; type: NotificationType; id: string; message: string; title: string; ... 18 more ...; dismissedAt: Date | null; }) => void) | ... 24 more ... | ((message: string) => void)' is not assignable to type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never> | undefined'.
-    Type '(error: { message: string; code?: string | undefined; }) => void' is not assignable to type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never>'.
-      Type 'ServerToClientEvents[K]' is not assignable to type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never>'.
-        Type '((error: { message: string; code?: string | undefined; }) => void) | (() => void) | ((notification: { data: JsonValue; type: NotificationType; id: string; message: string; title: string; ... 18 more ...; dismissedAt: Date | null; }) => void) | ... 24 more ... | ((message: string) => void)' is not assignable to type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never>'.
-          Type '(error: { message: string; code?: string | undefined; }) => void' is not assignable to type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never>'.
-src/hooks/use-socket.ts(311,37): error TS2345: Argument of type 'ServerToClientEvents[K]' is not assignable to parameter of type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never>'.
-  Type '((error: { message: string; code?: string | undefined; }) => void) | (() => void) | ((notification: { data: JsonValue; type: NotificationType; id: string; message: string; title: string; ... 18 more ...; dismissedAt: Date | null; }) => void) | ... 24 more ... | ((message: string) => void)' is not assignable to type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never>'.
-    Type '(error: { message: string; code?: string | undefined; }) => void' is not assignable to type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never>'.
-src/hooks/use-socket.ts(315,37): error TS2345: Argument of type 'ServerToClientEvents[K]' is not assignable to parameter of type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never> | undefined'.
-  Type '((error: { message: string; code?: string | undefined; }) => void) | (() => void) | ((notification: { data: JsonValue; type: NotificationType; id: string; message: string; title: string; ... 18 more ...; dismissedAt: Date | null; }) => void) | ... 24 more ... | ((message: string) => void)' is not assignable to type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never> | undefined'.
-    Type '(error: { message: string; code?: string | undefined; }) => void' is not assignable to type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never>'.
-      Type 'ServerToClientEvents[K]' is not assignable to type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never>'.
-        Type '((error: { message: string; code?: string | undefined; }) => void) | (() => void) | ((notification: { data: JsonValue; type: NotificationType; id: string; message: string; title: string; ... 18 more ...; dismissedAt: Date | null; }) => void) | ... 24 more ... | ((message: string) => void)' is not assignable to type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never>'.
-          Type '(error: { message: string; code?: string | undefined; }) => void' is not assignable to type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never>'.
-src/hooks/use-socket.ts(326,37): error TS2345: Argument of type 'ServerToClientEvents[K]' is not assignable to parameter of type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never> | undefined'.
-  Type '((error: { message: string; code?: string | undefined; }) => void) | (() => void) | ((notification: { data: JsonValue; type: NotificationType; id: string; message: string; title: string; ... 18 more ...; dismissedAt: Date | null; }) => void) | ... 24 more ... | ((message: string) => void)' is not assignable to type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never> | undefined'.
-    Type '(error: { message: string; code?: string | undefined; }) => void' is not assignable to type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never>'.
-      Type 'ServerToClientEvents[K]' is not assignable to type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never>'.
-        Type '((error: { message: string; code?: string | undefined; }) => void) | (() => void) | ((notification: { data: JsonValue; type: NotificationType; id: string; message: string; title: string; ... 18 more ...; dismissedAt: Date | null; }) => void) | ... 24 more ... | ((message: string) => void)' is not assignable to type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never>'.
-          Type '(error: { message: string; code?: string | undefined; }) => void' is not assignable to type 'FallbackToUntypedListener<K extends "connect" | "disconnect" | "connect_error" ? SocketReservedEvents[K] : K extends "error" | "connect" | "notification" | ... 24 more ... | "announcement" ? ServerToClientEvents[K] : never>'.
-src/hooks/use-socket.ts(586,28): error TS2554: Expected 1 arguments, but got 0.
-src/lib/api.ts(7,28): error TS2552: Cannot find name 'inferRouterInputs'. Did you mean 'RouterInputs'?
-src/lib/api.ts(8,29): error TS2552: Cannot find name 'inferRouterOutputs'. Did you mean 'RouterOutputs'?
-src/lib/auth/auth.config.ts(3,31): error TS2307: Cannot find module '@auth/prisma-adapter' or its corresponding type declarations.
-src/lib/auth/auth.ts(74,7): error TS2741: Property 'SYSTEM' is missing in type '{ USER: number; CREATOR: number; VERIFIED_CREATOR: number; MODERATOR: number; ADMIN: number; }' but required in type 'Record<UserRole, number>'.
-src/lib/db.ts(51,4): error TS2339: Property '$use' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
-src/lib/db.ts(51,16): error TS7006: Parameter 'params' implicitly has an 'any' type.
-src/lib/db.ts(51,24): error TS7006: Parameter 'next' implicitly has an 'any' type.
-src/lib/db.ts(90,4): error TS2339: Property '$use' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
-src/lib/db.ts(90,16): error TS7006: Parameter 'params' implicitly has an 'any' type.
-src/lib/db.ts(90,24): error TS7006: Parameter 'next' implicitly has an 'any' type.
-src/lib/db.ts(102,4): error TS2339: Property '$use' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
-src/lib/db.ts(102,16): error TS7006: Parameter 'params' implicitly has an 'any' type.
-src/lib/db.ts(102,24): error TS7006: Parameter 'next' implicitly has an 'any' type.
-src/lib/events/event-emitter.ts(51,3): error TS4114: This member must have an 'override' modifier because it overrides a member in the base class 'EventEmitter<DefaultEventMap>'.
-src/lib/events/event-emitter.ts(59,3): error TS4114: This member must have an 'override' modifier because it overrides a member in the base class 'EventEmitter<DefaultEventMap>'.
-src/lib/events/event-emitter.ts(66,3): error TS4114: This member must have an 'override' modifier because it overrides a member in the base class 'EventEmitter<DefaultEventMap>'.
-src/lib/events/event-emitter.ts(73,3): error TS4114: This member must have an 'override' modifier because it overrides a member in the base class 'EventEmitter<DefaultEventMap>'.
-src/lib/events/event-emitter.ts(80,3): error TS4114: This member must have an 'override' modifier because it overrides a member in the base class 'EventEmitter<DefaultEventMap>'.
-src/lib/events/event-emitter.ts(92,17): error TS2345: Argument of type '"error"' is not assignable to parameter of type 'keyof SystemEvents'.
-src/lib/events/event-emitter.ts(102,49): error TS2554: Expected 1-2 arguments, but got 3.
-src/lib/events/event-emitter.ts(106,46): error TS2554: Expected 1-2 arguments, but got 3.
-src/lib/events/event-emitter.ts(110,15): error TS2484: Export declaration conflicts with exported declaration of 'SystemEvents'.
+src/components/providers/query-provider.tsx(108,39): error TS2339: Property 'message' does not exist on type 'never'.
+src/components/providers/query-provider.tsx(181,69): error TS2339: Property 'queryClient' does not exist on type 'string | number | boolean | ServerContextJSONArray | { [key: string]: ServerContextJSONValue; }'.
+  Property 'queryClient' does not exist on type 'string'.
+src/components/providers/query-provider.tsx(195,69): error TS2339: Property 'queryClient' does not exist on type 'string | number | boolean | ServerContextJSONArray | { [key: string]: ServerContextJSONValue; }'.
+  Property 'queryClient' does not exist on type 'string'.
+src/components/providers/query-provider.tsx(220,69): error TS2339: Property 'queryClient' does not exist on type 'string | number | boolean | ServerContextJSONArray | { [key: string]: ServerContextJSONValue; }'.
+  Property 'queryClient' does not exist on type 'string'.
+src/components/providers/query-provider.tsx(235,69): error TS2339: Property 'queryClient' does not exist on type 'string | number | boolean | ServerContextJSONArray | { [key: string]: ServerContextJSONValue; }'.
+  Property 'queryClient' does not exist on type 'string'.
+src/components/providers/theme-provider.tsx(6,41): error TS2307: Cannot find module 'next-themes/dist/types' or its corresponding type declarations.
+src/components/ui/emoji-picker.tsx(162,12): error TS2339: Property 'custom' does not exist on type '{ recent: { label: string; icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>; emojis: string[]; }; ... 4 more ...; objects: { ...; }; }'.
+src/hooks/use-auth.ts(123,71): error TS2345: Argument of type 'UserRole' is not assignable to parameter of type '"CREATOR" | "VERIFIED_CREATOR"'.
+  Type '"USER"' is not assignable to type '"CREATOR" | "VERIFIED_CREATOR"'.
+src/hooks/use-auth.ts(184,3): error TS2686: 'React' refers to a UMD global, but the current file is a module. Consider adding an import instead.
+src/hooks/use-auth.ts(199,3): error TS2686: 'React' refers to a UMD global, but the current file is a module. Consider adding an import instead.
+src/hooks/use-auth.ts(214,3): error TS2686: 'React' refers to a UMD global, but the current file is a module. Consider adding an import instead.
+src/hooks/use-socket.ts(252,54): error TS2554: Expected 1 arguments, but got 2.
+src/lib/auth/auth.config.ts(233,29): error TS18047: 'account' is possibly 'null'.
+src/lib/auth/auth.config.ts(234,38): error TS18047: 'account' is possibly 'null'.
+src/lib/auth/auth.config.ts(238,17): error TS2561: Object literal may only specify known properties, but 'access_token' does not exist in type '(Without<AccountUpdateInput, AccountUncheckedUpdateInput> & AccountUncheckedUpdateInput) | (Without<...> & AccountUpdateInput)'. Did you mean to write 'accessToken'?
+src/lib/auth/auth.config.ts(238,31): error TS18047: 'account' is possibly 'null'.
+src/lib/auth/auth.config.ts(239,29): error TS18047: 'account' is possibly 'null'.
+src/lib/auth/auth.config.ts(240,32): error TS18047: 'account' is possibly 'null'.
+src/lib/auth/auth.config.ts(241,27): error TS18047: 'account' is possibly 'null'.
+src/lib/auth/auth.config.ts(242,29): error TS18047: 'account' is possibly 'null'.
+src/lib/auth/auth.config.ts(243,24): error TS18047: 'account' is possibly 'null'.
+src/lib/auth/auth.config.ts(244,32): error TS18047: 'account' is possibly 'null'.
+src/lib/auth/auth.config.ts(248,23): error TS18047: 'account' is possibly 'null'.
+src/lib/auth/auth.config.ts(249,27): error TS18047: 'account' is possibly 'null'.
+src/lib/auth/auth.config.ts(250,36): error TS18047: 'account' is possibly 'null'.
+src/lib/auth/auth.config.ts(251,17): error TS2561: Object literal may only specify known properties, but 'refresh_token' does not exist in type 'Without<AccountCreateInput, AccountUncheckedCreateInput> & AccountUncheckedCreateInput'. Did you mean to write 'refreshToken'?
+src/lib/auth/auth.config.ts(251,32): error TS18047: 'account' is possibly 'null'.
+src/lib/auth/auth.config.ts(252,31): error TS18047: 'account' is possibly 'null'.
+src/lib/auth/auth.config.ts(253,29): error TS18047: 'account' is possibly 'null'.
+src/lib/auth/auth.config.ts(254,29): error TS18047: 'account' is possibly 'null'.
+src/lib/auth/auth.config.ts(255,24): error TS18047: 'account' is possibly 'null'.
+src/lib/auth/auth.config.ts(256,27): error TS18047: 'account' is possibly 'null'.
+src/lib/auth/auth.config.ts(257,32): error TS18047: 'account' is possibly 'null'.
+src/lib/auth/auth.config.ts(315,13): error TS2322: Type 'string' is not assignable to type 'Exact<boolean | BoolFieldUpdateOperationsInput | undefined, boolean | BoolFieldUpdateOperationsInput | undefined>'.
+src/lib/auth/auth.config.ts(398,19): error TS2322: Type 'string' is not assignable to type 'Exact<boolean | BoolFieldUpdateOperationsInput | undefined, boolean | BoolFieldUpdateOperationsInput | undefined>'.
+src/lib/db.ts(327,7): error TS2322: Type 'any[]' is not assignable to type 'T'.
+  'T' could be instantiated with an arbitrary type which could be unrelated to 'any[]'.
+src/lib/db.ts(327,36): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(arg: PrismaPromise<any>[], options?: { isolationLevel?: TransactionIsolationLevel | undefined; } | undefined): Promise<any[]>', gave the following error.
+    Argument of type '(tx: TransactionClient) => Promise<T>' is not assignable to parameter of type 'PrismaPromise<any>[]'.
+  Overload 2 of 2, '(fn: (client: Omit<DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { ...; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>, "$extends" | ... 3 more ... | "$on">) => Promise<...>, options?: { ...; } | undefined): Promise<...>', gave the following error.
+    Argument of type '(tx: TransactionClient) => Promise<T>' is not assignable to parameter of type '(client: Omit<DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<......'.
+      Types of parameters 'tx' and 'client' are incompatible.
+        Type 'Omit<DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...;...' is not assignable to type 'TransactionClient'.
+          The types of 'message.findUnique' are incompatible between these types.
+            Type '<A extends MessageFindUniqueArgs<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }>>(args: Exact<...>) => DynamicModel...' is not assignable to type '<T extends MessageFindUniqueArgs>(args: SelectSubset<T, MessageFindUniqueArgs<DefaultArgs>>) => Prisma__MessageClient<GetFindResult<$MessagePayload<DefaultArgs>, T, PrismaClientOptions> | null, null, DefaultArgs, PrismaClientOptions>'.
+              Types of parameters 'args' and 'args' are incompatible.
+                Type 'SelectSubset<T, MessageFindUniqueArgs<DefaultArgs>>' is not assignable to type 'Exact<T, MessageFindUniqueArgs<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }>>'.
+                  Type 'SelectSubset<T, MessageFindUniqueArgs<DefaultArgs>>' is not assignable to type 'T extends Narrowable ? T : never'.
+src/lib/events/event-emitter.ts(203,49): error TS2554: Expected 1-2 arguments, but got 3.
+src/lib/events/event-emitter.ts(207,46): error TS2554: Expected 1-2 arguments, but got 3.
+src/lib/events/event-emitter.ts(228,15): error TS2484: Export declaration conflicts with exported declaration of 'SystemEvents'.
+src/lib/jobs/job-processor.ts(566,56): error TS2339: Property 'posts' does not exist on type '{ userId: string; id: string; updatedAt: Date; totalPosts: number; totalComments: number; totalLikesReceived: number; totalLikesGiven: number; totalViews: number; totalFollowers: number; ... 7 more ...; contentQualityScore: number; }'.
+src/lib/jobs/job-processor.ts(570,58): error TS2339: Property 'comments' does not exist on type '{ userId: string; id: string; updatedAt: Date; totalPosts: number; totalComments: number; totalLikesReceived: number; totalLikesGiven: number; totalViews: number; totalFollowers: number; ... 7 more ...; contentQualityScore: number; }'.
+src/lib/jobs/job-processor.ts(628,9): error TS2353: Object literal may only specify known properties, and 'experience' does not exist in type 'Exact<(Without<UserStatsUpdateInput, UserStatsUncheckedUpdateInput> & UserStatsUncheckedUpdateInput) | (Without<...> & UserStatsUpdateInput), (Without<...> & UserStatsUncheckedUpdateInput) | (Without<...> & UserStatsUpdateInput)>'.
 src/lib/monitoring.ts(108,30): error TS2339: Property 'now' does not exist on type 'PerformanceMonitor'.
 src/lib/monitoring.ts(120,34): error TS2339: Property 'now' does not exist on type 'PerformanceMonitor'.
 src/lib/monitoring.ts(121,23): error TS18048: 'timing.endTime' is possibly 'undefined'.
-src/lib/rate-limit.ts(25,38): error TS18048: 'config' is possibly 'undefined'.
-src/lib/rate-limit.ts(28,61): error TS18048: 'config' is possibly 'undefined'.
-src/lib/rate-limit.ts(29,35): error TS18048: 'config' is possibly 'undefined'.
-src/lib/rate-limit.ts(30,43): error TS18048: 'config' is possibly 'undefined'.
-src/lib/rate-limit.ts(33,25): error TS18048: 'config' is possibly 'undefined'.
-src/lib/rate-limit.ts(34,14): error TS18048: 'config' is possibly 'undefined'.
-src/lib/rate-limit.ts(43,38): error TS18048: 'config' is possibly 'undefined'.
-src/lib/rate-limit.ts(46,11): error TS2304: Cannot find name 'redis'.
-src/lib/redis.ts(65,9): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+src/lib/redis.ts(74,9): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
   Type 'undefined' is not assignable to type 'string'.
-src/lib/redis.ts(66,27): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+src/lib/redis.ts(75,27): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
   Type 'undefined' is not assignable to type 'string'.
-src/lib/security.ts(38,19): error TS2532: Object is possibly 'undefined'.
-src/lib/security.ts(77,26): error TS2769: No overload matches this call.
+src/lib/security.ts(56,19): error TS2532: Object is possibly 'undefined'.
+src/lib/security.ts(183,26): error TS2769: No overload matches this call.
   Overload 1 of 4, '(arrayBuffer: WithImplicitCoercion<ArrayBufferLike>, byteOffset?: number | undefined, length?: number | undefined): Buffer<ArrayBufferLike>', gave the following error.
     Argument of type 'string | undefined' is not assignable to parameter of type 'WithImplicitCoercion<ArrayBufferLike>'.
       Type 'undefined' is not assignable to type 'WithImplicitCoercion<ArrayBufferLike>'.
   Overload 2 of 4, '(string: WithImplicitCoercion<string>, encoding?: BufferEncoding | undefined): Buffer<ArrayBuffer>', gave the following error.
     Argument of type 'string | undefined' is not assignable to parameter of type 'WithImplicitCoercion<string>'.
       Type 'undefined' is not assignable to type 'WithImplicitCoercion<string>'.
-src/lib/security.ts(78,31): error TS2769: No overload matches this call.
+src/lib/security.ts(184,31): error TS2769: No overload matches this call.
   Overload 1 of 4, '(arrayBuffer: WithImplicitCoercion<ArrayBufferLike>, byteOffset?: number | undefined, length?: number | undefined): Buffer<ArrayBufferLike>', gave the following error.
     Argument of type 'string | undefined' is not assignable to parameter of type 'WithImplicitCoercion<ArrayBufferLike>'.
       Type 'undefined' is not assignable to type 'WithImplicitCoercion<ArrayBufferLike>'.
   Overload 2 of 4, '(string: WithImplicitCoercion<string>, encoding?: BufferEncoding | undefined): Buffer<ArrayBuffer>', gave the following error.
     Argument of type 'string | undefined' is not assignable to parameter of type 'WithImplicitCoercion<string>'.
       Type 'undefined' is not assignable to type 'WithImplicitCoercion<string>'.
-src/lib/security.ts(84,35): error TS2769: No overload matches this call.
+src/lib/security.ts(190,35): error TS2769: No overload matches this call.
   Overload 1 of 4, '(data: ArrayBufferView<ArrayBufferLike>, inputEncoding: undefined, outputEncoding: Encoding): string', gave the following error.
     Argument of type 'string | undefined' is not assignable to parameter of type 'ArrayBufferView<ArrayBufferLike>'.
       Type 'undefined' is not assignable to type 'ArrayBufferView<ArrayBufferLike>'.
   Overload 2 of 4, '(data: string, inputEncoding: Encoding | undefined, outputEncoding: Encoding): string', gave the following error.
     Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
       Type 'undefined' is not assignable to type 'string'.
-src/lib/security.ts(85,3): error TS2322: Type 'string' is not assignable to type 'Buffer<ArrayBufferLike> & string'.
+src/lib/security.ts(191,3): error TS2322: Type 'string' is not assignable to type 'Buffer<ArrayBufferLike> & string'.
   Type 'string' is not assignable to type 'Buffer<ArrayBufferLike>'.
-src/lib/security.ts(113,12): error TS2532: Object is possibly 'undefined'.
-src/lib/socket/socket-server.ts(4,23): error TS7016: Could not find a declaration file for module 'cookie'. '/Home1/test/node_modules/cookie/index.js' implicitly has an 'any' type.
-  Try `npm i --save-dev @types/cookie` if it exists or add a new declaration (.d.ts) file containing `declare module 'cookie';`
-src/lib/socket/socket-server.ts(7,17): error TS2614: Module '"@/lib/redis"' has no exported member 'redisPub'. Did you mean to use 'import redisPub from "@/lib/redis"' instead?
-src/lib/socket/socket-server.ts(7,27): error TS2614: Module '"@/lib/redis"' has no exported member 'redisSub'. Did you mean to use 'import redisSub from "@/lib/redis"' instead?
+src/lib/security.ts(254,9): error TS2353: Object literal may only specify known properties, and 'timestamp' does not exist in type 'Without<LoginHistoryCreateInput, LoginHistoryUncheckedCreateInput> & LoginHistoryUncheckedCreateInput'.
+src/lib/security.ts(310,9): error TS2353: Object literal may only specify known properties, and 'message' does not exist in type '(Without<SecurityAlertCreateInput, SecurityAlertUncheckedCreateInput> & SecurityAlertUncheckedCreateInput) | { ...; }'.
+src/lib/security.ts(396,12): error TS2532: Object is possibly 'undefined'.
 src/lib/socket/socket-server.ts(630,43): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
   Type 'undefined' is not assignable to type 'string'.
 src/lib/socket/socket-server.ts(652,5): error TS2322: Type '(string | undefined)[]' is not assignable to type 'string[]'.
   Type 'string | undefined' is not assignable to type 'string'.
     Type 'undefined' is not assignable to type 'string'.
-src/lib/utils.ts(196,16): error TS2322: Type 'string | undefined' is not assignable to type 'string | null'.
+src/lib/utils.ts(249,16): error TS2322: Type 'string | undefined' is not assignable to type 'string | null'.
   Type 'undefined' is not assignable to type 'string | null'.
-src/lib/utils.ts(318,16): error TS2532: Object is possibly 'undefined'.
-src/lib/utils.ts(361,12): error TS2532: Object is possibly 'undefined'.
-src/lib/utils.ts(450,12): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+src/lib/utils.ts(379,16): error TS2532: Object is possibly 'undefined'.
+src/lib/utils.ts(426,12): error TS2532: Object is possibly 'undefined'.
+src/lib/utils.ts(519,12): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
   Type 'undefined' is not assignable to type 'string'.
-src/lib/utils.ts(450,28): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+src/lib/utils.ts(519,28): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
   Type 'undefined' is not assignable to type 'string'.
-src/lib/utils.ts(661,3): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+src/lib/utils.ts(730,3): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
   Type 'undefined' is not assignable to type 'string'.
 src/middleware.ts(4,10): error TS2724: '"@/lib/rate-limit"' has no exported member named 'rateLimit'. Did you mean 'ratelimit'?
-src/middleware.ts(4,21): error TS2305: Module '"@/lib/rate-limit"' has no exported member 'rateLimitConfigs'.
-src/server/api/root.ts(5,28): error TS2307: Cannot find module '@/server/api/routers/auth' or its corresponding type declarations.
-src/server/api/root.ts(10,33): error TS2307: Cannot find module '@/server/api/routers/analytics' or its corresponding type declarations.
-src/server/api/root.ts(44,29): error TS2304: Cannot find name 'createCallerFactory'.
-src/server/api/routers/admin.ts(6,34): error TS2307: Cannot find module '@/server/services/analytics.service' or its corresponding type declarations.
-src/server/api/routers/admin.ts(8,31): error TS2307: Cannot find module '@/server/services/system.service' or its corresponding type declarations.
-src/server/api/routers/admin.ts(240,32): error TS2551: Property 'getModerationQueue' does not exist on type 'ModerationService'. Did you mean 'getModerrationQueue'?
-src/server/api/routers/admin.ts(259,32): error TS2339: Property 'moderateContent' does not exist on type 'ModerationService'.
-src/server/api/routers/admin.ts(273,32): error TS2339: Property 'bulkModerate' does not exist on type 'ModerationService'.
-src/server/api/routers/admin.ts(282,32): error TS2339: Property 'getAISettings' does not exist on type 'ModerationService'.
-src/server/api/routers/admin.ts(295,32): error TS2339: Property 'updateAISettings' does not exist on type 'ModerationService'.
+src/server/api/root.ts(14,30): error TS2307: Cannot find module '@/server/api/routers/social' or its corresponding type declarations.
+src/server/api/root.ts(15,31): error TS2307: Cannot find module '@/server/api/routers/message' or its corresponding type declarations.
+src/server/api/root.ts(16,29): error TS2307: Cannot find module '@/server/api/routers/group' or its corresponding type declarations.
+src/server/api/routers/admin.ts(46,45): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/admin.ts(47,53): error TS2554: Expected 0 arguments, but got 1.
+src/server/api/routers/admin.ts(51,26): error TS2339: Property 'getAdvancedMetrics' does not exist on type 'AnalyticsService'.
+src/server/api/routers/admin.ts(97,53): error TS2554: Expected 0 arguments, but got 1.
+src/server/api/routers/admin.ts(98,31): error TS2339: Property 'getAnalytics' does not exist on type 'AnalyticsService'.
+src/server/api/routers/admin.ts(103,47): error TS2554: Expected 0 arguments, but got 1.
+src/server/api/routers/admin.ts(109,45): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/admin.ts(124,45): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/admin.ts(133,45): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/admin.ts(145,45): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/admin.ts(158,45): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/admin.ts(167,45): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/admin.ts(177,45): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/admin.ts(192,45): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/admin.ts(208,45): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/admin.ts(222,45): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/admin.ts(239,55): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/admin.ts(245,55): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/admin.ts(258,55): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/admin.ts(259,32): error TS2554: Expected 4 arguments, but got 1.
+src/server/api/routers/admin.ts(272,55): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/admin.ts(273,32): error TS2554: Expected 4 arguments, but got 1.
+src/server/api/routers/admin.ts(281,55): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/admin.ts(294,55): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/admin.ts(295,32): error TS2554: Expected 2 arguments, but got 1.
+src/server/api/routers/admin.ts(304,45): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/admin.ts(314,45): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/admin.ts(325,45): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/admin.ts(337,45): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/admin.ts(350,47): error TS2554: Expected 0 arguments, but got 1.
+src/server/api/routers/admin.ts(351,28): error TS2339: Property 'getSystemLogs' does not exist on type 'SystemService'.
+src/server/api/routers/admin.ts(360,47): error TS2554: Expected 0 arguments, but got 1.
+src/server/api/routers/admin.ts(361,28): error TS2339: Property 'runMaintenance' does not exist on type 'SystemService'.
+src/server/api/routers/admin.ts(375,45): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/admin.ts(385,53): error TS2554: Expected 0 arguments, but got 1.
+src/server/api/routers/admin.ts(386,31): error TS2339: Property 'getRealtimeMetrics' does not exist on type 'AnalyticsService'.
+src/server/api/routers/admin.ts(399,45): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/analytics.ts(86,13): error TS2353: Object literal may only specify known properties, and 'type' does not exist in type 'CurrencyTransactionWhereInput'.
+src/server/api/routers/analytics.ts(145,13): error TS2353: Object literal may only specify known properties, and 'type' does not exist in type 'CurrencyTransactionWhereInput'.
+src/server/api/routers/analytics.ts(384,13): error TS2353: Object literal may only specify known properties, and 'type' does not exist in type 'ActivityStreamWhereInput'.
+src/server/api/routers/analytics.ts(438,13): error TS2353: Object literal may only specify known properties, and 'type' does not exist in type 'CurrencyTransactionWhereInput'.
+src/server/api/routers/analytics.ts(447,13): error TS2322: Type '"ACTIVE"' is not assignable to type 'Exact<PaymentStatus | EnumPaymentStatusFilter<"UserSubscription"> | undefined, PaymentStatus | EnumPaymentStatusFilter<"UserSubscription"> | undefined>'.
+src/server/api/routers/analytics.ts(453,16): error TS2339: Property 'storePurchase' does not exist on type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>'.
+src/server/api/routers/analytics.ts(474,17): error TS2353: Object literal may only specify known properties, and 'type' does not exist in type 'CurrencyTransactionWhereInput'.
+src/server/api/routers/analytics.ts(491,17): error TS2353: Object literal may only specify known properties, and 'type' does not exist in type 'CurrencyTransactionWhereInput'.
+src/server/api/routers/analytics.ts(506,38): error TS7006: Parameter 'user' implicitly has an 'any' type.
+src/server/api/routers/analytics.ts(508,57): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/server/api/routers/analytics.ts(508,62): error TS7006: Parameter 't' implicitly has an 'any' type.
+src/server/api/routers/auth.ts(29,13): error TS2353: Object literal may only specify known properties, and 'bio' does not exist in type 'ProfileSelect<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }> | { ...; }'.
+src/server/api/routers/auth.ts(38,13): error TS2353: Object literal may only specify known properties, and 'followers' does not exist in type 'UserStatsSelect<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }> | { ...; }'.
+src/server/api/routers/auth.ts(108,20): error TS2353: Object literal may only specify known properties, and 'code' does not exist in type 'Exact<ReferralWhereUniqueInput, ReferralWhereUniqueInput>'.
+src/server/api/routers/auth.ts(161,11): error TS2353: Object literal may only specify known properties, and 'code' does not exist in type '(Without<ReferralCreateInput, ReferralUncheckedCreateInput> & ReferralUncheckedCreateInput) | { ...; }'.
+src/server/api/routers/comment.ts(39,49): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs> | TransactionClient'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/comment.ts(41,49): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/comment.ts(92,49): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs> | TransactionClient'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/comment.ts(124,49): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs> | TransactionClient'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/comment.ts(154,49): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs> | TransactionClient'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
 src/server/api/routers/comment.ts(184,24): error TS2339: Property 'action' does not exist on type '{ success: boolean; }'.
-src/server/api/routers/gamification.ts(266,11): error TS2322: Type 'number | null' is not assignable to type 'number | IntFieldUpdateOperationsInput | undefined'.
-  Type 'null' is not assignable to type 'number | IntFieldUpdateOperationsInput | undefined'.
+src/server/api/routers/comment.ts(201,49): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs> | TransactionClient'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/comment.ts(232,49): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs> | TransactionClient'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/comment.ts(259,49): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs> | TransactionClient'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/comment.ts(272,49): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs> | TransactionClient'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/comment.ts(312,49): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs> | TransactionClient'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/comment.ts(327,49): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs> | TransactionClient'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/comment.ts(376,49): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs> | TransactionClient'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/comment.ts(402,49): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs> | TransactionClient'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/gamification.ts(32,59): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/gamification.ts(53,59): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/gamification.ts(73,59): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/gamification.ts(266,11): error TS2322: Type 'number | null' is not assignable to type 'Exact<number | IntFieldUpdateOperationsInput | undefined, number | IntFieldUpdateOperationsInput | undefined>'.
+  Type 'null' is not assignable to type 'Exact<number | IntFieldUpdateOperationsInput | undefined, number | IntFieldUpdateOperationsInput | undefined>'.
+src/server/api/routers/gamification.ts(285,59): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/gamification.ts(515,59): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/gamification.ts(522,59): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/gamification.ts(619,59): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
 src/server/api/routers/gamification.ts(746,13): error TS2532: Object is possibly 'undefined'.
+src/server/api/routers/gamification.ts(756,59): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/notification.ts(21,59): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/notification.ts(31,59): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/notification.ts(53,59): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/notification.ts(77,59): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/notification.ts(100,59): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/notification.ts(130,59): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/notification.ts(140,59): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/notification.ts(147,59): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/post.ts(24,43): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/post.ts(26,47): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/post.ts(50,43): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/post.ts(52,47): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
 src/server/api/routers/post.ts(57,9): error TS2345: Argument of type '{ id: string; content?: string | undefined; title?: string | undefined; excerpt?: string | undefined; categoryId?: string | undefined; youtubeVideoId?: string | null | undefined; tags?: string[] | undefined; }' is not assignable to parameter of type 'Partial<{ title: string; content: string; excerpt: string; tags: string[]; categoryId: string; youtubeVideoId: string; }>'.
   Types of property 'youtubeVideoId' are incompatible.
     Type 'string | null | undefined' is not assignable to type 'string | undefined'.
       Type 'null' is not assignable to type 'string | undefined'.
+src/server/api/routers/post.ts(76,43): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/post.ts(78,47): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/post.ts(108,43): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/post.ts(133,43): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/post.ts(156,43): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/post.ts(170,43): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/post.ts(201,43): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/post.ts(224,43): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/post.ts(249,43): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/post.ts(271,43): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/post.ts(284,43): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/post.ts(299,43): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/post.ts(313,43): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/post.ts(346,43): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/post.ts(360,43): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/post.ts(385,43): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/post.ts(395,43): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/search.ts(20,47): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/search.ts(51,47): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/search.ts(73,47): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/search.ts(89,47): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/search.ts(105,47): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/search.ts(120,47): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/search.ts(127,47): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/search.ts(137,47): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/search.ts(144,47): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/search.ts(159,47): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/user.ts(47,43): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/user.ts(73,43): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/user.ts(81,43): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/user.ts(107,43): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/user.ts(124,43): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/user.ts(126,51): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/user.ts(157,43): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/user.ts(182,43): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/user.ts(197,43): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/user.ts(210,43): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/user.ts(220,43): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/user.ts(250,43): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/user.ts(274,43): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/user.ts(281,43): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/user.ts(294,43): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/user.ts(325,43): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/user.ts(335,43): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/user.ts(345,43): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/user.ts(369,43): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/user.ts(380,43): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/user.ts(431,43): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/youtube.ts(20,49): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/youtube.ts(37,49): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/youtube.ts(47,49): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/youtube.ts(65,49): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/youtube.ts(78,49): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/youtube.ts(97,55): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/youtube.ts(110,55): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/youtube.ts(123,55): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
 src/server/api/routers/youtube.ts(124,32): error TS2339: Property 'leaveParty' does not exist on type 'WatchPartyService'.
+src/server/api/routers/youtube.ts(136,55): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
 src/server/api/routers/youtube.ts(137,32): error TS2339: Property 'getPartyDetails' does not exist on type 'WatchPartyService'.
+src/server/api/routers/youtube.ts(148,55): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/youtube.ts(161,55): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
 src/server/api/routers/youtube.ts(162,32): error TS2339: Property 'getUserParties' does not exist on type 'WatchPartyService'.
+src/server/api/routers/youtube.ts(176,49): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/youtube.ts(191,49): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/youtube.ts(203,49): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/youtube.ts(213,49): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/youtube.ts(223,49): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/youtube.ts(235,49): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/server/api/routers/youtube.ts(246,49): error TS2345: Argument of type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' is not assignable to parameter of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+  Property '$on' is missing in type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>' but required in type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
 src/server/services/admin.service.ts(5,30): error TS2307: Cannot find module './email.service' or its corresponding type declarations.
 src/server/services/admin.service.ts(570,55): error TS18046: 'error' is of type 'unknown'.
+src/server/services/analytics.service.ts(237,11): error TS2353: Object literal may only specify known properties, and 'viewCount' does not exist in type 'PostOrderByWithRelationInput'.
+src/server/services/analytics.service.ts(246,19): error TS2339: Property 'viewCount' does not exist on type '{ _count: { reactions: number; comments: number; }; author: { username: string; } | null; } & { content: JsonValue; id: string; version: number; deleted: boolean; deletedAt: Date | null; ... 47 more ...; readingTime: number; }'.
+src/server/services/analytics.service.ts(249,20): error TS2339: Property 'shareCount' does not exist on type '{ _count: { reactions: number; comments: number; }; author: { username: string; } | null; } & { content: JsonValue; id: string; version: number; deleted: boolean; deletedAt: Date | null; ... 47 more ...; readingTime: number; }'.
+src/server/services/analytics.service.ts(251,14): error TS2339: Property 'viewCount' does not exist on type '{ _count: { reactions: number; comments: number; }; author: { username: string; } | null; } & { content: JsonValue; id: string; version: number; deleted: boolean; deletedAt: Date | null; ... 47 more ...; readingTime: number; }'.
+src/server/services/analytics.service.ts(254,14): error TS2339: Property 'shareCount' does not exist on type '{ _count: { reactions: number; comments: number; }; author: { username: string; } | null; } & { content: JsonValue; id: string; version: number; deleted: boolean; deletedAt: Date | null; ... 47 more ...; readingTime: number; }'.
+src/server/services/analytics.service.ts(278,9): error TS2353: Object literal may only specify known properties, and 'status' does not exist in type 'CurrencyTransactionWhereInput'.
+src/server/services/analytics.service.ts(337,13): error TS2353: Object literal may only specify known properties, and 'totalCommentsReceived' does not exist in type 'UserStatsSelect<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string; }; }; post: { readingTime: () => { ...; }; }; }; model: { ...; }; query: {}; client: {}; }>'.
+src/server/services/analytics.service.ts(441,11): error TS2353: Object literal may only specify known properties, and 'viewCount' does not exist in type 'PostAvgAggregateInputType | { seriesOrder?: Exact<true | undefined, true | undefined>; version?: Exact<true | undefined, true | undefined>; ... 4 more ...; aiRevisionCount?: Exact<...>; }'.
+src/server/services/analytics.service.ts(447,63): error TS2339: Property 'viewCount' does not exist on type '{ _count: { reactions: number; comments: number; }; } & { content: JsonValue; id: string; version: number; deleted: boolean; deletedAt: Date | null; deletedBy: string | null; ... 46 more ...; readingTime: number; }'.
+src/server/services/analytics.service.ts(450,65): error TS2339: Property 'shareCount' does not exist on type '{ _count: { reactions: number; comments: number; }; } & { content: JsonValue; id: string; version: number; deleted: boolean; deletedAt: Date | null; deletedBy: string | null; ... 46 more ...; readingTime: number; }'.
+src/server/services/analytics.service.ts(458,17): error TS18048: 'avgEngagement._avg' is possibly 'undefined'.
+src/server/services/analytics.service.ts(458,36): error TS2339: Property 'viewCount' does not exist on type '{}'.
+src/server/services/analytics.service.ts(459,18): error TS18048: 'avgEngagement._avg' is possibly 'undefined'.
+src/server/services/analytics.service.ts(459,37): error TS2339: Property 'shareCount' does not exist on type '{}'.
+src/server/services/analytics.service.ts(504,9): error TS2353: Object literal may only specify known properties, and 'status' does not exist in type 'CurrencyTransactionWhereInput'.
+src/server/services/analytics.service.ts(518,9): error TS2353: Object literal may only specify known properties, and 'status' does not exist in type 'CreatorPayoutWhereInput'.
 src/server/services/cache.service.ts(396,36): error TS2532: Object is possibly 'undefined'.
 src/server/services/comment.service.ts(249,11): error TS2352: Conversion of type 'JsonValue[]' to type 'EditHistoryEntry[]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
   Type 'JsonValue' is not comparable to type 'EditHistoryEntry'.
@@ -338,6 +734,9 @@ src/server/services/gamification.service.ts(1514,9): error TS2322: Type 'Leaderb
     Index signature for type 'string' is missing in type 'LeaderboardEntry[]'.
 src/server/services/mention.service.ts(145,21): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
   Type 'undefined' is not assignable to type 'string'.
+src/server/services/moderation.service.ts(300,9): error TS2353: Object literal may only specify known properties, and 'targetId' does not exist in type '(Without<ModerationActionCreateInput, ModerationActionUncheckedCreateInput> & ModerationActionUncheckedCreateInput) | (Without<...> & ModerationActionCreateInput)'.
+src/server/services/moderation.service.ts(374,9): error TS2353: Object literal may only specify known properties, and 'targetId' does not exist in type '(Without<ModerationActionCreateInput, ModerationActionUncheckedCreateInput> & ModerationActionUncheckedCreateInput) | (Without<...> & ModerationActionCreateInput)'.
+src/server/services/moderation.service.ts(567,9): error TS2353: Object literal may only specify known properties, and 'createdBy' does not exist in type 'Without<SiteSettingCreateInput, SiteSettingUncheckedCreateInput> & SiteSettingUncheckedCreateInput'.
 src/server/services/post.service.ts(62,9): error TS2322: Type '{ connectOrCreate: { where: { name: string; }; create: { name: string; slug: string; }; }[]; }' is not assignable to type 'PostTagUncheckedCreateNestedManyWithoutPostInput | PostTagCreateNestedManyWithoutPostInput | undefined'.
   Types of property 'connectOrCreate' are incompatible.
     Type '{ where: { name: string; }; create: { name: string; slug: string; }; }[]' is not assignable to type 'PostTagCreateOrConnectWithoutPostInput | PostTagCreateOrConnectWithoutPostInput[] | undefined'.
@@ -368,18 +767,32 @@ src/server/services/post.service.ts(881,33): error TS2353: Object literal may on
 src/server/services/post.service.ts(1096,57): error TS2345: Argument of type '{ type: "USER_POSTED"; userId: string; actorId: any; entityId: any; entityType: string; message: string; title: string; }' is not assignable to parameter of type '{ type: NotificationType; userId: string; actorId?: string | undefined; entityId?: string | undefined; entityType?: string | undefined; title: string; message: string; data?: any; imageUrl?: string | undefined; actionUrl?: string | undefined; priority?: number | undefined; }'.
   Types of property 'type' are incompatible.
     Type '"USER_POSTED"' is not assignable to type 'NotificationType'.
-src/server/services/realtime.service.ts(6,10): error TS2614: Module '"@/lib/redis"' has no exported member 'redisClient'. Did you mean to use 'import redisClient from "@/lib/redis"' instead?
-src/server/services/search.service.ts(3,8): error TS2613: Module '"/Home1/test/node_modules/algoliasearch/dist/browser"' has no default export. Did you mean to use 'import { algoliasearch } from "/Home1/test/node_modules/algoliasearch/dist/browser"' instead?
-src/server/services/search.service.ts(3,39): error TS2305: Module '"algoliasearch"' has no exported member 'SearchIndex'.
+src/server/services/search.service.ts(3,8): error TS2613: Module '"/Home1/test2/node_modules/algoliasearch/dist/browser"' has no default export. Did you mean to use 'import { algoliasearch } from "/Home1/test2/node_modules/algoliasearch/dist/browser"' instead?
 src/server/services/search.service.ts(56,23): error TS2531: Object is possibly 'null'.
-src/server/services/search.service.ts(56,42): error TS2339: Property 'initIndex' does not exist on type '{ transporter: Transporter; appId: string; apiKey: string; clearCache(): Promise<void>; readonly _ua: string; addAlgoliaAgent(segment: string, version?: string | undefined): void; ... 76 more ...; updateApiKey({ key, apiKey }: UpdateApiKeyProps, requestOptions?: RequestOptions | undefined): Promise<...>; }'.
 src/server/services/search.service.ts(57,23): error TS2531: Object is possibly 'null'.
-src/server/services/search.service.ts(57,42): error TS2339: Property 'initIndex' does not exist on type '{ transporter: Transporter; appId: string; apiKey: string; clearCache(): Promise<void>; readonly _ua: string; addAlgoliaAgent(segment: string, version?: string | undefined): void; ... 76 more ...; updateApiKey({ key, apiKey }: UpdateApiKeyProps, requestOptions?: RequestOptions | undefined): Promise<...>; }'.
 src/server/services/search.service.ts(58,22): error TS2531: Object is possibly 'null'.
-src/server/services/search.service.ts(58,41): error TS2339: Property 'initIndex' does not exist on type '{ transporter: Transporter; appId: string; apiKey: string; clearCache(): Promise<void>; readonly _ua: string; addAlgoliaAgent(segment: string, version?: string | undefined): void; ... 76 more ...; updateApiKey({ key, apiKey }: UpdateApiKeyProps, requestOptions?: RequestOptions | undefined): Promise<...>; }'.
+src/server/services/search.service.ts(406,29): error TS2551: Property 'saveObject' does not exist on type 'SearchIndex'. Did you mean 'saveObjects'?
+src/server/services/search.service.ts(435,29): error TS2551: Property 'deleteObject' does not exist on type 'SearchIndex'. Did you mean 'deleteObjects'?
+src/server/services/search.service.ts(518,29): error TS2551: Property 'saveObject' does not exist on type 'SearchIndex'. Did you mean 'saveObjects'?
+src/server/services/search.service.ts(559,28): error TS2551: Property 'saveObject' does not exist on type 'SearchIndex'. Did you mean 'saveObjects'?
+src/server/services/system.service.ts(80,17): error TS2740: Type '{}' is missing the following properties from type 'SystemMetrics': totalUsers, totalPosts, totalComments, totalGroups, and 7 more.
+src/server/services/system.service.ts(254,21): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(timeout: string | number | Timeout | undefined): void', gave the following error.
+    Argument of type 'Timer' is not assignable to parameter of type 'string | number | Timeout | undefined'.
+      Type 'Timer' is missing the following properties from type 'Timeout': close, _onTimeout, [Symbol.dispose]
+  Overload 2 of 2, '(id: number | undefined): void', gave the following error.
+    Argument of type 'Timer' is not assignable to parameter of type 'number'.
+src/server/services/system.service.ts(271,21): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(timeout: string | number | Timeout | undefined): void', gave the following error.
+    Argument of type 'Timer' is not assignable to parameter of type 'string | number | Timeout | undefined'.
+      Type 'Timer' is missing the following properties from type 'Timeout': close, _onTimeout, [Symbol.dispose]
+  Overload 2 of 2, '(id: number | undefined): void', gave the following error.
+    Argument of type 'Timer' is not assignable to parameter of type 'number'.
+src/server/services/system.service.ts(340,22): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
 src/server/services/upload.service.ts(36,10): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ avatar: string[]; cover: string[]; post: string[]; comment: string[]; }'.
   No index signature with a parameter of type 'string' was found on type '{ avatar: string[]; cover: string[]; post: string[]; comment: string[]; }'.
-src/server/services/user.service.ts(139,14): error TS2551: Property 'status' does not exist on type '{ id: string; email: string; username: string; image: string | null; bio: string | null; role: UserRole; verified: boolean; lastSeenAt: Date | null; createdAt: Date; profile: { ...; } | null; stats: { ...; } | null; _count: { ...; }; }'. Did you mean 'stats'?
+src/server/services/user.service.ts(139,14): error TS2551: Property 'status' does not exist on type '{ username: string; profile: { displayName: string | null; location: string | null; website: string | null; youtubeChannelId: string | null; youtubeChannelUrl: string | null; socialLinks: JsonValue; interests: string[]; skills: string[]; pronouns: string | null; } | null; ... 9 more ...; stats: { ...; } | null; }'. Did you mean 'stats'?
 src/server/services/user.service.ts(840,28): error TS2339: Property 'push' does not exist on type 'UserWhereInput | UserWhereInput[]'.
   Property 'push' does not exist on type 'UserWhereInput'.
 src/server/services/user.service.ts(1116,38): error TS2339: Property 'checkAndUnlockAchievements' does not exist on type 'GamificationService'.
@@ -409,8 +822,8 @@ src/server/services/youtube.service.ts(337,7): error TS2322: Type '{ items: Sear
       Type 'null' is not assignable to type 'string | undefined'.
 src/server/services/youtube.service.ts(469,11): error TS2532: Object is possibly 'undefined'.
 src/server/services/youtube.service.ts(492,11): error TS2532: Object is possibly 'undefined'.
-src/server/services/youtube.service.ts(525,26): error TS2339: Property 'subscriberCount' does not exist on type '{ _count: { watchParties: number; clips: number; }; analytics: { id: string; updatedAt: Date; shareCount: number; engagementRate: number; videoId: string; watchTime: bigint; avgWatchTime: number; ... 5 more ...; peakViewers: number; } | null; } & { ...; }'.
-src/server/services/youtube.service.ts(525,53): error TS2339: Property 'subscriberCount' does not exist on type '{ _count: { watchParties: number; clips: number; }; analytics: { id: string; updatedAt: Date; shareCount: number; engagementRate: number; videoId: string; watchTime: bigint; avgWatchTime: number; ... 5 more ...; peakViewers: number; } | null; } & { ...; }'.
+src/server/services/youtube.service.ts(525,26): error TS2339: Property 'subscriberCount' does not exist on type '{ _count: { watchParties: number; clips: number; }; analytics: { id: string; updatedAt: Date; engagementRate: number; shareCount: number; videoId: string; watchTime: bigint; avgWatchTime: number; ... 5 more ...; peakViewers: number; } | null; } & { ...; }'.
+src/server/services/youtube.service.ts(525,53): error TS2339: Property 'subscriberCount' does not exist on type '{ _count: { watchParties: number; clips: number; }; analytics: { id: string; updatedAt: Date; engagementRate: number; shareCount: number; videoId: string; watchTime: bigint; avgWatchTime: number; ... 5 more ...; peakViewers: number; } | null; } & { ...; }'.
 src/server/services/youtube.service.ts(674,7): error TS2322: Type '{ id: string; title: string; description: string; thumbnail: string; thumbnailHd: string | null | undefined; channelId: string; channelTitle: string; duration: number; durationFormatted: string; ... 6 more ...; liveBroadcast: boolean; }[]' is not assignable to type 'VideoDetails[]'.
   Type '{ id: string; title: string; description: string; thumbnail: string; thumbnailHd: string | null | undefined; channelId: string; channelTitle: string; duration: number; durationFormatted: string; ... 6 more ...; liveBroadcast: boolean; }' is not assignable to type 'VideoDetails'.
     Types of property 'thumbnailHd' are incompatible.
@@ -422,10 +835,8 @@ src/server/services/youtube.service.ts(683,48): error TS2345: Argument of type '
   Type 'null' is not assignable to type 'string | undefined'.
 src/server/services/youtube.service.ts(888,10): error TS2300: Duplicate identifier 'PrismaClient'.
 src/server/services/youtube.service.ts(889,10): error TS2300: Duplicate identifier 'TRPCError'.
-src/server/services/youtube.service.ts(890,10): error TS2614: Module '"@/lib/utils"' has no exported member 'generateUniqueCode'. Did you mean to use 'import generateUniqueCode from "@/lib/utils"' instead?
 src/server/services/youtube.service.ts(1118,11): error TS2532: Object is possibly 'undefined'.
-src/server/websocket/socket.server.ts(4,23): error TS7016: Could not find a declaration file for module 'cookie'. '/Home1/test/node_modules/cookie/index.js' implicitly has an 'any' type.
-  Try `npm i --save-dev @types/cookie` if it exists or add a new declaration (.d.ts) file containing `declare module 'cookie';`
+src/server/services/youtube.service.ts(1177,33): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
 src/server/websocket/socket.server.ts(7,10): error TS2724: '"@/lib/rate-limit"' has no exported member named 'RateLimiter'. Did you mean 'ratelimit'?
 src/server/websocket/socket.server.ts(319,9): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
   Type 'undefined' is not assignable to type 'string'.
@@ -434,41 +845,53 @@ src/server/websocket/socket.server.ts(328,11): error TS2345: Argument of type 's
 src/server/websocket/socket.server.ts(351,9): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
   Type 'undefined' is not assignable to type 'string'.
 src/server/websocket/socket.server.ts(596,24): error TS2532: Object is possibly 'undefined'.
-src/server/websocket/socket.server.ts(781,31): error TS2345: Argument of type '"collab:cursor"' is not assignable to parameter of type '"error" | "post:created" | "post:updated" | "post:deleted" | "post:liked" | "comment:created" | "comment:updated" | "comment:deleted" | "reconnect" | "user:online" | "user:offline" | ... 12 more ... | "watchParty:message"'.
-src/server/websocket/socket.server.ts(814,31): error TS2345: Argument of type '"collab:change"' is not assignable to parameter of type '"error" | "post:created" | "post:updated" | "post:deleted" | "post:liked" | "comment:created" | "comment:updated" | "comment:deleted" | "reconnect" | "user:online" | "user:offline" | ... 12 more ... | "watchParty:message"'.
+src/server/websocket/socket.server.ts(781,31): error TS2345: Argument of type '"collab:cursor"' is not assignable to parameter of type '"error" | "post:created" | "post:updated" | "post:deleted" | "post:liked" | "comment:created" | "comment:updated" | "comment:deleted" | "reconnect" | "comment:typing" | "user:online" | ... 12 more ... | "watchParty:playbackSync"'.
+src/server/websocket/socket.server.ts(814,31): error TS2345: Argument of type '"collab:change"' is not assignable to parameter of type '"error" | "post:created" | "post:updated" | "post:deleted" | "post:liked" | "comment:created" | "comment:updated" | "comment:deleted" | "reconnect" | "comment:typing" | "user:online" | ... 12 more ... | "watchParty:playbackSync"'.
 src/server/websocket/socket.server.ts(911,31): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
   Type 'undefined' is not assignable to type 'string'.
 src/server/websocket/socket.server.ts(956,9): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
   Type 'undefined' is not assignable to type 'string'.
-src/services/auth.service.ts(3,17): error TS2614: Module '"@/lib/redis"' has no exported member 'redisHelpers'. Did you mean to use 'import redisHelpers from "@/lib/redis"' instead?
-src/services/auth.service.ts(8,3): error TS2305: Module '"@/lib/security"' has no exported member 'generateVerificationCode'.
-src/services/auth.service.ts(9,3): error TS2305: Module '"@/lib/security"' has no exported member 'trackLoginAttempt'.
-src/services/auth.service.ts(10,3): error TS2305: Module '"@/lib/security"' has no exported member 'createSecurityAlert'.
-src/services/auth.service.ts(11,3): error TS2305: Module '"@/lib/security"' has no exported member 'twoFactorAuth'.
-src/services/auth.service.ts(12,3): error TS2305: Module '"@/lib/security"' has no exported member 'generateCorrelationId'.
-src/services/auth.service.ts(13,3): error TS2305: Module '"@/lib/security"' has no exported member 'generateRequestId'.
+src/services/auth.service.ts(193,38): error TS2345: Argument of type 'string' is not assignable to parameter of type 'boolean'.
+src/services/auth.service.ts(239,45): error TS2339: Property 'decryptSecret' does not exist on type '{ generateSecret(email: string): { secret: string; qrCode: Promise<string>; backupCodes: string[]; }; verifyToken(secret: string, token: string): boolean; generateBackupCodes(): string[]; }'.
+src/services/auth.service.ts(264,11): error TS2554: Expected 1 arguments, but got 5.
+src/services/auth.service.ts(273,36): error TS2345: Argument of type 'string' is not assignable to parameter of type 'boolean'.
 src/services/auth.service.ts(289,50): error TS2554: Expected 0-1 arguments, but got 2.
+src/services/auth.service.ts(300,24): error TS2339: Property 'session' does not exist on type '{ getJSON<T>(key: string): Promise<T | null>; setJSON<T>(key: string, value: T, ttl?: number | undefined): Promise<void>; incrementWithExpiry(key: string, ttl: number): Promise<...>; ... 24 more ...; ping(): Promise<...>; }'.
 src/services/auth.service.ts(313,67): error TS2353: Object literal may only specify known properties, and 'correlationId' does not exist in type '{ userId: string; ipAddress: string; }'.
-src/services/auth.service.ts(417,23): error TS2345: Argument of type '"auth:2faEnabled"' is not assignable to parameter of type 'keyof SystemEvents'.
-src/services/auth.service.ts(481,23): error TS2345: Argument of type '"auth:2faDisabled"' is not assignable to parameter of type 'keyof SystemEvents'.
+src/services/auth.service.ts(343,47): error TS2339: Property 'generateQRCode' does not exist on type '{ generateSecret(email: string): { secret: string; qrCode: Promise<string>; backupCodes: string[]; }; verifyToken(secret: string, token: string): boolean; generateBackupCodes(): string[]; }'.
+src/services/auth.service.ts(346,59): error TS2554: Expected 0 arguments, but got 1.
+src/services/auth.service.ts(349,43): error TS2339: Property 'encryptSecret' does not exist on type '{ generateSecret(email: string): { secret: string; qrCode: Promise<string>; backupCodes: string[]; }; verifyToken(secret: string, token: string): boolean; generateBackupCodes(): string[]; }'.
+src/services/auth.service.ts(388,43): error TS2339: Property 'decryptSecret' does not exist on type '{ generateSecret(email: string): { secret: string; qrCode: Promise<string>; backupCodes: string[]; }; verifyToken(secret: string, token: string): boolean; generateBackupCodes(): string[]; }'.
+src/services/auth.service.ts(411,7): error TS2554: Expected 1 arguments, but got 5.
+src/services/auth.service.ts(417,52): error TS2353: Object literal may only specify known properties, and 'correlationId' does not exist in type '{ userId: string; }'.
+src/services/auth.service.ts(455,43): error TS2339: Property 'decryptSecret' does not exist on type '{ generateSecret(email: string): { secret: string; qrCode: Promise<string>; backupCodes: string[]; }; verifyToken(secret: string, token: string): boolean; generateBackupCodes(): string[]; }'.
+src/services/auth.service.ts(475,7): error TS2554: Expected 1 arguments, but got 5.
+src/services/auth.service.ts(481,53): error TS2353: Object literal may only specify known properties, and 'correlationId' does not exist in type '{ userId: string; }'.
+src/services/auth.service.ts(494,41): error TS2339: Property 'incrWithExpire' does not exist on type '{ getJSON<T>(key: string): Promise<T | null>; setJSON<T>(key: string, value: T, ttl?: number | undefined): Promise<void>; incrementWithExpiry(key: string, ttl: number): Promise<...>; ... 24 more ...; ping(): Promise<...>; }'.
+src/services/auth.service.ts(499,36): error TS2345: Argument of type 'string' is not assignable to parameter of type 'boolean'.
+src/services/auth.service.ts(525,9): error TS2554: Expected 1 arguments, but got 5.
 src/services/auth.service.ts(563,55): error TS2353: Object literal may only specify known properties, and 'correlationId' does not exist in type '{ userId: string; }'.
-src/services/auth.service.ts(585,13): error TS2339: Property 'canRequestPasswordReset' does not exist on type 'typeof import("/Home1/test/src/lib/security")'.
 src/services/auth.service.ts(592,48): error TS2554: Expected 0-1 arguments, but got 2.
-src/services/auth.service.ts(627,23): error TS2345: Argument of type '"auth:passwordResetRequested"' is not assignable to parameter of type 'keyof SystemEvents'.
-src/services/auth.service.ts(645,13): error TS2339: Property 'validatePasswordStrength' does not exist on type 'typeof import("/Home1/test/src/lib/security")'.
+src/services/auth.service.ts(627,73): error TS2353: Object literal may only specify known properties, and 'correlationId' does not exist in type '{ userId: string; email: string; }'.
+src/services/auth.service.ts(676,26): error TS2339: Property 'session' does not exist on type '{ getJSON<T>(key: string): Promise<T | null>; setJSON<T>(key: string, value: T, ttl?: number | undefined): Promise<void>; incrementWithExpiry(key: string, ttl: number): Promise<...>; ... 24 more ...; ping(): Promise<...>; }'.
+src/services/auth.service.ts(686,7): error TS2554: Expected 1 arguments, but got 5.
 src/services/auth.service.ts(694,7): error TS2353: Object literal may only specify known properties, and 'correlationId' does not exist in type '{ userId: string; }'.
+src/services/auth.service.ts(703,44): error TS2339: Property 'session' does not exist on type '{ getJSON<T>(key: string): Promise<T | null>; setJSON<T>(key: string, value: T, ttl?: number | undefined): Promise<void>; incrementWithExpiry(key: string, ttl: number): Promise<...>; ... 24 more ...; ping(): Promise<...>; }'.
+src/services/auth.service.ts(706,24): error TS2339: Property 'session' does not exist on type '{ getJSON<T>(key: string): Promise<T | null>; setJSON<T>(key: string, value: T, ttl?: number | undefined): Promise<void>; incrementWithExpiry(key: string, ttl: number): Promise<...>; ... 24 more ...; ping(): Promise<...>; }'.
 src/services/auth.service.ts(717,7): error TS2353: Object literal may only specify known properties, and 'userId' does not exist in type '{ sessionToken: string; }'.
-src/services/email.service.ts(3,24): error TS2307: Cannot find module '@react-email/render' or its corresponding type declarations.
-src/services/email.service.ts(5,17): error TS2614: Module '"@/lib/redis"' has no exported member 'redisHelpers'. Did you mean to use 'import redisHelpers from "@/lib/redis"' instead?
+src/services/auth.service.ts(724,44): error TS2339: Property 'session' does not exist on type '{ getJSON<T>(key: string): Promise<T | null>; setJSON<T>(key: string, value: T, ttl?: number | undefined): Promise<void>; incrementWithExpiry(key: string, ttl: number): Promise<...>; ... 24 more ...; ping(): Promise<...>; }'.
+src/services/auth.service.ts(738,26): error TS2339: Property 'session' does not exist on type '{ getJSON<T>(key: string): Promise<T | null>; setJSON<T>(key: string, value: T, ttl?: number | undefined): Promise<void>; incrementWithExpiry(key: string, ttl: number): Promise<...>; ... 24 more ...; ping(): Promise<...>; }'.
+src/services/auth.service.ts(749,24): error TS2339: Property 'session' does not exist on type '{ getJSON<T>(key: string): Promise<T | null>; setJSON<T>(key: string, value: T, ttl?: number | undefined): Promise<void>; incrementWithExpiry(key: string, ttl: number): Promise<...>; ... 24 more ...; ping(): Promise<...>; }'.
 src/services/email.service.ts(115,71): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'LogContext | undefined'.
-src/services/email.service.ts(340,23): error TS2345: Argument of type '"email:sent"' is not assignable to parameter of type 'keyof SystemEvents'.
-src/services/email.service.ts(533,20): error TS2353: Object literal may only specify known properties, and 'likes' does not exist in type 'PostOrderByWithRelationInput | PostOrderByWithRelationInput[]'.
-src/services/notification.service.ts(3,17): error TS2614: Module '"@/lib/redis"' has no exported member 'redisHelpers'. Did you mean to use 'import redisHelpers from "@/lib/redis"' instead?
+src/services/email.service.ts(307,34): error TS2345: Argument of type 'Promise<string>' is not assignable to parameter of type 'string'.
+src/services/email.service.ts(309,14): error TS2322: Type 'Promise<string>' is not assignable to type 'string'.
+src/services/email.service.ts(341,7): error TS2322: Type 'string | string[]' is not assignable to type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/services/email.service.ts(533,20): error TS2353: Object literal may only specify known properties, and 'likes' does not exist in type 'PostOrderByWithRelationInput | PostOrderByWithRelationInput[] | { id?: Exact<SortOrder | undefined, SortOrder | undefined>; ... 72 more ...; _relevance?: Exact<...>; } | { ...; }[]'.
 src/services/notification.service.ts(187,18): error TS7053: Element implicitly has an 'any' type because expression of type 'NotificationType' can't be used to index type '{ SYSTEM: number; ACHIEVEMENT_UNLOCKED: number; LEVEL_UP: number; CONTENT_FEATURED: number; MILESTONE_REACHED: number; default: number; }'.
   Property 'POST_LIKED' does not exist on type '{ SYSTEM: number; ACHIEVEMENT_UNLOCKED: number; LEVEL_UP: number; CONTENT_FEATURED: number; MILESTONE_REACHED: number; default: number; }'.
 src/services/notification.service.ts(286,34): error TS2532: Object is possibly 'undefined'.
-src/services/upload.service.ts(3,17): error TS2614: Module '"@/lib/redis"' has no exported member 'redisHelpers'. Did you mean to use 'import redisHelpers from "@/lib/redis"' instead?
-src/services/upload.service.ts(121,25): error TS2345: Argument of type '"file:uploaded"' is not assignable to parameter of type 'keyof SystemEvents'.
+src/services/upload.service.ts(124,9): error TS2353: Object literal may only specify known properties, and 'fileType' does not exist in type '{ fileId: string; userId: string; size: number; }'.
 src/services/upload.service.ts(166,50): error TS2345: Argument of type 'Buffer<ArrayBufferLike> | Uint8Array<ArrayBufferLike>' is not assignable to parameter of type 'Buffer<ArrayBufferLike>'.
   Type 'Uint8Array<ArrayBufferLike>' is missing the following properties from type 'Buffer<ArrayBufferLike>': write, toJSON, equals, compare, and 66 more.
 src/services/upload.service.ts(187,26): error TS2339: Property 'width' does not exist on type '{ width: number; height: number; quality: number; } | { width: number; height: number; quality: number; } | { width: number; height: number; quality: number; } | { width: number; height: number; quality: number; } | { ...; }'.
@@ -476,977 +899,45 @@ src/services/upload.service.ts(187,26): error TS2339: Property 'width' does not 
 src/services/upload.service.ts(187,40): error TS2339: Property 'height' does not exist on type '{ width: number; height: number; quality: number; } | { width: number; height: number; quality: number; } | { width: number; height: number; quality: number; } | { width: number; height: number; quality: number; } | { ...; }'.
   Property 'height' does not exist on type '{ quality: number; }'.
 src/services/upload.service.ts(417,12): error TS2532: Object is possibly 'undefined'.
-src/services/upload.service.ts(475,23): error TS2345: Argument of type '"upload:progress"' is not assignable to parameter of type 'keyof SystemEvents'.
-src/services/user.service.ts(3,17): error TS2614: Module '"@/lib/redis"' has no exported member 'redisHelpers'. Did you mean to use 'import redisHelpers from "@/lib/redis"' instead?
-src/services/user.service.ts(14,3): error TS2305: Module '"@/lib/security"' has no exported member 'validatePasswordStrength'.
-src/services/user.service.ts(15,3): error TS2305: Module '"@/lib/security"' has no exported member 'validateField'.
-src/services/user.service.ts(16,3): error TS2305: Module '"@/lib/security"' has no exported member 'SCHEMA_LIMITS'.
-src/services/user.service.ts(17,3): error TS2305: Module '"@/lib/security"' has no exported member 'generateCorrelationId'.
+src/services/upload.service.ts(475,42): error TS2345: Argument of type 'UploadProgress' is not assignable to parameter of type '{ fileId: string; progress: number; }'.
+  Property 'fileId' is missing in type 'UploadProgress' but required in type '{ fileId: string; progress: number; }'.
 src/services/user.service.ts(216,49): error TS2353: Object literal may only specify known properties, and 'correlationId' does not exist in type '{ user: any; }'.
+src/services/user.service.ts(330,55): error TS2339: Property 'BIO_MAX' does not exist on type '{ username: { min: number; max: number; }; password: { min: number; max: number; }; email: { max: number; }; bio: { max: number; }; postTitle: { min: number; max: number; }; postContent: { min: number; max: number; }; commentContent: { ...; }; tagName: { ...; }; groupName: { ...; }; groupDescription: { ...; }; }'.
+src/services/user.service.ts(331,52): error TS2339: Property 'BIO_MAX' does not exist on type '{ username: { min: number; max: number; }; password: { min: number; max: number; }; email: { max: number; }; bio: { max: number; }; postTitle: { min: number; max: number; }; postContent: { min: number; max: number; }; commentContent: { ...; }; tagName: { ...; }; groupName: { ...; }; groupDescription: { ...; }; }'.
 src/services/user.service.ts(385,47): error TS2353: Object literal may only specify known properties, and 'correlationId' does not exist in type '{ user: any; }'.
 src/services/user.service.ts(483,7): error TS2353: Object literal may only specify known properties, and 'correlationId' does not exist in type '{ user: any; status: string; reason?: string | undefined; }'.
 src/services/user.service.ts(624,11): error TS2353: Object literal may only specify known properties, and 'correlationId' does not exist in type '{ userId: string; oldLevel: number; newLevel: number; }'.
-src/services/user.service.ts(774,25): error TS2551: Property 'status' does not exist on type '{ id: string; username: string; image: string | null; bio: string | null; role: UserRole; verified: boolean; level: number; lastSeenAt: Date | null; createdAt: Date; profile: { ...; } | null; stats: { ...; } | null; _count: { ...; }; }'. Did you mean 'stats'?
+src/services/user.service.ts(774,25): error TS2551: Property 'status' does not exist on type '{ username: string; level: number; profile: { displayName: string | null; location: string | null; website: string | null; twitterUsername: string | null; instagramUsername: string | null; youtubeChannelId: string | null; interests: string[]; skills: string[]; } | null; ... 8 more ...; stats: { ...; } | null; }'. Did you mean 'stats'?
 src/services/user.service.ts(862,49): error TS2353: Object literal may only specify known properties, and 'correlationId' does not exist in type '{ userId: string; }'.
-src/types/comment.ts(49,18): error TS2430: Interface 'CommentWithRelations' incorrectly extends interface '{ content: string; id: string; userAgent: string | null; version: number; deleted: boolean; deletedAt: Date | null; deletedBy: string | null; createdAt: Date; updatedAt: Date; ... 13 more ...; pinned: boolean; }'.
+src/types/comment.ts(49,18): error TS2430: Interface 'CommentWithRelations' incorrectly extends interface '{ content: string; userAgent: string | null; id: string; version: number; deleted: boolean; deletedAt: Date | null; deletedBy: string | null; createdAt: Date; updatedAt: Date; ... 13 more ...; pinned: boolean; }'.
   Types of property 'editHistory' are incompatible.
     Type 'EditHistoryEntry[] | undefined' is not assignable to type 'JsonValue[]'.
       Type 'undefined' is not assignable to type 'JsonValue[]'.
-
----
-# File: package.json
-```json
-{
-  "name": "sparkle-universe",
-  "version": "0.1.0",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "lint:fix": "next lint --fix",
-    "type-check": "tsc --noEmit",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "test:e2e": "playwright test",
-    "db:generate": "prisma generate",
-    "db:push": "prisma db push",
-    "db:migrate": "prisma migrate dev",
-    "db:migrate:prod": "prisma migrate deploy",
-    "db:seed": "tsx prisma/seed.ts",
-    "db:studio": "prisma studio",
-    "db:reset": "prisma migrate reset",
-    "db:indexes": "tsx scripts/apply-indexes.ts",
-    "postinstall": "prisma generate",
-    "prepare": "husky install",
-    "validate": "npm run lint && npm run type-check && npm run test",
-    "analyze": "ANALYZE=true next build"
-  },
-  "dependencies": {
-    "@aws-sdk/client-s3": "^3.864.0",
-    "@aws-sdk/s3-request-presigner": "^3.864.0",
-    "@hookform/resolvers": "^5.2.1",
-    "@next-auth/prisma-adapter": "^1.0.7",
-    "@portabletext/react": "^3.2.1",
-    "@prisma/client": "^6.14.0",
-    "@radix-ui/react-avatar": "^1.1.10",
-    "@radix-ui/react-checkbox": "^1.3.3",
-    "@radix-ui/react-dialog": "^1.1.15",
-    "@radix-ui/react-dropdown-menu": "^2.1.16",
-    "@radix-ui/react-label": "^2.1.7",
-    "@radix-ui/react-popover": "^1.1.15",
-    "@radix-ui/react-progress": "^1.1.7",
-    "@radix-ui/react-scroll-area": "^1.2.10",
-    "@radix-ui/react-select": "^2.2.6",
-    "@radix-ui/react-separator": "^1.1.7",
-    "@radix-ui/react-slot": "^1.2.3",
-    "@radix-ui/react-switch": "^1.2.6",
-    "@radix-ui/react-tabs": "^1.1.13",
-    "@radix-ui/react-toast": "^1.2.15",
-    "@radix-ui/react-tooltip": "^1.2.8",
-    "@react-email/components": "^0.5.0",
-    "@react-three/drei": "^9.122.0",
-    "@react-three/fiber": "^8.18.0",
-    "@socket.io/redis-adapter": "^8.3.0",
-    "@tanstack/react-query": "^5.85.3",
-    "@tanstack/react-query-devtools": "^5.85.3",
-    "@tiptap/extension-code-block-lowlight": "^2.26.1",
-    "@tiptap/extension-image": "^2.26.1",
-    "@tiptap/extension-link": "^2.26.1",
-    "@tiptap/extension-placeholder": "^2.26.1",
-    "@tiptap/extension-youtube": "^2.26.1",
-    "@tiptap/pm": "^2.26.1",
-    "@tiptap/react": "^2.26.1",
-    "@tiptap/starter-kit": "^2.26.1",
-    "@trpc/client": "^11.4.4",
-    "@trpc/next": "^11.4.4",
-    "@trpc/react-query": "^11.4.4",
-    "@trpc/server": "^11.4.4",
-    "@vercel/analytics": "^1.5.0",
-    "@vercel/speed-insights": "^1.2.0",
-    "algoliasearch": "^5.35.0",
-    "bcryptjs": "^3.0.2",
-    "bullmq": "^5.58.0",
-    "canvas-confetti": "^1.9.3",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "date-fns": "^4.1.0",
-    "decimal.js": "^10.6.0",
-    "framer-motion": "^11.18.2",
-    "googleapis": "^156.0.0",
-    "ioredis": "^5.7.0",
-    "isomorphic-dompurify": "^2.26.0",
-    "jsonwebtoken": "^9.0.2",
-    "lowlight": "^3.3.0",
-    "lucide-react": "^0.539.0",
-    "next": "^14.2.31",
-    "next-auth": "^4.24.11",
-    "next-sanity": "^9.12.3",
-    "next-themes": "^0.4.6",
-    "nodemailer": "^6.10.1",
-    "openapi-types": "^12.1.3",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-hook-form": "^7.62.0",
-    "react-hot-toast": "^2.6.0",
-    "react-intersection-observer": "^9.16.0",
-    "react-player": "^3.3.1",
-    "sanity": "^3.99.0",
-    "sharp": "^0.34.3",
-    "socket.io": "^4.8.1",
-    "socket.io-client": "^4.8.1",
-    "sonner": "^2.0.7",
-    "superjson": "^2.2.2",
-    "tailwind-merge": "^3.3.1",
-    "three": "^0.179.1",
-    "twilio": "^5.8.0",
-    "uploadthing": "^7.7.4",
-    "uuid": "^10.0.0",
-    "zod": "^3.25.76",
-    "zustand": "^5.0.7"
-  },
-  "devDependencies": {
-    "@next/bundle-analyzer": "^15.4.6",
-    "@playwright/test": "^1.54.2",
-    "@testing-library/jest-dom": "^6.7.0",
-    "@testing-library/react": "^16.3.0",
-    "@types/bcryptjs": "^2.4.6",
-    "@types/canvas-confetti": "^1.9.0",
-    "@types/jest": "^30.0.0",
-    "@types/jsonwebtoken": "^9.0.10",
-    "@types/node": "^22.17.2",
-    "@types/nodemailer": "^7.0.0",
-    "@types/react": "^19.1.10",
-    "@types/react-dom": "^19.1.7",
-    "@types/three": "^0.179.0",
-    "@types/uuid": "^10.0.0",
-    "@typescript-eslint/eslint-plugin": "^8.39.1",
-    "@typescript-eslint/parser": "^8.39.1",
-    "autoprefixer": "^10.4.21",
-    "eslint": "^8.57.1",
-    "eslint-config-next": "^14.2.31",
-    "eslint-config-prettier": "^8.10.2",
-    "eslint-plugin-prettier": "^5.5.4",
-    "eslint-plugin-react": "^7.37.5",
-    "husky": "^9.1.7",
-    "jest": "^30.0.5",
-    "jest-environment-jsdom": "^30.0.5",
-    "lint-staged": "^15.5.2",
-    "postcss": "^8.5.6",
-    "prettier": "^3.6.2",
-    "prettier-plugin-tailwindcss": "^0.6.14",
-    "prisma": "^6.14.0",
-    "tailwindcss": "^3.4.17",
-    "tailwindcss-animate": "^1.0.7",
-    "tsx": "^4.20.4",
-    "tw-animate-css": "^1.3.7",
-    "typescript": "^5.9.2"
-  },
-  "engines": {
-    "node": ">=20.0.0",
-    "npm": ">=10.0.0"
-  },
-  "packageManager": "npm@10.2.5"
-}
-```
-
-# File: tsconfig.json
-```json
-{
-  "compilerOptions": {
-    "target": "ES2022",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve",
-    "incremental": true,
-    "noUncheckedIndexedAccess": true,
-    "noImplicitOverride": true,
-    "forceConsistentCasingInFileNames": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"]
-    },
-    "types": ["jest", "@testing-library/jest-dom"]
-  },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    "src/**/*",
-    "prisma/**/*",
-    "tailwind.config.ts",
-    "postcss.config.mjs"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    ".next",
-    "out",
-    "coverage",
-    "**/*.spec.ts",
-    "**/*.test.ts"
-  ]
-}
-```
-
-# File: tailwind.config.ts 
-```ts
-// tailwind.config.ts
-import type { Config } from 'tailwindcss'
-import tailwindcssAnimate from 'tailwindcss-animate'
-
-const config: Config = {
-  darkMode: ['class'],
-  content: [
-    './src/pages/**/*.{ts,tsx,mdx}',
-    './src/components/**/*.{ts,tsx}',
-    './src/app/**/*.{ts,tsx,mdx}',
-    './src/lib/**/*.{ts,tsx}',
-    './src/emails/**/*.{ts,tsx}',
-    '!./src/**/*.test.{ts,tsx}',
-    '!./src/**/*.spec.{ts,tsx}',
-    '!./src/**/*.stories.{ts,tsx}',
-  ],
-  prefix: '',
-  theme: {
-    container: {
-      center: true,
-      padding: '2rem',
-      screens: {
-        '2xl': '1400px',
-      },
-    },
-    extend: {
-      colors: {
-        border: 'hsl(var(--border))',
-        input: 'hsl(var(--input))',
-        ring: 'hsl(var(--ring))',
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
-        primary: {
-          DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))',
-        },
-        secondary: {
-          DEFAULT: 'hsl(var(--secondary))',
-          foreground: 'hsl(var(--secondary-foreground))',
-        },
-        destructive: {
-          DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))',
-        },
-        muted: {
-          DEFAULT: 'hsl(var(--muted))',
-          foreground: 'hsl(var(--muted-foreground))',
-        },
-        accent: {
-          DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))',
-        },
-        popover: {
-          DEFAULT: 'hsl(var(--popover))',
-          foreground: 'hsl(var(--popover-foreground))',
-        },
-        card: {
-          DEFAULT: 'hsl(var(--card))',
-          foreground: 'hsl(var(--card-foreground))',
-        },
-        // Sparkle Universe Theme Colors
-        sparkle: {
-          purple: '#8B5CF6',      // Vibrant Purple
-          pink: '#EC4899',        // Hot Pink
-          blue: '#3B82F6',        // Electric Blue
-          green: '#10B981',       // Emerald
-          gold: '#F59E0B',        // Gold
-          gradient: 'linear-gradient(135deg, #8B5CF6, #EC4899, #10B981)',
-        },
-        // Badge Rarity Colors (8 tiers)
-        rarity: {
-          common: '#9CA3AF',      // Gray
-          uncommon: '#10B981',    // Green
-          rare: '#3B82F6',        // Blue
-          epic: '#8B5CF6',        // Purple
-          legendary: '#F59E0B',   // Gold
-          mythic: '#EC4899',      // Pink
-          limited: '#EF4444',     // Red
-          seasonal: '#14B8A6',    // Teal
-        },
-      },
-      borderRadius: {
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
-      },
-      fontFamily: {
-        sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
-        mono: ['var(--font-mono)', 'monospace'],
-      },
-      keyframes: {
-        'accordion-down': {
-          from: { height: '0' },
-          to: { height: 'var(--radix-accordion-content-height)' },
-        },
-        'accordion-up': {
-          from: { height: 'var(--radix-accordion-content-height)' },
-          to: { height: '0' },
-        },
-        'sparkle': {
-          '0%, 100%': { 
-            opacity: '0', 
-            transform: 'scale(0) rotate(0deg)' 
-          },
-          '50%': { 
-            opacity: '1', 
-            transform: 'scale(1) rotate(180deg)' 
-          },
-        },
-        'glow': {
-          '0%, 100%': { 
-            boxShadow: '0 0 20px rgba(139, 92, 246, 0.5)' 
-          },
-          '50%': { 
-            boxShadow: '0 0 40px rgba(139, 92, 246, 0.8)' 
-          },
-        },
-        'float': {
-          '0%, 100%': { transform: 'translateY(0)' },
-          '50%': { transform: 'translateY(-10px)' },
-        },
-        'shimmer': {
-          '0%': { backgroundPosition: '-200% 0' },
-          '100%': { backgroundPosition: '200% 0' },
-        },
-        'pulse-glow': {
-          '0%, 100%': { 
-            opacity: '1',
-            filter: 'brightness(1)'
-          },
-          '50%': { 
-            opacity: '0.8',
-            filter: 'brightness(1.2)'
-          },
-        },
-      },
-      animation: {
-        'accordion-down': 'accordion-down 0.2s ease-out',
-        'accordion-up': 'accordion-up 0.2s ease-out',
-        'sparkle': 'sparkle 2s ease-in-out infinite',
-        'glow': 'glow 2s ease-in-out infinite',
-        'float': 'float 3s ease-in-out infinite',
-        'shimmer': 'shimmer 1.5s linear infinite',
-        'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
-      },
-      backgroundImage: {
-        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'sparkle-gradient': 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 50%, #10B981 100%)',
-        'dark-gradient': 'linear-gradient(135deg, #1F2937 0%, #111827 100%)',
-      },
-      backdropBlur: {
-        xs: '2px',
-      },
-    },
-  },
-  plugins: [
-    tailwindcssAnimate,
-    // Glassmorphism utilities
-    function({ addUtilities }: any) {
-      addUtilities({
-        '.glass': {
-          'background': 'rgba(255, 255, 255, 0.1)',
-          'backdrop-filter': 'blur(10px)',
-          'border': '1px solid rgba(255, 255, 255, 0.2)',
-        },
-        '.glass-dark': {
-          'background': 'rgba(0, 0, 0, 0.3)',
-          'backdrop-filter': 'blur(10px)',
-          'border': '1px solid rgba(255, 255, 255, 0.1)',
-        },
-        '.sparkle-text': {
-          'background': 'linear-gradient(135deg, #8B5CF6, #EC4899, #10B981)',
-          '-webkit-background-clip': 'text',
-          '-webkit-text-fill-color': 'transparent',
-          'background-clip': 'text',
-        },
-        '.sparkle-border': {
-          'border-image': 'linear-gradient(135deg, #8B5CF6, #EC4899, #10B981) 1',
-        },
-        '.sparkle-shadow': {
-          'box-shadow': '0 0 40px rgba(139, 92, 246, 0.3), 0 0 80px rgba(236, 72, 153, 0.2)',
-        },
-      })
-    },
-  ],
-}
-
-export default config
-```
-
-# File: postcss.config.mjs 
-```mjs
-/** @type {import('postcss-load-config').Config} */
-const config = {
-  plugins: {
-    tailwindcss: {},
-  },
-};
-
-export default config;
-```
-
-# File: next.config.mjs
-```mjs
-/** @type {import('next').NextConfig} */
-const nextConfig = {};
-
-export default nextConfig;
-```
-
-# File: eslint.config.mjs
-```mjs
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
-
-const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
-];
-
-export default eslintConfig;
-```
-
-# File: .prettierrc.json
-```json
-{
-  "semi": false,
-  "singleQuote": true,
-  "tabWidth": 2,
-  "trailingComma": "es5",
-  "printWidth": 100,
-  "plugins": ["prettier-plugin-tailwindcss"],
-  "tailwindConfig": "./tailwind.config.ts",
-  "tailwindFunctions": ["clsx", "cn", "tw"]
-}
-```
-
-# File: .eslintrc.json
-```json
-{
-  "extends": [
-    "next/core-web-vitals",
-    "prettier"
-  ],
-  "parser": "@typescript-eslint/parser",
-  "plugins": ["@typescript-eslint", "prettier"],
-  "rules": {
-    "prettier/prettier": "error",
-    "@typescript-eslint/no-unused-vars": [
-      "error",
-      {
-        "argsIgnorePattern": "^_",
-        "varsIgnorePattern": "^_"
-      }
-    ],
-    "@typescript-eslint/consistent-type-imports": [
-      "error",
-      {
-        "prefer": "type-imports"
-      }
-    ],
-    "react/display-name": "off",
-    "react-hooks/exhaustive-deps": "warn"
-  },
-  "overrides": [
-    {
-      "files": ["*.ts", "*.tsx"],
-      "rules": {
-        "@typescript-eslint/no-explicit-any": "warn"
-      }
-    }
-  ]
-}
-```
-
-# File: components.json
-```json
-{
-  "$schema": "https://ui.shadcn.com/schema.json",
-  "style": "new-york",
-  "rsc": true,
-  "tsx": true,
-  "tailwind": {
-    "config": "tailwind.config.ts",
-    "css": "src/app/globals.css",
-    "baseColor": "neutral",
-    "cssVariables": true,
-    "prefix": ""
-  },
-  "aliases": {
-    "components": "@/components",
-    "utils": "@/lib/utils",
-    "ui": "@/components/ui",
-    "lib": "@/lib",
-    "hooks": "@/hooks"
-  },
-  "iconLibrary": "lucide"
-}
-```
-
-# File: src/app/globals.css 
-```css
-/* src/app/globals.css */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 271 91% 65%;  /* Sparkle Purple */
-    --primary-foreground: 0 0% 98%;
-    --secondary: 327 73% 58%;  /* Sparkle Pink */
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 158 64% 42%;  /* Sparkle Green */
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 271 91% 65%;
-    --radius: 0.625rem;
-    
-    /* Sparkle theme specific */
-    --sparkle-purple: 271 91% 65%;
-    --sparkle-pink: 327 73% 58%;
-    --sparkle-blue: 217 91% 60%;
-    --sparkle-green: 158 64% 42%;
-    --sparkle-gold: 38 92% 50%;
-    
-    /* Font variables */
-    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Consolas, monospace;
-  }
-
-  .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 6%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 6%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 271 91% 65%;
-    --primary-foreground: 240 10% 3.9%;
-    --secondary: 327 73% 58%;
-    --secondary-foreground: 240 10% 3.9%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 158 64% 42%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 20%;
-    --ring: 271 91% 65%;
-  }
-}
-
-@layer base {
-  * {
-    @apply border-border;
-  }
-  
-  body {
-    @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
-  }
-  
-  /* Better focus styles */
-  :focus-visible {
-    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
-  }
-  
-  /* Smooth scrolling */
-  html {
-    scroll-behavior: smooth;
-  }
-  
-  /* Text rendering improvements */
-  h1, h2, h3, h4, h5, h6 {
-    text-wrap: balance;
-  }
-  
-  p {
-    text-wrap: pretty;
-  }
-}
-
-@layer components {
-  /* Glassmorphism card */
-  .glass-card {
-    @apply bg-white/10 dark:bg-black/20 backdrop-blur-xl border border-white/20 dark:border-white/10;
-  }
-  
-  /* Sparkle button */
-  .btn-sparkle {
-    @apply relative overflow-hidden;
-    background: linear-gradient(135deg, #8B5CF6, #EC4899, #10B981);
-    transition: all 0.3s ease;
-  }
-  
-  .btn-sparkle:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 40px rgba(139, 92, 246, 0.4);
-  }
-  
-  .btn-sparkle::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-    transition: left 0.5s;
-  }
-  
-  .btn-sparkle:hover::before {
-    left: 100%;
-  }
-  
-  /* Badge rarity styles */
-  .badge-common {
-    @apply bg-gray-500/20 text-gray-600 dark:text-gray-400 border-gray-500/30;
-  }
-  
-  .badge-uncommon {
-    @apply bg-green-500/20 text-green-600 dark:text-green-400 border-green-500/30;
-  }
-  
-  .badge-rare {
-    @apply bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/30;
-  }
-  
-  .badge-epic {
-    @apply bg-purple-500/20 text-purple-600 dark:text-purple-400 border-purple-500/30;
-  }
-  
-  .badge-legendary {
-    @apply bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30;
-    animation: glow 2s ease-in-out infinite;
-  }
-  
-  .badge-mythic {
-    @apply bg-pink-500/20 text-pink-600 dark:text-pink-400 border-pink-500/30;
-    background: linear-gradient(135deg, rgba(236,72,153,0.2), rgba(139,92,246,0.2));
-    animation: pulse-glow 2s ease-in-out infinite;
-  }
-  
-  .badge-limited {
-    @apply bg-red-500/20 text-red-600 dark:text-red-400 border-red-500/30;
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .badge-seasonal {
-    @apply bg-teal-500/20 text-teal-600 dark:text-teal-400 border-teal-500/30;
-  }
-  
-  /* Custom scrollbar */
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-  
-  .custom-scrollbar::-webkit-scrollbar-track {
-    @apply bg-muted rounded-full;
-  }
-  
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-primary/30 rounded-full hover:bg-primary/50;
-    background: linear-gradient(#8B5CF6, #EC4899);
-  }
-  
-  /* Loading skeleton with sparkle effect */
-  .skeleton-sparkle {
-    @apply relative overflow-hidden bg-muted;
-    background: linear-gradient(90deg, 
-      rgba(139,92,246,0.1) 0%, 
-      rgba(236,72,153,0.2) 50%, 
-      rgba(139,92,246,0.1) 100%);
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
-  }
-  
-  /* Reaction animations */
-  .reaction-bounce {
-    animation: bounce 0.5s ease-out;
-  }
-  
-  @keyframes bounce {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.2); }
-  }
-  
-  /* Notification bell */
-  .notification-bell {
-    @apply relative;
-  }
-  
-  .notification-bell.has-unread::after {
-    content: '';
-    @apply absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full;
-    animation: pulse 2s infinite;
-  }
-}
-
-@layer utilities {
-  /* Hide scrollbar but keep functionality */
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
-  
-  /* Text gradient */
-  .text-gradient {
-    @apply bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent;
-  }
-  
-  /* Sparkle particle effect */
-  .sparkle-effect {
-    position: relative;
-  }
-  
-  .sparkle-effect::after {
-    content: '✨';
-    position: absolute;
-    top: -10px;
-    right: -10px;
-    animation: sparkle 2s ease-in-out infinite;
-  }
-  
-  /* Prevent text selection */
-  .no-select {
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-  }
-}
-
-/* Animations */
-@keyframes glow {
-  0%, 100% { 
-    box-shadow: 0 0 20px rgba(139, 92, 246, 0.5), 
-                0 0 40px rgba(236, 72, 153, 0.3);
-  }
-  50% { 
-    box-shadow: 0 0 30px rgba(139, 92, 246, 0.7), 
-                0 0 60px rgba(236, 72, 153, 0.5);
-  }
-}
-
-@keyframes sparkle {
-  0%, 100% { 
-    opacity: 0;
-    transform: scale(0) rotate(0deg);
-  }
-  50% { 
-    opacity: 1;
-    transform: scale(1) rotate(180deg);
-  }
-}
-
-@keyframes pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
-  }
-  70% {
-    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
-  }
-}
-
-/* Print styles */
-@media print {
-  .no-print {
-    display: none !important;
-  }
-}
-
-/* Micro-interactions */
-.hover-lift {
-  transition: transform 0.2s ease;
-}
-
-.hover-lift:hover {
-  transform: translateY(-2px);
-}
-
-.hover-glow:hover {
-  box-shadow: 0 0 30px rgba(139, 92, 246, 0.4);
-}
-
-/* Loading states */
-.loading-dots::after {
-  content: '...';
-  animation: dots 1.5s steps(4, end) infinite;
-}
-
-@keyframes dots {
-  0%, 20% { content: '.'; }
-  40% { content: '..'; }
-  60%, 100% { content: '...'; }
-}
-```
-
-# Current project codebase file structure and listing:
-src/emails/templates/index.tsx
-src/hooks/use-socket.ts
-src/hooks/use-auth.ts
-src/config/achievements.ts
-src/types/comment.ts
-src/types/index.ts
-src/lib/analytics.ts
-src/lib/utils.ts.bak
-src/lib/security.ts
-src/lib/jobs/job-processor.ts
-src/lib/socket/socket-server.ts
-src/lib/openapi.ts
-src/lib/security.ts.bak
-src/lib/redis.ts
-src/lib/utils.ts
-src/lib/api.ts
-src/lib/utils/format.ts
-src/lib/utils.ts.shadcn-init
-src/lib/events/event-emitter.ts
-src/lib/auth/auth.ts
-src/lib/auth/auth.config.ts
-src/lib/monitoring.ts
-src/lib/rate-limit.ts
-src/lib/validations/comment.ts
-src/lib/validations/post.ts
-src/lib/validations/user.ts
-src/lib/db.ts
-src/services/auth.service.ts.bak
-src/services/auth.service.ts
-src/services/user.service.ts
-src/services/notification.service.ts
-src/services/email.service.ts
-src/services/user.service.ts.bak
-src/services/upload.service.ts
-src/server/websocket/socket.server.ts
-src/server/api/trpc.ts
-src/server/api/routers/comment.ts
-src/server/api/routers/upload.ts
-src/server/api/routers/gamification.ts
-src/server/api/routers/post.ts
-src/server/api/routers/youtube.ts
-src/server/api/routers/search.ts
-src/server/api/routers/admin.ts
-src/server/api/routers/notification.ts
-src/server/api/routers/user.ts
-src/server/api/root.ts
-src/server/services/comment.service.ts
-src/server/services/user.service.ts.bak2
-src/server/services/event.service.ts
-src/server/services/watchparty.service.ts
-src/server/services/user.service.ts
-src/server/services/mention.service.ts
-src/server/services/cache.service.ts.bak2
-src/server/services/notification.service.ts
-src/server/services/realtime.service.ts
-src/server/services/post.service.ts
-src/server/services/watch-party.service.ts
-src/server/services/activity.service.ts
-src/server/services/gamification.service.ts
-src/server/services/youtube.service.ts
-src/server/services/upload.service.ts
-src/server/services/achievement.service.ts
-src/server/services/cache.service.ts
-src/server/services/admin.service.ts
-src/server/services/moderation.service.ts
-src/server/services/search.service.ts
-src/middleware.ts
-src/components/ui/button.tsx
-src/components/ui/select.tsx
-src/components/ui/dropdown-menu.tsx
-src/components/ui/switch.tsx
-src/components/ui/badge.tsx
-src/components/ui/textarea.tsx
-src/components/ui/separator.tsx
-src/components/ui/tooltip.tsx
-src/components/ui/progress.tsx
-src/components/ui/avatar.tsx
-src/components/ui/input.tsx
-src/components/ui/checkbox.tsx
-src/components/ui/table.tsx
-src/components/ui/tabs.tsx
-src/components/ui/sonner.tsx
-src/components/ui/dialog.tsx
-src/components/ui/scroll-area.tsx
-src/components/ui/card.tsx
-src/components/admin/admin-sidebar.tsx
-src/components/error-boundary.tsx
-src/components/features/youtube/youtube-embed.tsx
-src/components/features/gamification/level-progress.tsx
-src/components/features/gamification/achievement-details-modal.tsx
-src/components/features/gamification/achievement-grid.tsx
-src/components/features/editor/rich-text-editor.tsx
-src/components/features/post/post-card.tsx
-src/components/features/post/post-actions.tsx
-src/components/features/comments/comment-form.tsx
-src/components/features/comments/mention-suggestions.tsx
-src/components/features/comments/comment-item.tsx
-src/components/features/comments/reaction-picker.tsx
-src/components/features/comments/comment-thread.tsx
-src/app/globals.css
-src/app/(main)/create/page.tsx
-src/app/api-docs/page.tsx
-src/app/api/trpc/[trpc]/route.ts
-src/app/api/admin/jobs/route.ts
-src/app/api/openapi.json/route.ts
-src/app/api/auth/[...nextauth]/route.ts
-src/app/layout.tsx
-src/app/admin/layout.tsx
-src/app/admin/moderation/page.tsx
-src/app/admin/moderation/page.tsx.p6
-src/app/admin/dashboard/page.tsx
-src/app/admin/users/page.tsx
-src/app/fonts/GeistVF.woff
-src/app/fonts/GeistMonoVF.woff
+src/types/index.ts(12,3): error TS2305: Module '"@prisma/client"' has no exported member 'JsonValue'.
+ww1/src/components/admin/charts/user-growth-chart.tsx(21,8): error TS2305: Module '"recharts"' has no exported member 'AxisDomain'.
+ww1/src/components/admin/charts/user-growth-chart.tsx(86,3): error TS2339: Property 'payload' does not exist on type 'TooltipProps<number, string>'.
+ww1/src/components/admin/charts/user-growth-chart.tsx(87,3): error TS2339: Property 'label' does not exist on type 'TooltipProps<number, string>'.
+ww1/src/components/admin/charts/user-growth-chart.tsx(100,23): error TS7006: Parameter 'entry' implicitly has an 'any' type.
+ww1/src/components/admin/charts/user-growth-chart.tsx(100,30): error TS7006: Parameter 'index' implicitly has an 'any' type.
+ww1/src/components/providers/query-provider.tsx(142,11): error TS2322: Type '"bottom-right"' is not assignable to type 'DevtoolsPosition | undefined'.
+ww1/src/components/providers/theme-provider.tsx(6,41): error TS2307: Cannot find module 'next-themes/dist/types' or its corresponding type declarations.
+ww1/src/lib/db.ts(67,26): error TS2532: Object is possibly 'undefined'.
+ww1/src/lib/db.ts(68,16): error TS2339: Property 'update' does not exist on type '{ types: { payload: any; operations: { $executeRaw: { args: [query: TemplateStringsArray | Sql, ...values: any[]]; result: any; }; $executeRawUnsafe: { args: [query: string, ...values: any[]]; result: any; }; $queryRaw: { ...; }; $queryRawUnsafe: { ...; }; }; }; } | ... 120 more ... | DataRetentionPolicyDelegate<...>'.
+  Property 'update' does not exist on type '{ types: { payload: any; operations: { $executeRaw: { args: [query: TemplateStringsArray | Sql, ...values: any[]]; result: any; }; $executeRawUnsafe: { args: [query: string, ...values: any[]]; result: any; }; $queryRaw: { ...; }; $queryRawUnsafe: { ...; }; }; }; }'.
+ww1/src/lib/db.ts(80,26): error TS2532: Object is possibly 'undefined'.
+ww1/src/lib/db.ts(81,16): error TS2339: Property 'updateMany' does not exist on type '{ types: { payload: any; operations: { $executeRaw: { args: [query: TemplateStringsArray | Sql, ...values: any[]]; result: any; }; $executeRawUnsafe: { args: [query: string, ...values: any[]]; result: any; }; $queryRaw: { ...; }; $queryRawUnsafe: { ...; }; }; }; } | ... 120 more ... | DataRetentionPolicyDelegate<...>'.
+  Property 'updateMany' does not exist on type '{ types: { payload: any; operations: { $executeRaw: { args: [query: TemplateStringsArray | Sql, ...values: any[]]; result: any; }; $executeRawUnsafe: { args: [query: string, ...values: any[]]; result: any; }; $queryRaw: { ...; }; $queryRawUnsafe: { ...; }; }; }; }'.
+ww1/src/lib/db.ts(314,7): error TS2322: Type 'any[]' is not assignable to type 'T'.
+  'T' could be instantiated with an arbitrary type which could be unrelated to 'any[]'.
+ww1/src/lib/db.ts(314,36): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(arg: PrismaPromise<any>[], options?: { isolationLevel?: TransactionIsolationLevel | undefined; } | undefined): Promise<any[]>', gave the following error.
+    Argument of type '(tx: TransactionClient) => Promise<T>' is not assignable to parameter of type 'PrismaPromise<any>[]'.
+  Overload 2 of 2, '(fn: (client: Omit<DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string | undefined; }; }; post: { ...; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>, "$extends" | ... 3 more ... | "$on">) => Promise<...>, options?: { ...; } | undefined): Promise<...>', gave the following error.
+    Argument of type '(tx: TransactionClient) => Promise<T>' is not assignable to parameter of type '(client: Omit<DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string | undefined; }; }; post: { ...; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>...'.
+      Types of parameters 'tx' and 'client' are incompatible.
+        Type 'Omit<DynamicClientExtensionThis<TypeMap<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string | undefined; }; }; post: { ...; }; }; model: { ...; }; query: {}; client: {}; }, {}>, TypeMapCb<...>, { ...; }>, "$exten...' is not assignable to type 'TransactionClient'.
+          The types of 'message.findUnique' are incompatible between these types.
+            Type '<A extends MessageFindUniqueArgs<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string | undefined; }; }; post: { ...; }; }; model: { ...; }; query: {}; client: {}; }>>(args: Exact<...>) => DynamicModelExtensionFlu...' is not assignable to type '<T extends MessageFindUniqueArgs>(args: SelectSubset<T, MessageFindUniqueArgs<DefaultArgs>>) => Prisma__MessageClient<GetFindResult<$MessagePayload<DefaultArgs>, T, PrismaClientOptions> | null, null, DefaultArgs, PrismaClientOptions>'.
+              Types of parameters 'args' and 'args' are incompatible.
+                Type 'SelectSubset<T, MessageFindUniqueArgs<DefaultArgs>>' is not assignable to type 'Exact<T, MessageFindUniqueArgs<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string | undefined; }; }; post: { ...; }; }; model: { ...; }; query: {}; client: {}; }>>'.
+                  Type 'SelectSubset<T, MessageFindUniqueArgs<DefaultArgs>>' is not assignable to type 'T extends unknown ? MessageFindUniqueArgs<InternalArgs & { result: { user: { displayName: () => { needs: { username: true; email: true; }; compute(user: { username: string; email: string; }): string | undefined; }; }; post: { ...; }; }; model: { ...; }; query: {}; client: {}; }> extends T ? { [K in keyof T]: Exact<....'.
