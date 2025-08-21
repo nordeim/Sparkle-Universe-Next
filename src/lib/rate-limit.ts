@@ -1,103 +1,333 @@
 // src/lib/rate-limit.ts
-/**
- * Rate limiting utilities
- * This file exports utilities that work in both client and server environments
- * For Redis-based rate limiting, use rate-limit-server.ts
- */
+import { logger } from '@/lib/monitoring'
 
-// Rate limit configuration
-export interface RateLimitConfig {
-  limit: number
+interface RateLimitConfig {
+  requests: number
   window: number // in seconds
-  prefix?: string
 }
 
-// Export rate limit configs for use across the app
-export const rateLimitConfigs = {
-  api: { limit: 100, window: 60, prefix: 'api' },
-  auth: { limit: 5, window: 900, prefix: 'auth' },
-  write: { limit: 10, window: 3600, prefix: 'write' },
-  comment: { limit: 30, window: 3600, prefix: 'comment' },
-  upload: { limit: 20, window: 3600, prefix: 'upload' },
-  reaction: { limit: 100, window: 3600, prefix: 'reaction' },
+interface RateLimitResult {
+  success: boolean
+  limit: number
+  remaining: number
+  reset: Date
+  retryAfter?: number
 }
 
-// In-memory rate limiter for client-side use
-const clientRateLimitMap = new Map<string, { count: number; resetTime: number }>()
+export const rateLimitConfigs: Record<string, RateLimitConfig> = {
+  api: { requests: 1000, window: 3600 },           // 1000 per hour
+  auth: { requests: 5, window: 900 },              // 5 per 15 minutes
+  post: { requests: 10, window: 3600 },            // 10 posts per hour
+  comment: { requests: 30, window: 3600 },         // 30 comments per hour
+  reaction: { requests: 100, window: 3600 },       // 100 reactions per hour
+  upload: { requests: 20, window: 3600 },          // 20 uploads per hour
+  search: { requests: 60, window: 60 },            // 60 searches per minute
+  message: { requests: 50, window: 3600 },         // 50 messages per hour
+  follow: { requests: 30, window: 3600 },          // 30 follows per hour
+  write: { requests: 10, window: 3600 },           // Alias for post
+}
 
-// Clean up old entries periodically (client-side)
-if (typeof window !== 'undefined') {
-  setInterval(() => {
+// In-memory rate limiter for Edge Runtime compatibility
+const memoryStore = new Map<string, { count: number; resetTime: number }>()
+
+// Clean up old entries periodically
+if (typeof global !== 'undefined' && !global.rateLimitCleanupInterval) {
+  global.rateLimitCleanupInterval = setInterval(() => {
     const now = Date.now()
-    for (const [key, value] of clientRateLimitMap.entries()) {
+    for (const [key, value] of memoryStore.entries()) {
       if (value.resetTime < now) {
-        clientRateLimitMap.delete(key)
+        memoryStore.delete(key)
       }
     }
   }, 60000) // Clean every minute
 }
 
-// Simple in-memory rate limiter (works in all environments)
-export function ratelimit(
-  config: RateLimitConfig,
-  identifier: string
-): { success: boolean; remaining: number; reset: Date; limit: number; retryAfter?: number } {
-  const now = Date.now()
-  const windowMs = config.window * 1000
-  const resetTime = now + windowMs
-  const key = `${config.prefix}:${identifier}`
+// Get Redis client lazily to avoid Edge Runtime issues
+let redisClient: any = null
+function getRedis() {
+  if (typeof window !== 'undefined' || typeof EdgeRuntime !== 'undefined') {
+    // Don't use Redis in browser or Edge Runtime
+    return null
+  }
   
-  const current = clientRateLimitMap.get(key)
+  if (!redisClient) {
+    try {
+      const { redis } = require('@/lib/redis')
+      redisClient = redis
+    } catch (error) {
+      logger.warn('Redis not available for rate limiting, using in-memory store')
+    }
+  }
   
-  if (!current || current.resetTime < now) {
-    // New window
-    clientRateLimitMap.set(key, { count: 1, resetTime })
+  return redisClient
+}
+
+class RateLimiter {
+  private configs: Record<string, RateLimitConfig>
+
+  constructor(configs: Record<string, RateLimitConfig>) {
+    this.configs = configs
+  }
+
+  async limit(
+    identifier: string,
+    type: keyof typeof rateLimitConfigs = 'api'
+  ): Promise<RateLimitResult> {
+    const config = this.configs[type]
+    if (!config) {
+      logger.warn(`Unknown rate limit type: ${type}`)
+      return {
+        success: true,
+        limit: 0,
+        remaining: 0,
+        reset: new Date(),
+      }
+    }
+
+    // Try Redis first, fall back to in-memory
+    const redis = getRedis()
+    if (redis) {
+      return this.limitWithRedis(redis, identifier, type, config)
+    } else {
+      return this.limitWithMemory(identifier, type, config)
+    }
+  }
+
+  private async limitWithRedis(
+    redis: any,
+    identifier: string,
+    type: string,
+    config: RateLimitConfig
+  ): Promise<RateLimitResult> {
+    const now = Date.now()
+    const window = Math.floor(now / (config.window * 1000))
+    const key = `ratelimit:${type}:${identifier}:${window}`
+    
+    try {
+      const count = await redis.incr(key)
+      
+      // Set expiry on first request in window
+      if (count === 1) {
+        await redis.expire(key, config.window)
+      }
+      
+      const remaining = Math.max(0, config.requests - count)
+      const reset = new Date((window + 1) * config.window * 1000)
+      
+      if (count > config.requests) {
+        const retryAfter = Math.ceil((reset.getTime() - now) / 1000)
+        return {
+          success: false,
+          limit: config.requests,
+          remaining: 0,
+          reset,
+          retryAfter,
+        }
+      }
+      
+      return {
+        success: true,
+        limit: config.requests,
+        remaining,
+        reset,
+      }
+    } catch (error) {
+      logger.error('Rate limit check failed:', error)
+      // Fail open on error
+      return {
+        success: true,
+        limit: config.requests,
+        remaining: config.requests,
+        reset: new Date(now + config.window * 1000),
+      }
+    }
+  }
+
+  private limitWithMemory(
+    identifier: string,
+    type: string,
+    config: RateLimitConfig
+  ): RateLimitResult {
+    const now = Date.now()
+    const windowMs = config.window * 1000
+    const resetTime = now + windowMs
+    const key = `${type}:${identifier}`
+    
+    const current = memoryStore.get(key)
+    
+    if (!current || current.resetTime < now) {
+      // New window
+      memoryStore.set(key, { count: 1, resetTime })
+      return {
+        success: true,
+        limit: config.requests,
+        remaining: config.requests - 1,
+        reset: new Date(resetTime),
+      }
+    }
+    
+    // Existing window
+    if (current.count >= config.requests) {
+      const retryAfter = Math.ceil((current.resetTime - now) / 1000)
+      return {
+        success: false,
+        limit: config.requests,
+        remaining: 0,
+        reset: new Date(current.resetTime),
+        retryAfter,
+      }
+    }
+    
+    // Increment count
+    current.count++
+    memoryStore.set(key, current)
+    
     return {
       success: true,
-      remaining: config.limit - 1,
-      reset: new Date(resetTime),
-      limit: config.limit,
-    }
-  }
-  
-  // Existing window
-  if (current.count >= config.limit) {
-    const retryAfter = Math.ceil((current.resetTime - now) / 1000)
-    return {
-      success: false,
-      remaining: 0,
+      limit: config.requests,
+      remaining: config.requests - current.count,
       reset: new Date(current.resetTime),
-      limit: config.limit,
-      retryAfter,
     }
   }
-  
-  // Increment count
-  current.count++
-  clientRateLimitMap.set(key, current)
-  
-  return {
-    success: true,
-    remaining: config.limit - current.count,
-    reset: new Date(current.resetTime),
-    limit: config.limit,
+
+  async reset(identifier: string, type: keyof typeof rateLimitConfigs = 'api'): Promise<void> {
+    const config = this.configs[type]
+    if (!config) return
+
+    // Try Redis first
+    const redis = getRedis()
+    if (redis) {
+      const now = Date.now()
+      const window = Math.floor(now / (config.window * 1000))
+      const key = `ratelimit:${type}:${identifier}:${window}`
+      
+      try {
+        await redis.del(key)
+      } catch (error) {
+        logger.error('Rate limit reset failed:', error)
+      }
+    }
+    
+    // Also clear from memory store
+    const key = `${type}:${identifier}`
+    memoryStore.delete(key)
+  }
+
+  async isRateLimited(
+    identifier: string, 
+    type: keyof typeof rateLimitConfigs = 'api'
+  ): Promise<boolean> {
+    const result = await this.limit(identifier, type)
+    return !result.success
+  }
+
+  async getRemainingRequests(
+    identifier: string,
+    type: keyof typeof rateLimitConfigs = 'api'
+  ): Promise<number> {
+    const config = this.configs[type]
+    if (!config) return 0
+
+    // Try Redis first
+    const redis = getRedis()
+    if (redis) {
+      const now = Date.now()
+      const window = Math.floor(now / (config.window * 1000))
+      const key = `ratelimit:${type}:${identifier}:${window}`
+      
+      try {
+        const count = await redis.get(key)
+        const used = count ? parseInt(count, 10) : 0
+        return Math.max(0, config.requests - used)
+      } catch (error) {
+        logger.error('Failed to get remaining requests:', error)
+        return config.requests
+      }
+    }
+    
+    // Fall back to memory store
+    const key = `${type}:${identifier}`
+    const current = memoryStore.get(key)
+    const now = Date.now()
+    
+    if (!current || current.resetTime < now) {
+      return config.requests
+    }
+    
+    return Math.max(0, config.requests - current.count)
+  }
+
+  async checkMultiple(
+    identifier: string,
+    types: Array<keyof typeof rateLimitConfigs>
+  ): Promise<Record<string, RateLimitResult>> {
+    const results: Record<string, RateLimitResult> = {}
+    
+    await Promise.all(
+      types.map(async (type) => {
+        results[type] = await this.limit(identifier, type)
+      })
+    )
+    
+    return results
   }
 }
 
-// Helper to create a rate limiter with preset config
-export function createRateLimiter(config: RateLimitConfig) {
-  return (identifier: string) => ratelimit(config, identifier)
+// Create and export the rate limiter instance
+export const ratelimit = new RateLimiter(rateLimitConfigs)
+
+// Middleware helper for Next.js API routes
+export async function withRateLimit(
+  identifier: string,
+  type: keyof typeof rateLimitConfigs = 'api'
+): Promise<RateLimitResult> {
+  return ratelimit.limit(identifier, type)
 }
 
-// Preset rate limiters
-export const apiRateLimit = createRateLimiter(rateLimitConfigs.api)
-export const authRateLimit = createRateLimiter(rateLimitConfigs.auth)
-export const writeRateLimit = createRateLimiter(rateLimitConfigs.write)
-export const commentRateLimit = createRateLimiter(rateLimitConfigs.comment)
-export const uploadRateLimit = createRateLimiter(rateLimitConfigs.upload)
-export const reactionRateLimit = createRateLimiter(rateLimitConfigs.reaction)
+// Express/Connect middleware style helper
+export function rateLimitMiddleware(type: keyof typeof rateLimitConfigs = 'api') {
+  return async (req: any, res: any, next: any) => {
+    const identifier = req.ip || req.headers['x-forwarded-for'] || 'anonymous'
+    const result = await ratelimit.limit(identifier, type)
+    
+    // Set rate limit headers
+    res.setHeader('X-RateLimit-Limit', result.limit)
+    res.setHeader('X-RateLimit-Remaining', result.remaining)
+    res.setHeader('X-RateLimit-Reset', result.reset.toISOString())
+    
+    if (!result.success) {
+      res.status(429).json({
+        error: 'Too Many Requests',
+        message: `Rate limit exceeded. Try again at ${result.reset.toISOString()}`,
+        retryAfter: result.retryAfter,
+      })
+      return
+    }
+    
+    next()
+  }
+}
 
-// Get client IP helper (works in browser and server)
+// Simple function-based rate limiter for backward compatibility
+export function createRateLimiter(config: { limit: number; window: number; prefix?: string }) {
+  const rateLimitConfig: RateLimitConfig = {
+    requests: config.limit,
+    window: config.window,
+  }
+  
+  return async (identifier: string) => {
+    const type = config.prefix || 'custom'
+    
+    // Add custom config if not exists
+    if (!rateLimitConfigs[type]) {
+      rateLimitConfigs[type] = rateLimitConfig
+    }
+    
+    return ratelimit.limit(identifier, type as keyof typeof rateLimitConfigs)
+  }
+}
+
+// Get client IP helper
 export function getClientIp(request: any): string | null {
   // In browser, we can't get the real IP
   if (typeof window !== 'undefined') {
@@ -125,5 +355,20 @@ export function getClientIp(request: any): string | null {
   return null
 }
 
-// Export a default rate limiter for backward compatibility
-export default ratelimit
+// Preset rate limiters for convenience
+export const apiRateLimit = (identifier: string) => ratelimit.limit(identifier, 'api')
+export const authRateLimit = (identifier: string) => ratelimit.limit(identifier, 'auth')
+export const writeRateLimit = (identifier: string) => ratelimit.limit(identifier, 'write')
+export const postRateLimit = (identifier: string) => ratelimit.limit(identifier, 'post')
+export const commentRateLimit = (identifier: string) => ratelimit.limit(identifier, 'comment')
+export const uploadRateLimit = (identifier: string) => ratelimit.limit(identifier, 'upload')
+export const reactionRateLimit = (identifier: string) => ratelimit.limit(identifier, 'reaction')
+
+// Export additional utilities
+export { rateLimitConfigs as configs }
+export type { RateLimitConfig, RateLimitResult }
+
+// Declare global to prevent multiple cleanup intervals
+declare global {
+  var rateLimitCleanupInterval: NodeJS.Timeout | undefined
+}
