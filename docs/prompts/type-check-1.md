@@ -1030,6 +1030,9 @@ src/server/api/routers/admin.ts
 src/server/api/routers/auth.ts
 src/server/api/routers/notification.ts
 src/server/api/routers/user.ts
+src/server/api/routers/social.ts
+src/server/api/routers/message.ts
+src/server/api/routers/group.ts
 src/server/api/root.ts
 src/server/services/comment.service.ts
 src/server/services/analytics.service.ts
@@ -1066,6 +1069,7 @@ src/components/ui/toggle.tsx
 src/components/ui/avatar.tsx
 src/components/ui/label.tsx
 src/components/ui/alert.tsx
+src/components/ui/radio-group.tsx
 src/components/ui/skeleton.tsx
 src/components/ui/input.tsx
 src/components/ui/checkbox.tsx
