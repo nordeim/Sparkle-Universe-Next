@@ -634,7 +634,6 @@ graph TB
     "react-player": "^3.3.1",
     "recharts": "^3.1.2",
     "sanity": "^3.99.0",
-    "sharp": "^0.34.3",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
     "sonner": "^2.0.7",
@@ -650,16 +649,17 @@ graph TB
     "zustand": "^5.0.7"
   },
   "devDependencies": {
-    "@next/bundle-analyzer": "^15.4.6",
+    "@next/bundle-analyzer": "^15.5.0",
     "@playwright/test": "^1.54.2",
     "@svgr/webpack": "^8.1.0",
-    "@testing-library/jest-dom": "^6.7.0",
+    "@testing-library/jest-dom": "^6.8.0",
     "@testing-library/react": "^16.3.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/canvas-confetti": "^1.9.0",
     "@types/cookie": "^0.6.0",
     "@types/jest": "^30.0.0",
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/next": "^8.0.7",
     "@types/node": "^22.17.2",
     "@types/nodemailer": "^7.0.0",
     "@types/qrcode": "^1.5.5",
@@ -688,6 +688,7 @@ graph TB
     "prettier": "^3.6.2",
     "prettier-plugin-tailwindcss": "^0.6.14",
     "prisma": "^6.14.0",
+    "sharp": "^0.34.3",
     "tailwindcss": "^3.4.17",
     "tailwindcss-animate": "^1.0.7",
     "tsx": "^4.20.4",
@@ -969,13 +970,15 @@ Sparkle-Universe-Next/
 ```
 
 ```bash
-$ find *json *ts *js src prisma/schema.prisma -type f
+# codebase file structure and file list:
+.gitignore
 components.json
-mcp.json
+manifest.json
 package-lock.json
 package.json
 tsconfig.json
 next-env.d.ts
+scripts/generate-icons.js
 tailwind.config.ts
 eslint.config.mjs
 jest.config.mjs
@@ -983,6 +986,7 @@ jest.setup.js
 next.config.mjs
 postcss.config.mjs
 src/emails/templates/index.tsx
+src/hooks/use-toast.ts.p6
 src/hooks/use-toast.ts
 src/hooks/use-socket.ts
 src/hooks/use-auth.ts
@@ -992,6 +996,8 @@ src/types/comment.ts
 src/types/index.ts
 src/types/jest-dom.d.ts
 src/types/global.d.ts
+src/lib/rate-limit.ts.p7
+src/lib/rate-limit-server.ts
 src/lib/analytics.ts
 src/lib/security.ts
 src/lib/utils.ts.orig
@@ -1004,6 +1010,7 @@ src/lib/api.ts
 src/lib/utils/format.ts
 src/lib/utils.ts.shadcn-init
 src/lib/events/event-emitter.ts
+src/lib/auth/auth.config.ts.p7
 src/lib/auth/auth.ts
 src/lib/auth/auth.config.ts
 src/lib/monitoring.ts
@@ -1023,16 +1030,16 @@ src/server/api/routers/comment.ts
 src/server/api/routers/upload.ts
 src/server/api/routers/analytics.ts
 src/server/api/routers/gamification.ts
+src/server/api/routers/social.ts
 src/server/api/routers/post.ts
 src/server/api/routers/youtube.ts
 src/server/api/routers/search.ts
 src/server/api/routers/admin.ts
 src/server/api/routers/auth.ts
-src/server/api/routers/notification.ts
-src/server/api/routers/user.ts
-src/server/api/routers/social.ts
 src/server/api/routers/message.ts
+src/server/api/routers/notification.ts
 src/server/api/routers/group.ts
+src/server/api/routers/user.ts
 src/server/api/root.ts
 src/server/services/comment.service.ts
 src/server/services/analytics.service.ts
@@ -1063,13 +1070,13 @@ src/components/ui/badge.tsx
 src/components/ui/textarea.tsx
 src/components/ui/toaster.tsx
 src/components/ui/separator.tsx
+src/components/ui/radio-group.tsx
 src/components/ui/tooltip.tsx
 src/components/ui/progress.tsx
 src/components/ui/toggle.tsx
 src/components/ui/avatar.tsx
 src/components/ui/label.tsx
 src/components/ui/alert.tsx
-src/components/ui/radio-group.tsx
 src/components/ui/skeleton.tsx
 src/components/ui/input.tsx
 src/components/ui/checkbox.tsx
@@ -1121,20 +1128,48 @@ src/components/providers/query-provider.tsx
 src/components/providers/theme-provider.tsx
 src/components/providers/auth-provider.tsx
 src/app/globals.css
+src/app/page.tsx
 src/app/(main)/create/page.tsx
 src/app/api-docs/page.tsx
 src/app/api/trpc/[trpc]/route.ts
 src/app/api/admin/jobs/route.ts
 src/app/api/openapi.json/route.ts
 src/app/api/auth/[...nextauth]/route.ts
+src/app/api/generate-icon/route.ts
 src/app/layout.tsx
 src/app/admin/layout.tsx
 src/app/admin/moderation/page.tsx
 src/app/admin/dashboard/page.tsx
 src/app/admin/users/page.tsx
+src/app/layout.tsx.p7
+src/app/layout.tsx.p8
 src/app/fonts/GeistVF.woff
 src/app/fonts/GeistMonoVF.woff
+src/app/(auth)/login/page.tsx
+src/app/(auth)/layout.tsx
+src/app/(auth)/register/page.tsx
 prisma/schema.prisma
+public/apple-touch-icon.png
+public/favicon-16x16.png
+public/favicon-32x32.png
+public/favicon.ico
+public/favicon.png
+public/icon-128x128.png
+public/icon-144x144.png
+public/icon-152x152.png
+public/icon-192.png
+public/icon-192.svg
+public/icon-192x192.png
+public/icon-384x384.png
+public/icon-512.png
+public/icon-512.svg
+public/icon-512x512.png
+public/icon-72x72.png
+public/icon-96x96.png
+public/icon.svg
+public/manifest.json
+public/sw.js
+scripts/generate-icons.js
 ```
 ---
 
