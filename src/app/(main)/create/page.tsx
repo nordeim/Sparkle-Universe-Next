@@ -39,7 +39,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-// Define the schema with proper types - make fields match form expectations
+// Define the schema with proper types
 const createPostSchema = z.object({
   title: z.string().min(1, 'Title is required').max(255, 'Title is too long'),
   content: z.string().min(1, 'Content is required'),
@@ -89,7 +89,6 @@ export default function CreatePostPage() {
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(true)
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
 
-  // Fix form type to match schema exactly
   const form = useForm<CreatePostInput>({
     resolver: zodResolver(createPostSchema),
     defaultValues: {
@@ -128,8 +127,8 @@ export default function CreatePostPage() {
     return () => clearTimeout(timer)
   }, [watchedTitle, watchedContent, isDirty, autoSaveEnabled])
 
-  // Fetch categories (with error handling)
-  const { data: categories = [] } = api.post.getCategories?.useQuery() ?? { data: [] }
+  // Fetch categories with proper typing
+  const { data: categories = [] } = api.post.getCategories?.useQuery?.() ?? { data: [] }
 
   // Create post mutation
   const createPostMutation = api.post.create.useMutation({

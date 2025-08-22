@@ -55,7 +55,7 @@ import { AIAnalysisPanel } from '@/components/admin/ai-analysis-panel'
 import { ModerationStats } from '@/components/admin/moderation-stats'
 import { formatDate, formatDuration } from '@/lib/utils'
 import { useSocket } from '@/hooks/use-socket'
-import { toast } from '@/components/ui/use-toast'
+import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
@@ -81,6 +81,15 @@ interface ModerationNote {
   banDuration?: number
 }
 
+interface AISettings {
+  enabled: boolean
+  threshold: number
+  accuracy: number
+  autoBlock: number
+  autoApprove: number
+  review: number
+}
+
 export default function ModerationPage() {
   const [selectedContent, setSelectedContent] = useState<any>(null)
   const [selectedItem, setSelectedItem] = useState<ModerationItem | null>(null)
@@ -104,7 +113,7 @@ export default function ModerationPage() {
   })
 
   const { data: stats } = api.admin.getModerationStats.useQuery(undefined, {
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 30000,
   })
 
   const { data: aiSettings } = api.admin.getAIModerationSettings.useQuery()
@@ -112,29 +121,26 @@ export default function ModerationPage() {
   // Mutations
   const moderateContent = api.admin.moderateContent.useMutation({
     onSuccess: () => {
-      toast({ title: 'Content moderated successfully' })
+      toast.success('Content moderated successfully')
       refetch()
       setProcessingItem(null)
     },
     onError: () => {
-      toast({ 
-        title: 'Moderation failed', 
-        variant: 'destructive' 
-      })
+      toast.error('Moderation failed')
       setProcessingItem(null)
     },
   })
 
   const bulkModerate = api.admin.bulkModerate.useMutation({
     onSuccess: () => {
-      toast({ title: 'Bulk moderation completed' })
+      toast.success('Bulk moderation completed')
       refetch()
     },
   })
 
   const updateAISettings = api.admin.updateAIModerationSettings.useMutation({
     onSuccess: () => {
-      toast({ title: 'AI settings updated' })
+      toast.success('AI settings updated')
     },
   })
 
@@ -147,10 +153,7 @@ export default function ModerationPage() {
     })
 
     const unsubscribeAIFlag = socket.on('moderation:aiFlag', (data: any) => {
-      toast({
-        title: 'AI flagged content',
-        description: `New ${data.type} flagged with ${data.confidence}% confidence`,
-      })
+      toast.info(`AI flagged content: New ${data.type} flagged with ${data.confidence}% confidence`)
       refetch()
     })
 
@@ -165,12 +168,12 @@ export default function ModerationPage() {
     if (!autoModerate || !reports?.items) return
 
     const lowRiskItems = reports.items.filter(
-      item => item.aiAnalysis?.riskScore < 0.3 && item.priority === 'low'
+      (item: any) => item.aiAnalysis?.riskScore < 0.3 && item.priority === 'low'
     )
 
     if (lowRiskItems.length > 0) {
       bulkModerate.mutate({
-        itemIds: lowRiskItems.map(item => item.id),
+        itemIds: lowRiskItems.map((item: any) => item.id),
         action: 'approve',
         reason: 'Auto-approved: Low risk score',
       })
@@ -283,7 +286,7 @@ export default function ModerationPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-500">
-              {stats?.pending || 0}
+              {stats?.pendingCount || 0}
             </div>
             <p className="text-xs text-muted-foreground">Awaiting review</p>
           </CardContent>
@@ -298,7 +301,7 @@ export default function ModerationPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-500">
-              {stats?.approvedToday || 0}
+              {stats?.reviewedToday || 0}
             </div>
             <p className="text-xs text-muted-foreground">Today</p>
           </CardContent>
@@ -313,7 +316,7 @@ export default function ModerationPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-500">
-              {stats?.rejectedToday || 0}
+              {stats?.autoBlockedToday || 0}
             </div>
             <p className="text-xs text-muted-foreground">Today</p>
           </CardContent>
@@ -328,7 +331,7 @@ export default function ModerationPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {((stats?.aiAccuracy || 0) * 100).toFixed(1)}%
+              {((aiSettings as AISettings)?.accuracy || 0) * 100}%
             </div>
             <p className="text-xs text-muted-foreground">Last 7 days</p>
           </CardContent>
@@ -343,7 +346,7 @@ export default function ModerationPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {formatDuration(stats?.avgModerationTime || 0)}
+              {formatDuration(stats?.averageReviewTime || 0, 'short')}
             </div>
             <p className="text-xs text-muted-foreground">Per item</p>
           </CardContent>
@@ -351,13 +354,18 @@ export default function ModerationPage() {
       </div>
 
       {/* AI Settings Alert */}
-      {aiSettings?.enabled && (
+      {(aiSettings as AISettings)?.enabled && (
         <Alert>
           <Brain className="w-4 h-4" />
           <AlertTitle>AI Moderation Active</AlertTitle>
           <AlertDescription>
-            AI is automatically flagging content with confidence threshold of {aiSettings.threshold}%.
-            Current accuracy: {(aiSettings.accuracy * 100).toFixed(1)}%
+            AI is automatically flagging content with confidence threshold of {(aiSettings as AISettings).threshold}%.
+            Current accuracy: {((aiSettings as AISettings).accuracy * 100).toFixed(1)}%
+            <div className="mt-2 text-xs">
+              Auto-block: {(aiSettings as AISettings).autoBlock}% • 
+              Auto-approve: {(aiSettings as AISettings).autoApprove}% • 
+              Review: {(aiSettings as AISettings).review}%
+            </div>
           </AlertDescription>
         </Alert>
       )}
@@ -432,7 +440,7 @@ export default function ModerationPage() {
                 </Alert>
               ) : (
                 <div className="space-y-4">
-                  {reports?.items.map((item: ModerationItem) => {
+                  {reports?.items.map((item: any) => {
                     const ContentIcon = getContentIcon(item.type)
                     const isProcessing = processingItem === item.id
 
@@ -495,7 +503,7 @@ export default function ModerationPage() {
                               </div>
 
                               {/* AI Analysis */}
-                              {showAIAnalysis && item.aiAnalysis && (
+                              {showAIAnalysis && item.aiCategories && (
                                 <div className="bg-muted/30 rounded-lg p-3 space-y-2">
                                   <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
@@ -503,25 +511,25 @@ export default function ModerationPage() {
                                       <span className="text-sm font-medium">AI Analysis</span>
                                     </div>
                                     <Badge variant="outline">
-                                      {(item.aiAnalysis.confidence * 100).toFixed(0)}% confidence
+                                      {(item.confidence * 100).toFixed(0)}% confidence
                                     </Badge>
                                   </div>
                                   <div className="grid grid-cols-2 gap-4 text-sm">
                                     <div>
                                       <span className="text-muted-foreground">Risk Score:</span>
                                       <Progress 
-                                        value={item.aiAnalysis.riskScore * 100} 
+                                        value={(item.aiScore || 0) * 100} 
                                         className="mt-1 h-2"
                                       />
                                     </div>
                                     <div>
                                       <span className="text-muted-foreground">Category:</span>
-                                      <p className="font-medium">{item.aiAnalysis.category}</p>
+                                      <p className="font-medium">{item.entityType}</p>
                                     </div>
                                   </div>
-                                  {item.aiAnalysis.explanation && (
+                                  {item.humanReviewRequired && (
                                     <p className="text-xs text-muted-foreground">
-                                      {item.aiAnalysis.explanation}
+                                      Human review required
                                     </p>
                                   )}
                                 </div>
@@ -607,7 +615,7 @@ export default function ModerationPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ModerationHistory limit={10} />
+            <ModerationHistory />
           </CardContent>
         </Card>
 
@@ -620,7 +628,7 @@ export default function ModerationPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <AIAnalysisPanel stats={stats?.aiStats} />
+            <AIAnalysisPanel />
           </CardContent>
         </Card>
       </div>
@@ -634,19 +642,27 @@ export default function ModerationPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ModerationStats period="week" />
+          <ModerationStats />
         </CardContent>
       </Card>
 
       {/* Content Preview Dialog */}
       {selectedContent && (
         <ContentPreviewDialog
+          open={!!selectedContent}
+          onOpenChange={(open) => !open && setSelectedContent(null)}
           content={selectedContent}
-          onClose={() => setSelectedContent(null)}
-          onModerate={(action) => {
+          onApprove={() => {
             const item = reports?.items.find((i: any) => i.content.id === selectedContent.id)
             if (item) {
-              handleModeration(item, action, true)
+              handleModeration(item, 'approve', true)
+            }
+            setSelectedContent(null)
+          }}
+          onReject={() => {
+            const item = reports?.items.find((i: any) => i.content.id === selectedContent.id)
+            if (item) {
+              handleModeration(item, 'reject', true)
             }
             setSelectedContent(null)
           }}

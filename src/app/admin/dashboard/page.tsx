@@ -48,7 +48,7 @@ import { formatNumber, formatPercentage, formatDuration } from '@/lib/utils'
 import { useSocket } from '@/hooks/use-socket'
 import { cn } from '@/lib/utils'
 
-// Fix TimePeriod type - use 'day' instead of 'today'
+// Fix TimePeriod type to match expected values
 type TimePeriod = 'day' | 'week' | 'month' | 'quarter' | 'year'
 
 export default function AdminDashboard() {
@@ -58,7 +58,7 @@ export default function AdminDashboard() {
   
   const socket = useSocket()
 
-  // Fetch dashboard data with correct period type
+  // Fetch dashboard data
   const { data: stats, isLoading: statsLoading, refetch: refetchStats } = 
     api.admin.getDashboardStats.useQuery({ period: timePeriod })
   
@@ -67,7 +67,7 @@ export default function AdminDashboard() {
   
   const { data: systemHealth } = 
     api.admin.getSystemHealth.useQuery(undefined, {
-      refetchInterval: 30000, // Refresh every 30 seconds
+      refetchInterval: 30000,
     })
   
   const { data: alerts } = 
@@ -81,7 +81,7 @@ export default function AdminDashboard() {
       refetchStats()
       refetchAnalytics()
       setLastRefresh(new Date())
-    }, 60000) // Refresh every minute
+    }, 60000)
 
     return () => clearInterval(interval)
   }, [autoRefresh, refetchStats, refetchAnalytics])
@@ -273,7 +273,7 @@ export default function AdminDashboard() {
                   )} />
                   {stat.change >= 0 ? '+' : ''}{formatPercentage(stat.change)}
                 </span>
-                {' '}from last {timePeriod === 'day' ? 'day' : timePeriod}
+                {' '}from last {timePeriod}
               </p>
               {stat.subtitle && (
                 <p className="text-xs text-muted-foreground mt-0.5">
@@ -332,7 +332,7 @@ export default function AdminDashboard() {
             </div>
             <div className="pt-2 border-t">
               <p className="text-xs text-muted-foreground text-center">
-                Last refresh: {formatDuration(Date.now() - lastRefresh.getTime())} ago
+                Last refresh: {formatDuration(Date.now() - lastRefresh.getTime(), 'short')} ago
               </p>
             </div>
           </CardContent>
@@ -361,6 +361,7 @@ export default function AdminDashboard() {
               <CardContent>
                 <UserGrowthChart
                   data={analytics?.userGrowth || []}
+                  period={timePeriod}
                   height={300}
                 />
               </CardContent>
@@ -400,7 +401,7 @@ export default function AdminDashboard() {
               <CardHeader>
                 <CardTitle>Top Content</CardTitle>
                 <CardDescription>
-                  Most popular posts this {timePeriod === 'day' ? 'day' : timePeriod}
+                  Most popular posts this {timePeriod}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -432,7 +433,7 @@ export default function AdminDashboard() {
                 </div>
                 <div className="text-center p-4 bg-muted rounded-lg">
                   <Eye className="w-8 h-8 mx-auto mb-2 text-purple-500" />
-                  <p className="text-2xl font-bold">{formatDuration(stats?.users.avgSessionDuration || 0)}</p>
+                  <p className="text-2xl font-bold">{formatDuration(stats?.users.avgSessionDuration || 0, 'short')}</p>
                   <p className="text-sm text-muted-foreground">Avg. Session</p>
                 </div>
                 <div className="text-center p-4 bg-muted rounded-lg">
@@ -447,7 +448,7 @@ export default function AdminDashboard() {
                   data={analytics?.userActivity || []}
                   type="area"
                   height={400}
-                  showLegend
+                  showLegend={true}
                 />
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -508,7 +509,7 @@ export default function AdminDashboard() {
                   data={analytics?.contentTypes || []}
                   type="bar"
                   height={300}
-                  horizontal
+                  horizontal={true}
                 />
               </CardContent>
             </Card>
@@ -571,7 +572,7 @@ export default function AdminDashboard() {
                   data={analytics?.engagementTrends || []}
                   type="line"
                   height={300}
-                  showLegend
+                  showLegend={true}
                 />
               </div>
             </CardContent>
@@ -639,7 +640,7 @@ export default function AdminDashboard() {
                 data={analytics?.moderationStats || []}
                 type="stacked-bar"
                 height={300}
-                showLegend
+                showLegend={true}
               />
             </CardContent>
           </Card>

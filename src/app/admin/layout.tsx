@@ -41,6 +41,48 @@ export default async function AdminLayout({
     email: session.user.email,
     avatar: session.user.image || undefined,
     role: session.user.role,
+    // Add all required fields to match the full User type
+    status: session.user.status,
+    createdAt: session.user.createdAt,
+    updatedAt: session.user.updatedAt,
+    level: session.user.level,
+    username: session.user.username,
+    hashedPassword: session.user.hashedPassword,
+    authProvider: session.user.authProvider,
+    deleted: session.user.deleted,
+    deletedAt: session.user.deletedAt,
+    deletedBy: session.user.deletedBy,
+    bio: session.user.bio,
+    image: session.user.image,
+    verified: session.user.verified,
+    verifiedAt: session.user.verifiedAt,
+    sparklePoints: session.user.sparklePoints,
+    premiumPoints: session.user.premiumPoints,
+    experience: session.user.experience,
+    reputationScore: session.user.reputationScore,
+    lastSeenAt: session.user.lastSeenAt,
+    loginStreak: session.user.loginStreak,
+    lastLoginAt: session.user.lastLoginAt,
+    emailVerified: session.user.emailVerified,
+    emailVerificationToken: session.user.emailVerificationToken,
+    emailVerificationExpires: session.user.emailVerificationExpires,
+    resetPasswordToken: session.user.resetPasswordToken,
+    resetPasswordExpires: session.user.resetPasswordExpires,
+    phoneNumber: session.user.phoneNumber,
+    phoneNumberHash: session.user.phoneNumberHash,
+    phoneVerified: session.user.phoneVerified,
+    twoFactorEnabled: session.user.twoFactorEnabled,
+    twoFactorSecret: session.user.twoFactorSecret,
+    twoFactorBackupCodes: session.user.twoFactorBackupCodes,
+    accountLockoutAttempts: session.user.accountLockoutAttempts,
+    accountLockedUntil: session.user.accountLockedUntil,
+    lastPasswordChangedAt: session.user.lastPasswordChangedAt,
+    lastFailedLoginAt: session.user.lastFailedLoginAt,
+    failedLoginAttempts: session.user.failedLoginAttempts,
+    onlineStatus: session.user.onlineStatus,
+    creatorRevenueShare: session.user.creatorRevenueShare,
+    totalRevenueEarned: session.user.totalRevenueEarned,
+    lastPayoutDate: session.user.lastPayoutDate,
   }
 
   return (
@@ -69,13 +111,12 @@ export default async function AdminLayout({
           {/* Header */}
           <AdminHeader 
             user={adminUser}
-            showMobileMenu
           />
           
           {/* Page Content */}
           <main className="flex-1 overflow-y-auto">
             <ErrorBoundary
-              fallback={(error: { message?: string }, reset: () => void) => (
+              fallback={(error: Error, reset: () => void) => (
                 <div className="flex items-center justify-center h-full p-8">
                   <div className="text-center space-y-4">
                     <h2 className="text-2xl font-bold text-destructive">
