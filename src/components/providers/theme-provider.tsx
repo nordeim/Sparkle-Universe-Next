@@ -3,7 +3,6 @@
 
 import * as React from 'react'
 import { ThemeProvider as NextThemesProvider } from 'next-themes'
-import { type ThemeProviderProps } from 'next-themes/dist/types'
 
 /**
  * Theme Provider Component
@@ -11,6 +10,21 @@ import { type ThemeProviderProps } from 'next-themes/dist/types'
  * Wraps the application with next-themes provider for dark/light mode support
  * Includes Sparkle Universe custom theme configurations
  */
+
+interface ThemeProviderProps {
+  children: React.ReactNode
+  attribute?: 'class' | 'data-theme' | 'data-mode'
+  defaultTheme?: string
+  enableSystem?: boolean
+  enableColorScheme?: boolean
+  disableTransitionOnChange?: boolean
+  storageKey?: string
+  themes?: string[]
+  forcedTheme?: string
+  nonce?: string
+  value?: { [themeName: string]: string }
+}
+
 export function ThemeProvider({ 
   children, 
   ...props 

@@ -1,6 +1,6 @@
 // src/server/services/search.service.ts
 import { PrismaClient, Prisma } from '@prisma/client'
-import algoliasearch, { SearchClient, SearchIndex } from 'algoliasearch'
+import { algoliasearch, SearchClient, SearchIndex } from 'algoliasearch'
 import { CacheService, CacheType } from './cache.service'
 import { ActivityService } from './activity.service'
 
@@ -403,7 +403,7 @@ export class SearchService {
 
     // Index in Algolia if available
     if (this.useAlgolia && this.postsIndex) {
-      await this.postsIndex.saveObject({
+      await this.postsIndex.saveObjects([{
         objectID: post.id,
         title: post.title,
         content: this.stripHtml(post.content || ''),
@@ -417,7 +417,7 @@ export class SearchService {
         contentType: post.contentType,
         hasYoutubeVideo: !!post.youtubeVideoId,
         publishedAt: post.publishedAt?.getTime(),
-      })
+      }])
     }
   }
 
@@ -432,7 +432,7 @@ export class SearchService {
     })
 
     if (this.useAlgolia && this.postsIndex) {
-      await this.postsIndex.deleteObject(postId)
+      await this.postsIndex.deleteObjects([postId])
     }
   }
 
@@ -515,7 +515,7 @@ export class SearchService {
     })
 
     if (this.useAlgolia && this.usersIndex) {
-      await this.usersIndex.saveObject({
+      await this.usersIndex.saveObjects([{
         objectID: user.id,
         username: user.username,
         displayName: user.profile?.displayName,
@@ -524,7 +524,7 @@ export class SearchService {
         role: user.role,
         interests: user.profile?.interests || [],
         skills: user.profile?.skills || [],
-      })
+      }])
     }
   }
 
@@ -556,14 +556,14 @@ export class SearchService {
     })
 
     if (this.useAlgolia && this.tagsIndex) {
-      await this.tagsIndex.saveObject({
+      await this.tagsIndex.saveObjects([{
         objectID: tag.id,
         name: tag.name,
         slug: tag.slug,
         description: tag.description,
         postCount: tag.postCount,
         featured: tag.featured,
-      })
+      }])
     }
   }
 
