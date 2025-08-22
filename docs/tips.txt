@@ -2,6 +2,8 @@ egrep -n '```|`\/src\/|\/\/ src\/| File: '  oo1
 
 git status | egrep -v 'tsx.p.$|ts.p.$|\.bak.$|\.bak$|orig$|md$'
 
+git status | egrep -v 'tsx\.p.$|ts\.p.$|\.bak.$|\.bak$|orig$|md$|css\.p?$' | grep src
+
 git commit -m "update docs"
 git status
 git push -u origin main
