@@ -433,7 +433,7 @@ The codebase shows evidence of multiple development phases:
 // Frontend Stack
 const frontend = {
   framework: "Next.js 14.2.31" /* App Router, Server Components */,
-  language: "TypeScript 5.3.3" /* Strict mode, noUncheckedIndexedAccess */,
+  language: "TypeScript 5.9.2" /* Strict mode, noUncheckedIndexedAccess */,
   styling: "Tailwind CSS 3.4.1" /* JIT, custom design tokens */,
   components: "shadcn/ui + Radix UI" /* Accessible primitives */,
   state: {
