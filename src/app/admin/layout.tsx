@@ -8,7 +8,6 @@ import { Toaster } from '@/components/ui/toaster'
 import { AdminNotifications } from '@/components/admin/admin-notifications'
 import { AdminActivityMonitor } from '@/components/admin/admin-activity-monitor'
 import { UserRole, UserStatus, AuthProvider } from '@prisma/client'
-import type { ExtendedUser } from '@/types/global'
 
 interface AdminLayoutErrorBoundaryProps {
   error: Error
@@ -61,8 +60,17 @@ export default async function AdminLayout({
   const isAdmin = session.user.role === 'ADMIN'
   const isModerator = session.user.role === 'MODERATOR'
 
-  // Create a properly typed admin user object
-  const adminUser: ExtendedUser = {
+  // Create admin user object for AdminHeader (simplified version)
+  const adminHeaderUser = {
+    id: session.user.id,
+    name: session.user.username || session.user.email,
+    email: session.user.email,
+    avatar: session.user.image,
+    role: session.user.role as UserRole,
+  }
+
+  // Create full user object for AdminProvider (with all necessary fields)
+  const adminProviderUser = {
     id: session.user.id,
     username: session.user.username,
     email: session.user.email,
@@ -71,52 +79,16 @@ export default async function AdminLayout({
     level: session.user.level,
     sparklePoints: session.user.sparklePoints,
     premiumPoints: session.user.premiumPoints,
-    status: (session.user as any).status as UserStatus || UserStatus.ACTIVE,
-    createdAt: (session.user as any).createdAt || new Date(),
-    updatedAt: (session.user as any).updatedAt || new Date(),
-    hashedPassword: (session.user as any).hashedPassword,
-    authProvider: (session.user as any).authProvider as AuthProvider || AuthProvider.LOCAL,
-    deleted: (session.user as any).deleted || false,
-    deletedAt: (session.user as any).deletedAt,
-    deletedBy: (session.user as any).deletedBy,
-    bio: (session.user as any).bio,
+    status: UserStatus.ACTIVE,
+    // Add any additional fields that AdminProvider might need
     verified: (session.user as any).verified || false,
-    verifiedAt: (session.user as any).verifiedAt,
     experience: (session.user as any).experience || 0,
     reputationScore: (session.user as any).reputationScore || 0,
-    lastSeenAt: (session.user as any).lastSeenAt,
-    loginStreak: (session.user as any).loginStreak || 0,
-    lastLoginAt: (session.user as any).lastLoginAt,
-    emailVerified: (session.user as any).emailVerified,
-    emailVerificationToken: (session.user as any).emailVerificationToken,
-    emailVerificationExpires: (session.user as any).emailVerificationExpires,
-    resetPasswordToken: (session.user as any).resetPasswordToken,
-    resetPasswordExpires: (session.user as any).resetPasswordExpires,
-    phoneNumber: (session.user as any).phoneNumber,
-    phoneNumberHash: (session.user as any).phoneNumberHash,
-    phoneVerified: (session.user as any).phoneVerified,
-    twoFactorEnabled: (session.user as any).twoFactorEnabled || false,
-    twoFactorSecret: (session.user as any).twoFactorSecret,
-    twoFactorBackupCodes: (session.user as any).twoFactorBackupCodes || [],
-    accountLockoutAttempts: (session.user as any).accountLockoutAttempts || 0,
-    accountLockedUntil: (session.user as any).accountLockedUntil,
-    lastPasswordChangedAt: (session.user as any).lastPasswordChangedAt,
-    lastFailedLoginAt: (session.user as any).lastFailedLoginAt,
-    failedLoginAttempts: (session.user as any).failedLoginAttempts || 0,
-    onlineStatus: (session.user as any).onlineStatus || 'offline',
-    creatorRevenueShare: (session.user as any).creatorRevenueShare,
-    totalRevenueEarned: (session.user as any).totalRevenueEarned,
-    lastPayoutDate: (session.user as any).lastPayoutDate,
-    banned: (session.user as any).banned || false,
-    banReason: (session.user as any).banReason,
-    banExpiresAt: (session.user as any).banExpiresAt,
-    preferredLanguage: (session.user as any).preferredLanguage || 'en',
-    timezone: (session.user as any).timezone || 'UTC',
   }
 
   return (
     <AdminProvider 
-      user={adminUser}
+      user={adminProviderUser}
       permissions={{
         canAccessDashboard: true,
         canManageUsers: isAdmin,
@@ -139,7 +111,7 @@ export default async function AdminLayout({
         <div className="flex-1 flex flex-col min-w-0">
           {/* Header */}
           <AdminHeader 
-            user={adminUser}
+            user={adminHeaderUser}
           />
           
           {/* Page Content */}

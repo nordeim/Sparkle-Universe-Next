@@ -19,16 +19,12 @@ export const messageRouter = createTRPCRouter({
           participants: {
             some: {
               userId,
-              deleted: false,
             },
           },
           deleted: false,
         },
         include: {
           participants: {
-            where: {
-              deleted: false,
-            },
             include: {
               user: {
                 select: {
@@ -103,7 +99,6 @@ export const messageRouter = createTRPCRouter({
         where: {
           conversationId,
           userId,
-          deleted: false,
         },
       })
 
@@ -212,6 +207,7 @@ export const messageRouter = createTRPCRouter({
           const conversation = await ctx.db.conversation.create({
             data: {
               isGroup: false,
+              createdBy: senderId,
               participants: {
                 createMany: {
                   data: [
@@ -238,7 +234,6 @@ export const messageRouter = createTRPCRouter({
         where: {
           conversationId,
           userId: senderId,
-          deleted: false,
         },
       })
 
@@ -283,7 +278,6 @@ export const messageRouter = createTRPCRouter({
         where: {
           conversationId,
           userId: { not: senderId },
-          deleted: false,
         },
       })
 
@@ -337,7 +331,6 @@ export const messageRouter = createTRPCRouter({
         data: {
           deleted: true,
           deletedAt: new Date(),
-          deletedBy: userId,
         },
       })
 

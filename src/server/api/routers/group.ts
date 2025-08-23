@@ -105,9 +105,6 @@ export const groupRouter = createTRPCRouter({
             },
           },
           members: {
-            where: {
-              deleted: false,
-            },
             take: 5,
             orderBy: {
               joinedAt: 'desc',
@@ -153,7 +150,6 @@ export const groupRouter = createTRPCRouter({
           where: {
             groupId: group.id,
             userId,
-            deleted: false,
           },
         })
 
@@ -193,7 +189,6 @@ export const groupRouter = createTRPCRouter({
         where: {
           groupId,
           userId,
-          deleted: false,
         },
       })
 
@@ -251,7 +246,6 @@ export const groupRouter = createTRPCRouter({
         where: {
           groupId,
           userId,
-          deleted: false,
         },
       })
 
@@ -269,13 +263,9 @@ export const groupRouter = createTRPCRouter({
         })
       }
 
-      // Soft delete membership
-      await ctx.db.groupMember.update({
+      // Delete membership
+      await ctx.db.groupMember.delete({
         where: { id: member.id },
-        data: {
-          deleted: true,
-          deletedAt: new Date(),
-        },
       })
 
       return { success: true }
@@ -294,7 +284,9 @@ export const groupRouter = createTRPCRouter({
       const posts = await ctx.db.groupPost.findMany({
         where: {
           groupId,
-          deleted: false,
+          post: {
+            deleted: false,
+          },
         },
         include: {
           post: {
@@ -369,7 +361,7 @@ export const groupRouter = createTRPCRouter({
           slug: true,
           description: true,
           visibility: true,
-          image: true,
+          coverImage: true,
           _count: {
             select: {
               members: true,

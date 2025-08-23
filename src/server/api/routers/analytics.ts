@@ -83,7 +83,6 @@ export const analyticsRouter = createTRPCRouter({
         ctx.db.currencyTransaction.aggregate({
           where: {
             createdAt: { gte: startDate },
-            type: 'PURCHASE',
           },
           _sum: {
             amount: true,
@@ -142,7 +141,6 @@ export const analyticsRouter = createTRPCRouter({
               gte: compareStartDate,
               lt: startDate,
             },
-            type: 'PURCHASE',
           },
           _sum: {
             amount: true,
@@ -381,7 +379,6 @@ export const analyticsRouter = createTRPCRouter({
         }),
         ctx.db.activityStream.count({
           where: {
-            type: 'POST_SHARED',
             createdAt: { gte: startDate },
           },
         }),
@@ -435,7 +432,6 @@ export const analyticsRouter = createTRPCRouter({
         ctx.db.currencyTransaction.aggregate({
           where: {
             createdAt: { gte: startDate },
-            type: 'PURCHASE',
           },
           _sum: {
             amount: true,
@@ -444,7 +440,6 @@ export const analyticsRouter = createTRPCRouter({
         ctx.db.userSubscription.aggregate({
           where: {
             createdAt: { gte: startDate },
-            status: 'ACTIVE',
           },
           _sum: {
             amount: true,
@@ -471,7 +466,6 @@ export const analyticsRouter = createTRPCRouter({
             currencyTransactions: {
               some: {
                 createdAt: { gte: startDate },
-                type: 'PURCHASE',
               },
             },
           },
@@ -488,7 +482,6 @@ export const analyticsRouter = createTRPCRouter({
             currencyTransactions: {
               where: {
                 createdAt: { gte: startDate },
-                type: 'PURCHASE',
               },
               select: {
                 amount: true,
@@ -503,9 +496,9 @@ export const analyticsRouter = createTRPCRouter({
         subscriptionRevenue: subscriptionRevenue._sum.amount || 0,
         virtualGoodsRevenue: virtualGoodsRevenue._sum.totalPrice || 0,
         tipRevenue: tipRevenue._sum.amount || 0,
-        topSpenders: topSpenders.map(user => ({
+        topSpenders: topSpenders.map((user: any) => ({
           ...user,
-          totalSpent: user.currencyTransactions.reduce((sum, t) => sum + Number(t.amount), 0),
+          totalSpent: user.currencyTransactions.reduce((sum: number, t: any) => sum + Number(t.amount), 0),
         })),
       }
     }),

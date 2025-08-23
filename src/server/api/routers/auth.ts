@@ -26,7 +26,7 @@ export const authRouter = createTRPCRouter({
         profile: {
           select: {
             displayName: true,
-            bio: true,
+            biography: true,
             location: true,
             website: true,
             socialLinks: true,
@@ -35,11 +35,11 @@ export const authRouter = createTRPCRouter({
         },
         stats: {
           select: {
-            followers: true,
-            following: true,
-            posts: true,
-            comments: true,
-            reactions: true,
+            totalFollowers: true,
+            totalFollowing: true,
+            totalPosts: true,
+            totalComments: true,
+            totalLikesReceived: true,
             level: true,
             experience: true,
           },
@@ -104,8 +104,8 @@ export const authRouter = createTRPCRouter({
       // Check referral code if provided
       let referrerId: string | undefined
       if (input.referralCode) {
-        const referrer = await ctx.db.referral.findUnique({
-          where: { code: input.referralCode },
+        const referrer = await ctx.db.referral.findFirst({
+          where: { referralCode: input.referralCode },
         })
         if (referrer) {
           referrerId = referrer.referrerId
@@ -158,7 +158,7 @@ export const authRouter = createTRPCRouter({
       await ctx.db.referral.create({
         data: {
           referrerId: user.id,
-          code: `${user.username.toUpperCase()}${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
+          referralCode: `${user.username.toUpperCase()}${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
         },
       })
 

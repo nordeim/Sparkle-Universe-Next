@@ -712,19 +712,28 @@ const generator = new TypeGenerator({
   private generateEnumTypes(enums: string[]): string {
     const enumTypes = enums.map(enumDef => {
       const lines = enumDef.split('\n')
-      const enumName = lines[0].match(/enum\s+(\w+)/)![1]
+      const enumNameMatch = lines[0]?.match(/enum\s+(\w+)/)
+      
+      // Add null safety check
+      if (!enumNameMatch || !enumNameMatch[1]) {
+        logger.warning(`Could not extract enum name from: ${lines[0]}`)
+        return ''
+      }
+      
+      const enumName = enumNameMatch[1]
       const values = lines
         .slice(1, -1)
         .map(line => line.trim())
         .filter(line => line && !line.startsWith('//'))
         .map(line => {
           const value = line.split(/\s+/)[0]
-          return `  ${value} = '${value}',`
+          return value ? `  ${value} = '${value}',` : ''
         })
+        .filter(Boolean)
         .join('\n')
       
       return `export enum ${enumName} {\n${values}\n}`
-    }).join('\n\n')
+    }).filter(Boolean).join('\n\n')
     
     return `
 // Prisma Enum Types
@@ -737,7 +746,15 @@ ${enumTypes}
   private generateModelTypes(models: string[]): string {
     const modelInterfaces = models.map(modelDef => {
       const lines = modelDef.split('\n')
-      const modelName = lines[0].match(/model\s+(\w+)/)![1]
+      const modelNameMatch = lines[0]?.match(/model\s+(\w+)/)
+      
+      // Add null safety check
+      if (!modelNameMatch || !modelNameMatch[1]) {
+        logger.warning(`Could not extract model name from: ${lines[0]}`)
+        return ''
+      }
+      
+      const modelName = modelNameMatch[1]
       const fields = lines
         .slice(1, -1)
         .map(line => line.trim())
@@ -745,14 +762,16 @@ ${enumTypes}
         .map(line => {
           const parts = line.split(/\s+/)
           const fieldName = parts[0]
-          const fieldType = this.mapPrismaTypeToTS(parts[1])
-          const isOptional = parts[1].includes('?')
-          return `  ${fieldName}${isOptional ? '?' : ''}: ${fieldType};`
+          const fieldType = parts[1] || 'unknown'
+          const isOptional = fieldType.includes('?')
+          const tsType = this.mapPrismaTypeToTS(fieldType)
+          return fieldName ? `  ${fieldName}${isOptional ? '?' : ''}: ${tsType};` : ''
         })
+        .filter(Boolean)
         .join('\n')
       
       return `export interface ${modelName} {\n${fields}\n}`
-    }).join('\n\n')
+    }).filter(Boolean).join('\n\n')
     
     return `
 // Prisma Model Types

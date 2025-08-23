@@ -1,5 +1,5 @@
 // API Request and Response Types
-// Generated on 2025-08-23T06:58:20.008Z
+// Generated on 2025-08-23T08:05:43.743Z
 
 export interface ApiRequest<T = any> {
   method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'

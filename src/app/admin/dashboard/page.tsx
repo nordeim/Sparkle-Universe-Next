@@ -47,7 +47,13 @@ import { ContentPerformance } from '@/components/admin/charts/content-performanc
 import { formatNumber, formatPercentage, formatDuration } from '@/lib/utils'
 import { useSocket } from '@/hooks/use-socket'
 import { cn } from '@/lib/utils'
-import type { TimePeriod, UserGrowthChartProps, ContentPerformanceProps, EngagementHeatmapProps } from '@/types/global'
+import type { TimePeriod } from '@/types/global'
+
+interface HeatmapDataPoint {
+  day: string
+  hour: number
+  value: number
+}
 
 export default function AdminDashboard() {
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('week')
@@ -186,19 +192,10 @@ export default function AdminDashboard() {
     )
   }
 
-  // Transform analytics data for components
-  const transformedAnalytics = {
-    ...analytics,
-    contentCreation: analytics?.contentPerformance || [],
-    userActivity: analytics?.userGrowth || [],
-    userSegments: [],
-    geoDistribution: [],
-    contentTypes: [],
-    topTags: [],
-    engagementHeatmap: {},
-    engagementTrends: [],
-    moderationStats: []
-  }
+  // Transform analytics data for components with proper typing
+  const engagementHeatmapData: HeatmapDataPoint[] = Array.isArray(analytics?.engagementHeatmap) 
+    ? analytics.engagementHeatmap 
+    : []
 
   return (
     <div className="space-y-6">
@@ -344,7 +341,7 @@ export default function AdminDashboard() {
             </div>
             <div className="pt-2 border-t">
               <p className="text-xs text-muted-foreground text-center">
-                Last refresh: {formatDuration(typeof (Date.now() - lastRefresh.getTime()) === 'number' ? Date.now() - lastRefresh.getTime() : 0)} ago
+                Last refresh: {formatDuration(Date.now() - lastRefresh.getTime())} ago
               </p>
             </div>
           </CardContent>
@@ -372,7 +369,7 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <UserGrowthChart
-                  data={transformedAnalytics?.userGrowth || []}
+                  data={analytics?.userGrowth || []}
                   period={timePeriod}
                   height={300}
                 />
@@ -488,7 +485,7 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <ContentPerformance
-                data={transformedAnalytics?.contentPerformance || {}}
+                data={analytics?.contentPerformance || {}}
                 period={timePeriod}
               />
             </CardContent>
@@ -548,7 +545,7 @@ export default function AdminDashboard() {
               </div>
 
               <EngagementHeatmap
-                data={transformedAnalytics?.engagementHeatmap || {}}
+                data={engagementHeatmapData}
                 height={400}
               />
 

@@ -223,10 +223,12 @@ export const adminRouter = createTRPCRouter({
     }))
     .mutation(async ({ ctx, input }) => {
       const adminService = new AdminService(ctx.db)
-      return adminService.bulkUserAction({
-        ...input,
-        performedBy: ctx.session.user.id,
-      })
+      return adminService.bulkUserAction(
+        input.action,
+        input.userIds,
+        input.params,
+        ctx.session.user.id
+      )
     }),
 
   // ===== CONTENT MODERATION =====
@@ -259,10 +261,14 @@ export const adminRouter = createTRPCRouter({
     }))
     .mutation(async ({ ctx, input }) => {
       const moderationService = new ModerationService(ctx.db)
-      return moderationService.moderateContent({
-        ...input,
-        moderatorId: ctx.session.user.id,
-      })
+      return moderationService.moderateContent(
+        input.itemId,
+        input.action,
+        ctx.session.user.id,
+        input.reason,
+        input.note,
+        input.banDuration
+      )
     }),
 
   bulkModerate: adminProcedure
@@ -273,10 +279,12 @@ export const adminRouter = createTRPCRouter({
     }))
     .mutation(async ({ ctx, input }) => {
       const moderationService = new ModerationService(ctx.db)
-      return moderationService.bulkModerate({
-        ...input,
-        moderatorId: ctx.session.user.id,
-      })
+      return moderationService.bulkModerate(
+        input.itemIds,
+        input.action,
+        ctx.session.user.id,
+        input.reason
+      )
     }),
 
   getAIModerationSettings: adminProcedure
@@ -295,7 +303,10 @@ export const adminRouter = createTRPCRouter({
     }))
     .mutation(async ({ ctx, input }) => {
       const moderationService = new ModerationService(ctx.db)
-      return moderationService.updateAISettings(input)
+      return moderationService.updateAISettings(
+        ctx.session.user.id,
+        input
+      )
     }),
 
   // ===== SITE SETTINGS =====
@@ -361,11 +372,11 @@ export const adminRouter = createTRPCRouter({
     }))
     .mutation(async ({ ctx, input }) => {
       const systemService = new SystemService(ctx.db)
-      return systemService.runMaintenance({
-        task: input.task,
-        force: input.force,
-        initiatedBy: ctx.session.user.id,
-      })
+      return systemService.runMaintenance(
+        input.task,
+        input.force,
+        ctx.session.user.id
+      )
     }),
 
   // ===== EXPORT/IMPORT =====
