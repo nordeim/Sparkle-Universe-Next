@@ -1,5 +1,5 @@
 // JSON Field Type Definitions
-// Generated on 2025-08-23T14:45:26.285Z
+// Generated on 2025-08-23T15:03:21.769Z
 // Complete type definitions for all JSON fields in the schema
 
 // ============================================

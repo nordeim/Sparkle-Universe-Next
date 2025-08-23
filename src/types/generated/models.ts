@@ -1,5 +1,5 @@
 // Prisma Model Types with Complete JSON Typing
-// Generated on 2025-08-23T14:45:26.284Z
+// Generated on 2025-08-23T15:03:21.768Z
 // Total Models: 112
 
 import { Decimal } from 'decimal.js'

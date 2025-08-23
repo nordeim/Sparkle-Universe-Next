@@ -137,38 +137,6 @@ const JSON_FIELD_TYPE_MAP: Record<string, string> = {
   'StoreItem.requirements': 'StoreItemRequirements',
 }
 
-// Authoritative expected model list (single source of truth)
-// Keep this synced with your product schema expectations
-const EXPECTED_MODELS = [
-  'User', 'UserStats', 'UserBalance', 'UserSubscription', 'Profile',
-  'Account', 'Session', 'LoginHistory', 'SecurityAlert', 'ApiKey',
-  'Webhook', 'Block', 'NotificationPreference', 'Referral',
-  'Category', 'Post', 'PostStats', 'PostRevision', 'PostRelation',
-  'PostSeries', 'Tag', 'PostTag', 'Comment', 'Reaction', 'Mention',
-  'Bookmark', 'BookmarkFolder', 'Follow', 'ViewHistory', 'SearchHistory',
-  'Notification', 'NotificationQueue', 'EmailCampaign', 'EmailTemplate',
-  'EmailSendQueue', 'NewsletterSubscription', 'Achievement', 'UserAchievement',
-  'XpLog', 'LevelConfig', 'CurrencyTransaction', 'CreatorPayout',
-  'FanFunding', 'RevenueShare', 'TipTransaction', 'StoreItem',
-  'StoreBundle', 'UserInventory', 'Trade', 'Quest', 'UserQuest',
-  'Leaderboard', 'LeaderboardEntry', 'YoutubeChannel', 'YoutubeVideo',
-  'VideoAnalytics', 'WatchParty', 'WatchPartyParticipant', 'WatchPartyChat',
-  'VideoClip', 'Playlist', 'PlaylistItem', 'YouTubeApiQuota',
-  'Group', 'GroupMember', 'GroupPost', 'GroupChannel', 'Event',
-  'EventAttendee', 'Conversation', 'ConversationParticipant', 'Message',
-  'MessageRead', 'WebsocketSession', 'ChatRoom', 'ChatMessage',
-  'CollaborativeSpace', 'SpaceCollaborator', 'PresenceTracking',
-  'ActivityStream', 'UserActivity', 'ContentPerformance', 'Poll',
-  'PollOption', 'PollVote', 'PollVoteChoice', 'FanArtGallery',
-  'FanArtSubmission', 'AiRecommendation', 'AiContentSuggestion',
-  'UserAiPreference', 'AiAssistantConversation', 'Report',
-  'AiModerationQueue', 'ModerationAction', 'ContentFilter', 'MediaFile',
-  'Experiment', 'ExperimentAssignment', 'FeatureFlag', 'SiteSetting',
-  'AuditLog', 'AnalyticsEvent', 'SearchIndex', 'CacheEntry',
-  'SystemHealth', 'RateLimitTracker', 'EncryptionKey', 'DataRetentionPolicy',
-  'ScheduledAction', 'RecurringSchedule', 'PublishQueue'
-]
-
 interface GenerateTypesOptions {
   outputDir?: string
   prismaSchema?: string
@@ -206,10 +174,6 @@ class FinalTypeGenerator {
       validateCompleteness: options.validateCompleteness ?? true,
       expectedModelCount: options.expectedModelCount ?? 126,
     }
-
-    // Authoritative expected model count is driven by EXPECTED_MODELS (single source of truth).
-    // This keeps diagnostics consistent before/after loading DMMF.
-    this.options.expectedModelCount = EXPECTED_MODELS.length
   }
 
   async generate(): Promise<void> {
@@ -312,9 +276,36 @@ class FinalTypeGenerator {
   private validateModelCompleteness(): void {
     logger.info('Validating model completeness...')
     
-    // Use authoritative list
-    const expectedModels = EXPECTED_MODELS.slice()
-
+    const expectedModels = [
+      'User', 'UserStats', 'UserBalance', 'UserSubscription', 'Profile',
+      'Account', 'Session', 'LoginHistory', 'SecurityAlert', 'ApiKey',
+      'Webhook', 'Block', 'NotificationPreference', 'Referral',
+      'Category', 'Post', 'PostStats', 'PostRevision', 'PostRelation',
+      'PostSeries', 'Tag', 'PostTag', 'Comment', 'Reaction', 'Mention',
+      'Bookmark', 'BookmarkFolder', 'Follow', 'ViewHistory', 'SearchHistory',
+      'Notification', 'NotificationQueue', 'EmailCampaign', 'EmailTemplate',
+      'EmailSendQueue', 'NewsletterSubscription', 'Achievement', 'UserAchievement',
+      'XpLog', 'LevelConfig', 'CurrencyTransaction', 'CreatorPayout',
+      'FanFunding', 'RevenueShare', 'TipTransaction', 'StoreItem',
+      'StoreBundle', 'UserInventory', 'Trade', 'Quest', 'UserQuest',
+      'Leaderboard', 'LeaderboardEntry', 'YoutubeChannel', 'YoutubeVideo',
+      'VideoAnalytics', 'WatchParty', 'WatchPartyParticipant', 'WatchPartyChat',
+      'VideoClip', 'Playlist', 'PlaylistItem', 'YouTubeApiQuota',
+      'Group', 'GroupMember', 'GroupPost', 'GroupChannel', 'Event',
+      'EventAttendee', 'Conversation', 'ConversationParticipant', 'Message',
+      'MessageRead', 'WebsocketSession', 'ChatRoom', 'ChatMessage',
+      'CollaborativeSpace', 'SpaceCollaborator', 'PresenceTracking',
+      'ActivityStream', 'UserActivity', 'ContentPerformance', 'Poll',
+      'PollOption', 'PollVote', 'PollVoteChoice', 'FanArtGallery',
+      'FanArtSubmission', 'AiRecommendation', 'AiContentSuggestion',
+      'UserAiPreference', 'AiAssistantConversation', 'Report',
+      'AiModerationQueue', 'ModerationAction', 'ContentFilter', 'MediaFile',
+      'Experiment', 'ExperimentAssignment', 'FeatureFlag', 'SiteSetting',
+      'AuditLog', 'AnalyticsEvent', 'SearchIndex', 'CacheEntry',
+      'SystemHealth', 'RateLimitTracker', 'EncryptionKey', 'DataRetentionPolicy',
+      'ScheduledAction', 'RecurringSchedule', 'PublishQueue'
+    ]
+    
     // Keep numeric expectation aligned with the authoritative expected-models list
     this.options.expectedModelCount = expectedModels.length
     logger.detail(`Authoritative expected model count set to ${this.options.expectedModelCount}`)
@@ -324,10 +315,10 @@ class FinalTypeGenerator {
     this.missingModels = expectedModels.filter(model => !actualModels.includes(model))
     
     if (this.missingModels.length > 0) {
-      logger.warning(`Missing models detected: ${this.missingModels.join(', ')}`)
-      if (this.options.validateCompleteness) {
-        logger.warning('Some expected models are missing from the Prisma schema.')
-      }
+      logger.warning(`Missing ${this.missingModels.length} expected models:`)
+      this.missingModels.forEach(model => {
+        logger.detail(`Missing: ${model}`)
+      })
     } else {
       logger.success('All expected models are present!')
     }
@@ -2258,8 +2249,6 @@ export const TYPE_TESTS_PASS = true
   }
 
   private printGenerationSummary(): void {
-    logger.section('Generation Summary')
-
     const modelCount = this.modelFields.size
     const enumCount = this.enumTypes.size
     const totalFields = Array.from(this.modelFields.values()).flat().length
@@ -2267,6 +2256,7 @@ export const TYPE_TESTS_PASS = true
       field => JSON_FIELD_TYPE_MAP[field]
     ).length
     
+    logger.section('Generation Summary')
     logger.success(`✓ Generated ${modelCount} models with complete fields`)
     logger.success(`✓ Generated ${enumCount} enum types`)
     logger.success(`✓ Total fields processed: ${totalFields}`)
@@ -2276,36 +2266,6 @@ export const TYPE_TESTS_PASS = true
       logger.warning(`⚠ Missing ${this.missingModels.length} expected models (may be defined elsewhere)`)
     }
     
-    // Unmapped JSON fields report
-    const allJsonFields = Array.from(this.jsonFieldsUsed).sort()
-    const unmappedJsonFields = allJsonFields.filter(f => !JSON_FIELD_TYPE_MAP[f])
-
-    if (unmappedJsonFields.length > 0) {
-      logger.warning(`Unmapped JSON fields detected: ${unmappedJsonFields.length}`)
-      logger.detail('Listing unmapped JSON fields:')
-      unmappedJsonFields.forEach(f => logger.detail(`  - ${f}`))
-
-      // Also write a human-friendly report into the output directory for easier inspection.
-      const reportContent = [
-        '# Unmapped JSON Fields Report',
-        `Generated on: ${new Date().toISOString()}`,
-        '',
-        `Total JSON fields seen: ${allJsonFields.length}`,
-        `Unmapped JSON fields: ${unmappedJsonFields.length}`,
-        '',
-        '## Unmapped Fields',
-        ...unmappedJsonFields.map(f => `- ${f}`),
-        ''
-      ].join('\n')
-
-      const reportPath = path.join(this.options.outputDir, 'UNMAPPED_JSON_FIELDS.md')
-      fs.writeFile(reportPath, reportContent).catch(err => {
-        logger.error(`Failed to write unmapped JSON fields report: ${String(err)}`)
-      })
-    } else {
-      logger.success('All JSON fields have type mappings.')
-    }
-
     logger.success(`✓ Type generation completed successfully!`)
     logger.info(`📁 Output directory: ${this.options.outputDir}`)
   }
