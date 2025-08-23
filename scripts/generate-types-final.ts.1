@@ -259,12 +259,12 @@ class FinalTypeGenerator {
       logger.success(`Loaded ${this.dmmf.datamodel.models.length} models from schema`)
       logger.success(`Loaded ${this.dmmf.datamodel.enums.length} enums from schema`)
       
-      // Check against expected count (informational only — validateModelCompleteness checks model names)
+      // Check against expected count
       if (this.dmmf.datamodel.models.length < this.options.expectedModelCount) {
-        logger.detail(
-          `Model count ${this.dmmf.datamodel.models.length} is less than expected (${this.options.expectedModelCount})`
+        logger.warning(
+          `Expected ${this.options.expectedModelCount} models but found ${this.dmmf.datamodel.models.length}`
         )
-        logger.detail('Use validateCompleteness to check explicit expected model names')
+        logger.warning('Some models may be missing or not yet defined in the schema')
       }
       
     } catch (error) {
@@ -305,10 +305,6 @@ class FinalTypeGenerator {
       'SystemHealth', 'RateLimitTracker', 'EncryptionKey', 'DataRetentionPolicy',
       'ScheduledAction', 'RecurringSchedule', 'PublishQueue'
     ]
-    
-    // Keep numeric expectation aligned with the authoritative expected-models list
-    this.options.expectedModelCount = expectedModels.length
-    logger.detail(`Authoritative expected model count set to ${this.options.expectedModelCount}`)
     
     const actualModels = this.dmmf.datamodel.models.map((m: any) => m.name)
     
@@ -1306,6 +1302,10 @@ export function isQuestRequirements(obj: any): obj is QuestRequirements {
     this.generatedTypes.set('json-types', jsonTypes)
     logger.success('Generated comprehensive JSON field type definitions')
   }
+
+  // Rest of the methods remain the same...
+  // Including generateValidators, generateApiTypes, generateComponentTypes, etc.
+  // These are copied exactly as they were to preserve all functionality
 
   private async generateValidators(): Promise<void> {
     logger.info('Generating runtime validators...')

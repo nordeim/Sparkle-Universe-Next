@@ -1,5 +1,5 @@
 // Utility Types
-// Generated on 2025-08-23T12:43:09.513Z
+// Generated on 2025-08-23T14:31:51.130Z
 
 // Make all properties optional recursively
 export type DeepPartial<T> = T extends object

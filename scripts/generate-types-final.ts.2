@@ -306,10 +306,6 @@ class FinalTypeGenerator {
       'ScheduledAction', 'RecurringSchedule', 'PublishQueue'
     ]
     
-    // Keep numeric expectation aligned with the authoritative expected-models list
-    this.options.expectedModelCount = expectedModels.length
-    logger.detail(`Authoritative expected model count set to ${this.options.expectedModelCount}`)
-    
     const actualModels = this.dmmf.datamodel.models.map((m: any) => m.name)
     
     this.missingModels = expectedModels.filter(model => !actualModels.includes(model))

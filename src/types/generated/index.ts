@@ -1,5 +1,5 @@
 // Generated Type Exports
-// Generated on 2025-08-23T12:43:09.513Z
+// Generated on 2025-08-23T14:31:51.130Z
 // Auto-generated index file - DO NOT EDIT MANUALLY
 
 export * from './enums'
@@ -49,6 +49,18 @@ export {
   validateInput,
 } from './validators'
 
+// Re-export JSON types
+export {
+  ThemePreference,
+  NotificationSettings,
+  PrivacySettings,
+  PostContent,
+  QuestRequirements,
+  isThemePreference,
+  isPostContent,
+  isQuestRequirements,
+} from './json-types'
+
 // Type guard helpers
 export const isUser = (obj: any): obj is import('./models').User => {
   return obj && typeof obj === 'object' && 'email' in obj && 'username' in obj
@@ -56,4 +68,8 @@ export const isUser = (obj: any): obj is import('./models').User => {
 
 export const isPost = (obj: any): obj is import('./models').Post => {
   return obj && typeof obj === 'object' && 'title' in obj && 'content' in obj
+}
+
+export const isComment = (obj: any): obj is import('./models').Comment => {
+  return obj && typeof obj === 'object' && 'content' in obj && 'postId' in obj
 }
