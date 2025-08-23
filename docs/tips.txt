@@ -4,6 +4,8 @@ git status | egrep -v 'tsx.p.$|ts.p.$|\.bak.$|\.bak$|orig$|md$'
 
 git status | egrep -v 'tsx\.p.$|ts\.p.$|\.bak.$|\.bak$|orig$|md$|css\.p?$' | grep src
 
+git status | egrep -v 'bak$|bak2$|orig|ts.p2|ts.p3|ts.p4|ts.p6|ts.p7|ts.p8|tsx.p6|tsx.p7|tsx.p8|css.p|md$|backup\/'
+
 git commit -m "update docs"
 git status
 git push -u origin main
