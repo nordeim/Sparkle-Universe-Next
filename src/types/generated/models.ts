@@ -1,5 +1,5 @@
 // Prisma Model Types
-// Generated on 2025-08-23T08:05:43.742Z
+// Generated on 2025-08-23T09:12:06.753Z
 
 import { Decimal } from 'decimal.js'
 

@@ -1,5 +1,5 @@
 // Prisma Enum Types
-// Generated on 2025-08-23T08:05:43.730Z
+// Generated on 2025-08-23T09:12:06.746Z
 
 export enum UserRole {
   USER = 'USER',
