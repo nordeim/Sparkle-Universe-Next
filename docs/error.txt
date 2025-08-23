@@ -4,6 +4,8 @@ Using line by line diff with the original file while you are applying changes to
 
 $ npm run dev
 
+$ npm run dev
+
 > sparkle-universe@0.1.0 dev
 > next dev
 
@@ -12,39 +14,53 @@ $ npm run dev
   - Environments: .env.local
 
  ✓ Starting...
- ✓ Ready in 2.1s
+ ✓ Ready in 2.7s
  ○ Compiling /src/middleware ...
- ✓ Compiled /src/middleware in 652ms (72 modules)
-[2025-08-22T04:15:02.934Z] GET / - 1ms
+ ✓ Compiled /src/middleware in 613ms (72 modules)
+[2025-08-22T09:51:46.710Z] GET / - 1ms
  ○ Compiling / ...
- ✓ Compiled / in 8.8s (994 modules)
- ✓ Compiled in 1224ms (461 modules)
- GET / 200 in 10150ms
- ✓ Compiled in 312ms (447 modules)
-[2025-08-22T04:15:14.197Z] GET /manifest.json - 0ms
-[2025-08-22T04:15:14.225Z] GET /api/auth/session - 0ms
-[2025-08-22T04:15:14.347Z] GET /icon-144x144.png - 1ms
+ ✓ Compiled / in 10s (994 modules)
+ GET / 200 in 10936ms
+ ✓ Compiled in 981ms (461 modules)
+[2025-08-22T09:51:58.336Z] GET /api/auth/session - 1ms
+[2025-08-22T09:51:58.338Z] GET /favicon-32x32.png - 0ms
  ○ Compiling /api/auth/[...nextauth] ...
- ✓ Compiled /api/auth/[...nextauth] in 6.8s (767 modules)
+ ✓ Compiled /api/auth/[...nextauth] in 4.1s (767 modules)
 [next-auth][warn][DEBUG_ENABLED] 
 https://next-auth.js.org/warnings#debug_enabled
- GET /api/auth/session 200 in 7536ms
-[2025-08-22T04:15:21.794Z] GET /api/auth/session - 0ms
- GET /api/auth/session 200 in 31ms
-[2025-08-22T04:23:47.150Z] GET / - 0ms
- GET / 200 in 286ms
-[2025-08-22T04:29:33.001Z] GET /register - 0ms
+ GET /api/auth/session 200 in 4873ms
+[2025-08-22T09:52:03.245Z] GET /api/auth/session - 0ms
+ GET /api/auth/session 200 in 35ms
+[2025-08-22T10:30:28.367Z] GET / - 1ms
+ GET / 200 in 273ms
+ ⚠ Cross origin request detected from 192.168.2.132 to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+[2025-08-22T10:30:29.401Z] GET /api/auth/session - 1ms
+ GET /api/auth/session 200 in 53ms
+[2025-08-22T10:30:29.473Z] GET /api/auth/session - 1ms
+ GET /api/auth/session 200 in 11ms
+[2025-08-22T10:30:29.663Z] GET /favicon-32x32.png - 0ms
+[2025-08-22T10:30:35.704Z] GET / - 0ms
+ GET / 200 in 83ms
+[2025-08-22T10:30:36.319Z] GET /api/auth/session - 0ms
+[2025-08-22T10:30:36.323Z] GET /favicon-32x32.png - 1ms
+ GET /api/auth/session 200 in 49ms
+[2025-08-22T10:30:36.390Z] GET /api/auth/session - 0ms
+ GET /api/auth/session 200 in 10ms
+[2025-08-22T10:30:46.188Z] GET / - 0ms
+ GET / 200 in 77ms
+[2025-08-22T10:30:46.790Z] GET /favicon-32x32.png - 1ms
+[2025-08-22T10:30:46.792Z] GET /api/auth/session - 0ms
+ GET /api/auth/session 200 in 49ms
+[2025-08-22T10:30:46.858Z] GET /api/auth/session - 0ms
+ GET /api/auth/session 200 in 10ms
+[2025-08-22T10:32:47.978Z] GET / - 0ms
+ GET / 200 in 76ms
+[2025-08-22T10:37:10.890Z] GET /register - 0ms
  ○ Compiling /register ...
- ✓ Compiled /register in 1117ms (1027 modules)
-[2025-08-22T04:29:34.231Z] GET /register - 1ms
-[2025-08-22T04:29:34.413Z] GET /manifest.json - 1ms
-[2025-08-22T04:29:34.434Z] GET /icon-144x144.png - 0ms
-[2025-08-22T04:29:59.784Z] GET / - 0ms
-[2025-08-22T04:29:59.852Z] GET /manifest.json - 0ms
-[2025-08-22T04:29:59.867Z] GET /icon-144x144.png - 0ms
-[2025-08-22T04:30:16.170Z] GET /login - 0ms
- ○ Compiling /login ...
- ✓ Compiled /login in 530ms (1035 modules)
-[2025-08-22T04:30:16.775Z] GET /login - 0ms
-[2025-08-22T04:30:16.909Z] GET /manifest.json - 0ms
-[2025-08-22T04:30:16.928Z] GET /icon-144x144.png - 1ms
+ ✓ Compiled /register in 924ms (1027 modules)
+[2025-08-22T10:37:11.943Z] GET /register - 0ms
+[2025-08-22T10:37:16.286Z] GET /login - 0ms
+ ✓ Compiled /login in 381ms (1035 modules)
+[2025-08-22T10:37:16.726Z] GET /login - 0ms
+[2025-08-22T10:37:23.466Z] GET / - 0ms
