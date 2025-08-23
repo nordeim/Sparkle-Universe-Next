@@ -1,12 +1,59 @@
 // Generated Type Exports
-// Generated on 2025-08-23T09:12:06.760Z
+// Generated on 2025-08-23T12:43:09.513Z
+// Auto-generated index file - DO NOT EDIT MANUALLY
 
 export * from './enums'
 export * from './models'
+export * from './json-types'
+export * from './validators'
 export * from './api'
 export * from './components'
 export * from './utils'
-export * from './custom'
 
-// Re-export Prisma types
-export * from '@prisma/client'
+// Re-export specific Prisma types for convenience
+export type {
+  User,
+  Profile,
+  Post,
+  Comment,
+  Group,
+  Event,
+  Message,
+  Trade,
+  Quest,
+  Achievement,
+  WatchParty,
+  YoutubeChannel,
+} from './models'
+
+// Re-export commonly used enums
+export {
+  UserRole,
+  UserStatus,
+  NotificationType,
+  ReactionType,
+  ContentType,
+  ContentStatus,
+  BadgeRarity,
+  QuestType,
+  QuestStatus,
+  SubscriptionTier,
+} from './enums'
+
+// Re-export validation schemas
+export {
+  UserCreateSchema,
+  UserUpdateSchema,
+  PostCreateSchema,
+  CommentCreateSchema,
+  validateInput,
+} from './validators'
+
+// Type guard helpers
+export const isUser = (obj: any): obj is import('./models').User => {
+  return obj && typeof obj === 'object' && 'email' in obj && 'username' in obj
+}
+
+export const isPost = (obj: any): obj is import('./models').Post => {
+  return obj && typeof obj === 'object' && 'title' in obj && 'content' in obj
+}

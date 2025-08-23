@@ -1,7 +1,9 @@
 // Prisma Model Types
-// Generated on 2025-08-23T09:12:06.753Z
+// Generated on 2025-08-23T12:43:09.509Z
+// Total Models: 112
 
 import { Decimal } from 'decimal.js'
+import { UserRole, UserStatus, NotificationType, ReactionType, ReportReason, ModerationStatus, ContentType, ContentStatus, BadgeRarity, QuestType, QuestStatus, TradeStatus, MessageStatus, EventType, EventStatus, GroupVisibility, GroupMemberRole, CacheType, AuditAction, PaymentStatus, SubscriptionTier, AuthProvider } from './enums'
 
 export interface User {
   id: string;
@@ -205,6 +207,26 @@ export interface Profile {
   youtubeChannelData?: any | null;
   bannerImage?: string | null;
   themePreference?: any | null;
+  notificationSettings: any;
+  privacySettings: any;
+  profileVisibility: string;
+  contentVisibility: string;
+  allowDirectMessages: boolean;
+  featuredBadges: string[];
+  showcasedPosts: string[];
+  customCss?: string | null;
+  customHtml?: string | null;
+  socialLinks?: any | null;
+  interests: string[];
+  skills: string[];
+  pronouns?: string | null;
+  birthdate?: Date | null;
+  joinedCommunityAt: Date;
+  profileCompleted: boolean;
+  profileCompleteness: number;
+  createdAt: Date;
+  updatedAt: Date;
+  user: User;
 }
 
 export interface Account {
@@ -1058,6 +1080,27 @@ export interface Trade {
   initiatorId: string;
   recipientId: string;
   status: TradeStatus;
+  initiatorItems: any;
+  recipientItems: any;
+  initiatorPoints: number;
+  recipientPoints: number;
+  message?: string | null;
+  responseMessage?: string | null;
+  tradeValue: number;
+  escrowId?: string | null;
+  expiresAt: Date;
+  respondedAt?: Date | null;
+  completedAt?: Date | null;
+  cancelledAt?: Date | null;
+  cancelReason?: string | null;
+  version: number;
+  deleted: boolean;
+  deletedAt?: Date | null;
+  deletedBy?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  initiator: User;
+  recipient: User;
 }
 
 export interface Quest {
@@ -1093,6 +1136,18 @@ export interface UserQuest {
   userId: string;
   questId: string;
   status: QuestStatus;
+  progress: any;
+  currentStep: number;
+  totalSteps: number;
+  startedAt: Date;
+  completedAt?: Date | null;
+  claimedAt?: Date | null;
+  expiresAt?: Date | null;
+  attemptCount: number;
+  bestTime?: number | null;
+  metadata?: any | null;
+  user: User;
+  quest: Quest;
 }
 
 export interface Leaderboard {
@@ -1362,6 +1417,24 @@ export interface Group {
   guidelines?: any | null;
   tags: string[];
   categories: string[];
+  settings: any;
+  features: string[];
+  customEmojis?: any | null;
+  isOfficial: boolean;
+  isVerified: boolean;
+  isFeatured: boolean;
+  metadata?: any | null;
+  version: number;
+  deleted: boolean;
+  deletedAt?: Date | null;
+  deletedBy?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  owner?: User?;
+  members: GroupMember[];
+  events: Event[];
+  posts: GroupPost[];
+  channels: GroupChannel[];
 }
 
 export interface GroupMember {
@@ -1430,6 +1503,49 @@ export interface Event {
   locationName?: string | null;
   locationUrl?: string | null;
   locationAddress?: string | null;
+  locationCoords?: any | null;
+  isVirtual: boolean;
+  virtualPlatform?: string | null;
+  virtualLink?: string | null;
+  bannerImage?: string | null;
+  thumbnailImage?: string | null;
+  startTime: Date;
+  endTime: Date;
+  timezone: string;
+  recurrence?: any | null;
+  recurrenceType?: string | null;
+  recurrenceInterval?: number | null;
+  recurrenceEndDate?: Date | null;
+  maxAttendees?: number | null;
+  currentAttendees: number;
+  minAttendees?: number | null;
+  isPublic: boolean;
+  requiresApproval: boolean;
+  requiresPayment: boolean;
+  price?: Decimal | null;
+  currency?: string | null;
+  tags: string[];
+  categories: string[];
+  agenda?: any | null;
+  speakers?: any | null;
+  sponsors?: any | null;
+  streamUrl?: string | null;
+  recordingUrl?: string | null;
+  materials?: any | null;
+  feedback?: any | null;
+  remindersSent: string[];
+  metadata?: any | null;
+  cancelledAt?: Date | null;
+  cancelReason?: string | null;
+  version: number;
+  deleted: boolean;
+  deletedAt?: Date | null;
+  deletedBy?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  host?: User?;
+  group?: Group?;
+  attendees: EventAttendee[];
 }
 
 export interface EventAttendee {
@@ -1465,6 +1581,19 @@ export interface Conversation {
   lastMessageAt?: Date | null;
   messageCount: number;
   createdBy: string;
+  settings: any;
+  pinnedMessages: string[];
+  isArchived: boolean;
+  archivedAt?: Date | null;
+  version: number;
+  deleted: boolean;
+  deletedAt?: Date | null;
+  deletedBy?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  creator: User;
+  participants: ConversationParticipant[];
+  messages: Message[];
 }
 
 export interface ConversationParticipant {
@@ -1498,6 +1627,24 @@ export interface Message {
   mentions: string[];
   replyToId?: string | null;
   forwardedFrom?: string | null;
+  reactions?: any | null;
+  metadata?: any | null;
+  edited: boolean;
+  editedAt?: Date | null;
+  editHistory: any[];
+  deleted: boolean;
+  deletedAt?: Date | null;
+  deletedFor: string[];
+  status: MessageStatus;
+  deliveredAt?: Date | null;
+  errorMessage?: string | null;
+  version: number;
+  createdAt: Date;
+  conversation: Conversation;
+  sender: User;
+  replyTo?: Message?;
+  replies: Message[];
+  reads: MessageRead[];
 }
 
 export interface MessageRead {
@@ -1561,6 +1708,19 @@ export interface ChatMessage {
   replyToId?: string | null;
   systemMessage: boolean;
   highlighted: boolean;
+  reactions?: any | null;
+  edited: boolean;
+  editedAt?: Date | null;
+  deleted: boolean;
+  deletedAt?: Date | null;
+  deletedBy?: string | null;
+  flagged: boolean;
+  flagReason?: string | null;
+  createdAt: Date;
+  room: ChatRoom;
+  user: User;
+  replyTo?: ChatMessage?;
+  replies: ChatMessage[];
 }
 
 export interface CollaborativeSpace {
@@ -1751,6 +1911,22 @@ export interface FanArtSubmission {
   thumbnailUrl?: string | null;
   highResUrl?: string | null;
   fileSize?: number | null;
+  dimensions?: any | null;
+  medium?: string | null;
+  tools: string[];
+  timeSpent?: number | null;
+  voteCount: number;
+  avgRating: number;
+  viewCount: number;
+  featured: boolean;
+  winner: boolean;
+  winnerRank?: number | null;
+  moderationStatus: ModerationStatus;
+  moderationNotes?: string | null;
+  metadata?: any | null;
+  createdAt: Date;
+  gallery: FanArtGallery;
+  artist: User;
 }
 
 export interface AiRecommendation {
@@ -1797,6 +1973,13 @@ export interface AiAssistantConversation {
   id: string;
   userId: string;
   sessionId: string;
+  messages: any[];
+  context?: any | null;
+  model: string;
+  tokensUsed: number;
+  createdAt: Date;
+  updatedAt: Date;
+  user: User;
 }
 
 export interface Report {
@@ -1902,6 +2085,15 @@ export interface MediaFile {
   thumbnailUrl?: string | null;
   blurhash?: string | null;
   duration?: number | null;
+  dimensions?: any | null;
+  metadata?: any | null;
+  processedAt?: Date | null;
+  processingError?: string | null;
+  isPublic: boolean;
+  accessCount: number;
+  lastAccessedAt?: Date | null;
+  createdAt: Date;
+  user: User;
 }
 
 export interface Experiment {

@@ -1,191 +1,161 @@
 // Component Prop Types
-// Generated on 2025-08-23T09:12:06.758Z
+// Generated on 2025-08-23T12:43:09.512Z
 
-import { ReactNode, CSSProperties, MouseEvent, KeyboardEvent, FocusEvent, ChangeEvent } from 'react'
+import { ReactNode, CSSProperties, MouseEvent, KeyboardEvent, FocusEvent } from 'react'
 
 // Base component props
 export interface BaseComponentProps {
-  className?: string
-  style?: CSSProperties
-  id?: string
-  'data-testid'?: string
-  'aria-label'?: string
-  'aria-describedby'?: string
-  'aria-hidden'?: boolean
+  className?: string;
+  style?: CSSProperties;
+  id?: string;
+  'data-testid'?: string;
+  'aria-label'?: string;
+  'aria-describedby'?: string;
+  'aria-hidden'?: boolean;
+  children?: ReactNode;
 }
 
-// Interactive component props
-export interface InteractiveComponentProps extends BaseComponentProps {
-  disabled?: boolean
-  loading?: boolean
-  onClick?: (event: MouseEvent<HTMLElement>) => void
-  onKeyDown?: (event: KeyboardEvent<HTMLElement>) => void
-  onFocus?: (event: FocusEvent<HTMLElement>) => void
-  onBlur?: (event: FocusEvent<HTMLElement>) => void
-  tabIndex?: number
-}
-
-// Form component props
-export interface FormComponentProps<T = any> extends InteractiveComponentProps {
-  name?: string
-  value?: T
-  defaultValue?: T
-  onChange?: (value: T) => void
-  onSubmit?: (value: T) => void
-  error?: string
-  required?: boolean
-  placeholder?: string
-  label?: string
-  helpText?: string
-}
-
-// Layout component props
-export interface LayoutComponentProps extends BaseComponentProps {
-  children?: ReactNode
-  as?: keyof JSX.IntrinsicElements
-  gap?: number | string
-  padding?: number | string
-  margin?: number | string
-  direction?: 'row' | 'column'
-  align?: 'start' | 'center' | 'end' | 'stretch'
-  justify?: 'start' | 'center' | 'end' | 'between' | 'around' | 'evenly'
-  wrap?: boolean
-}
-
-// Modal/Dialog props
-export interface ModalProps extends BaseComponentProps {
-  open: boolean
-  onClose: () => void
-  title?: string
-  description?: string
-  children?: ReactNode
-  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full'
-  closeOnOverlayClick?: boolean
-  closeOnEscape?: boolean
-  showCloseButton?: boolean
-  footer?: ReactNode
-}
-
-// Table component props
-export interface TableColumn<T = any> {
-  key: keyof T | string
-  label: string
-  sortable?: boolean
-  width?: string | number
-  align?: 'left' | 'center' | 'right'
-  render?: (value: any, row: T, index: number) => ReactNode
-  headerRender?: () => ReactNode
-  className?: string
-  headerClassName?: string
-}
-
-export interface TableProps<T = any> extends BaseComponentProps {
-  data: T[]
-  columns: TableColumn<T>[]
-  loading?: boolean
-  emptyMessage?: string
-  onRowClick?: (row: T, index: number) => void
-  rowKey?: keyof T | ((row: T) => string | number)
-  selectedRows?: T[]
-  onSelectionChange?: (rows: T[]) => void
-  pagination?: {
-    page: number
-    pageSize: number
-    total: number
-    onChange: (page: number, pageSize: number) => void
-  }
-  sorting?: {
-    sortBy?: keyof T | string
-    sortOrder?: 'asc' | 'desc'
-    onSort: (column: keyof T | string) => void
-  }
-}
-
-// Chart component props
-export interface ChartProps extends BaseComponentProps {
-  data: any[]
-  type?: 'line' | 'bar' | 'area' | 'pie' | 'donut' | 'scatter' | 'radar'
-  width?: number | string
-  height?: number | string
-  colors?: string[]
-  showLegend?: boolean
-  showTooltip?: boolean
-  showGrid?: boolean
-  animate?: boolean
-  responsive?: boolean
+// Button component props (matching shadcn/ui)
+export interface ButtonProps extends BaseComponentProps {
+  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link' | 'sparkle' | 'glow';
+  size?: 'default' | 'sm' | 'lg' | 'icon';
+  asChild?: boolean;
+  disabled?: boolean;
+  loading?: boolean;
+  type?: 'button' | 'submit' | 'reset';
+  onClick?: (event: MouseEvent<HTMLButtonElement>) => void;
+  leftIcon?: ReactNode;
+  rightIcon?: ReactNode;
 }
 
 // Card component props
 export interface CardProps extends BaseComponentProps {
-  children?: ReactNode
-  title?: string
-  subtitle?: string
-  header?: ReactNode
-  footer?: ReactNode
-  variant?: 'default' | 'outlined' | 'elevated' | 'filled'
-  padding?: boolean | number | string
-  hoverable?: boolean
-  clickable?: boolean
-  onClick?: () => void
-}
-
-// Button component props
-export interface ButtonProps extends InteractiveComponentProps {
-  children?: ReactNode
-  variant?: 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'ghost' | 'link'
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
-  fullWidth?: boolean
-  leftIcon?: ReactNode
-  rightIcon?: ReactNode
-  type?: 'button' | 'submit' | 'reset'
+  title?: string;
+  description?: string;
+  header?: ReactNode;
+  footer?: ReactNode;
+  hoverable?: boolean;
+  clickable?: boolean;
+  onClick?: () => void;
+  padding?: boolean | string | number;
 }
 
 // Input component props
-export interface InputProps extends FormComponentProps<string> {
-  type?: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search' | 'date' | 'time' | 'datetime-local'
-  size?: 'sm' | 'md' | 'lg'
-  leftIcon?: ReactNode
-  rightIcon?: ReactNode
-  prefix?: string
-  suffix?: string
-  maxLength?: number
-  minLength?: number
-  pattern?: string
-  autoComplete?: string
-  autoFocus?: boolean
-  readOnly?: boolean
+export interface InputProps extends BaseComponentProps {
+  type?: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search' | 'date' | 'time';
+  value?: string | number;
+  defaultValue?: string | number;
+  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onBlur?: (event: FocusEvent<HTMLInputElement>) => void;
+  onFocus?: (event: FocusEvent<HTMLInputElement>) => void;
+  placeholder?: string;
+  disabled?: boolean;
+  readOnly?: boolean;
+  required?: boolean;
+  error?: string | boolean;
+  label?: string;
+  helpText?: string;
+  leftIcon?: ReactNode;
+  rightIcon?: ReactNode;
+  size?: 'sm' | 'md' | 'lg';
+}
+
+// Modal/Dialog props
+export interface ModalProps extends BaseComponentProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title?: string;
+  description?: string;
+  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
+  closeOnOverlayClick?: boolean;
+  closeOnEscape?: boolean;
+  showCloseButton?: boolean;
+  footer?: ReactNode;
+}
+
+// Table props
+export interface TableColumn<T = any> {
+  key: keyof T | string;
+  label: string;
+  sortable?: boolean;
+  width?: string | number;
+  align?: 'left' | 'center' | 'right';
+  render?: (value: any, row: T, index: number) => ReactNode;
+  className?: string;
+}
+
+export interface TableProps<T = any> extends BaseComponentProps {
+  data: T[];
+  columns: TableColumn<T>[];
+  loading?: boolean;
+  emptyMessage?: string;
+  onRowClick?: (row: T, index: number) => void;
+  rowKey?: keyof T | ((row: T) => string | number);
+  pagination?: {
+    page: number;
+    pageSize: number;
+    total: number;
+    onChange: (page: number, pageSize: number) => void;
+  };
 }
 
 // Select component props
 export interface SelectOption<T = any> {
-  value: T
-  label: string
-  disabled?: boolean
-  group?: string
+  value: T;
+  label: string;
+  disabled?: boolean;
+  group?: string;
 }
 
-export interface SelectProps<T = any> extends FormComponentProps<T> {
-  options: SelectOption<T>[]
-  multiple?: boolean
-  searchable?: boolean
-  clearable?: boolean
-  loading?: boolean
-  loadingText?: string
-  noOptionsText?: string
-  onSearch?: (query: string) => void
+export interface SelectProps<T = any> extends BaseComponentProps {
+  value?: T;
+  defaultValue?: T;
+  onChange?: (value: T) => void;
+  options: SelectOption<T>[];
+  placeholder?: string;
+  disabled?: boolean;
+  error?: string | boolean;
+  label?: string;
+  helpText?: string;
+  multiple?: boolean;
+  searchable?: boolean;
+  clearable?: boolean;
 }
 
-// Toast/Notification props
+// Toast props
 export interface ToastProps {
-  id?: string
-  title?: string
-  message: string
-  type?: 'info' | 'success' | 'warning' | 'error'
-  duration?: number
-  closable?: boolean
-  onClose?: () => void
+  id?: string;
+  title?: string;
+  description: string;
+  variant?: 'default' | 'destructive';
+  duration?: number;
   action?: {
-    label: string
-    onClick: () => void
-  }
+    label: string;
+    onClick: () => void;
+  };
+}
+
+// Avatar props
+export interface AvatarProps extends BaseComponentProps {
+  src?: string;
+  alt?: string;
+  fallback?: string | ReactNode;
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+  shape?: 'circle' | 'square';
+  status?: 'online' | 'offline' | 'away' | 'busy';
+}
+
+// Badge props
+export interface BadgeProps extends BaseComponentProps {
+  variant?: 'default' | 'secondary' | 'destructive' | 'outline';
+  size?: 'sm' | 'md' | 'lg';
+}
+
+// Progress props
+export interface ProgressProps extends BaseComponentProps {
+  value?: number;
+  max?: number;
+  size?: 'sm' | 'md' | 'lg';
+  showValue?: boolean;
+  variant?: 'default' | 'success' | 'warning' | 'danger';
 }

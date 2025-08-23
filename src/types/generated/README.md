@@ -1,71 +1,142 @@
-
 # Generated Types Documentation
 
-Generated on: 2025-08-23T09:12:06.761Z
+Generated on: 2025-08-23T12:43:09.514Z
+
+## Statistics
+
+- **Total Models**: 112
+- **Total Enums**: 22
+- **Total Fields**: 1923
+- **Average Fields per Model**: 17
 
 ## Files Generated
 
-- **enums.ts**: Enumeration types from Prisma schema
-- **models.ts**: Model interfaces from Prisma schema
-- **api.ts**: API request and response types
-- **components.ts**: React component prop types
-- **utils.ts**: TypeScript utility types
-- **custom.ts**: Custom application types
+- **enums.ts** (221 lines)
+- **models.ts** (2266 lines)
+- **json-types.ts** (254 lines)
+- **validators.ts** (108 lines)
+- **api.ts** (120 lines)
+- **components.ts** (162 lines)
+- **utils.ts** (65 lines)
 
-## Usage
+## Model Field Counts
 
+| Model | Field Count | Has Relations | Has JSON Fields |
+|-------|-------------|---------------|-----------------|
+| User | 132 | ✅ | ❌ |
+| Post | 73 | ✅ | ✅ |
+| Event | 57 | ✅ | ✅ |
+| Group | 40 | ✅ | ✅ |
+| Profile | 34 | ✅ | ✅ |
+| WatchParty | 32 | ✅ | ✅ |
+| Achievement | 31 | ✅ | ✅ |
+| StoreItem | 31 | ✅ | ✅ |
+| Comment | 30 | ✅ | ✅ |
+| Report | 29 | ✅ | ✅ |
+| Message | 28 | ✅ | ✅ |
+| YoutubeChannel | 27 | ✅ | ✅ |
+| Notification | 26 | ✅ | ✅ |
+| ChatRoom | 26 | ✅ | ✅ |
+| Trade | 25 | ✅ | ✅ |
+| Quest | 25 | ✅ | ✅ |
+| YoutubeVideo | 25 | ✅ | ✅ |
+| FanArtSubmission | 25 | ✅ | ✅ |
+| Conversation | 23 | ✅ | ✅ |
+| CollaborativeSpace | 23 | ✅ | ✅ |
+
+## Usage Examples
+
+### Basic Import
 ```typescript
-import { 
-  // Import types as needed
-  ApiResponse,
-  PaginatedResponse,
-  TableProps,
-  ButtonProps,
-  DeepPartial,
-  // ... etc
-} from '@/types/generated'
+import { User, Post, Comment } from '@/types/generated'
+import { UserRole, ContentType } from '@/types/generated'
 ```
 
-## Type Categories
+### With Validation
+```typescript
+import { PostCreateSchema, validateInput } from '@/types/generated'
 
-### API Types
-Types for API requests, responses, and error handling.
+const result = validateInput(PostCreateSchema, data)
+if (result.success) {
+  // result.data is typed as PostCreateInput
+  await createPost(result.data)
+} else {
+  // Handle validation errors
+  console.error(result.errors)
+}
+```
 
-### Component Types
-Prop types for React components.
+### Using JSON Types
+```typescript
+import { ThemePreference, NotificationSettings } from '@/types/generated'
 
-### Utility Types
-Helper types for TypeScript development.
-
-### Prisma Types
-Generated from your Prisma schema (enums and models).
+const theme: ThemePreference = {
+  mode: 'dark',
+  primaryColor: '#8B5CF6',
+  accentColor: '#EC4899',
+  fontSize: 'medium',
+  reducedMotion: false,
+  highContrast: false,
+}
+```
 
 ## Regenerating Types
 
 To regenerate types, run:
 ```bash
-npm run generate:types
+npm run generate:types:enhanced
 ```
 
-Or:
+Or directly:
 ```bash
-tsx scripts/generate-types.ts
+npx tsx scripts/generate-types-enhanced.ts
 ```
 
 ## Configuration
 
-You can configure type generation by modifying the options in `scripts/generate-types.ts`:
+Edit `scripts/generate-types-enhanced.ts` to customize generation:
 
 ```typescript
-const generator = new TypeGenerator({
+const generator = new EnhancedTypeGenerator({
   outputDir: 'src/types/generated',
   prismaSchema: 'prisma/schema.prisma',
   includeEnums: true,
   includeModels: true,
-  generateIndex: true,
-  generateDocs: true,
-  customTypes: {
-    // Add custom types here
-  }
+  generateJsonTypes: true,
+  generateValidators: true,
 })
+```
+
+## Important Notes
+
+1. **DO NOT EDIT** generated files manually - changes will be lost on regeneration
+2. **JSON Types** - Custom JSON field types are in `json-types.ts`
+3. **Validation** - Runtime validation schemas are in `validators.ts`
+4. **Relations** - All model relations are properly typed
+5. **Decimal Values** - Uses `decimal.js` for precision
+
+## Troubleshooting
+
+### Missing Fields
+If fields are missing, ensure your Prisma schema is valid:
+```bash
+npx prisma validate
+```
+
+### Type Errors
+Regenerate Prisma client first:
+```bash
+npx prisma generate
+```
+
+### Import Issues
+Ensure TypeScript paths are configured in `tsconfig.json`:
+```json
+{
+  "compilerOptions": {
+    "paths": {
+      "@/types/*": ["./src/types/*"]
+    }
+  }
+}
 ```
