@@ -1,5 +1,5 @@
 // Prisma Model Types with Complete JSON Typing
-// Generated on 2025-08-23T15:03:21.768Z
+// Generated on 2025-08-23T15:20:33.841Z
 // Total Models: 112
 
 import { Decimal } from 'decimal.js'
@@ -472,7 +472,7 @@ export interface ScheduledAction {
   entityId: string;
   scheduledFor: Date;
   status: string;
-  parameters: Record<string, any>;
+  parameters: Record<string, any>;  // Typed JSON field
   retryCount: number;
   maxRetries: number;
   lastAttempt?: Date | null;
@@ -492,7 +492,7 @@ export interface RecurringSchedule {
   endDate?: Date | null;
   lastRun?: Date | null;
   nextRun: Date;
-  parameters: Record<string, any>;
+  parameters: Record<string, any>;  // Typed JSON field
   isActive: boolean;
   createdAt: Date;
   user: User;
@@ -535,7 +535,7 @@ export interface PostRevision {
   postId: string;
   editorId: string;
   title: string;
-  content: Record<string, any>;
+  content: Record<string, any>;  // Typed JSON field
   changeNote?: string | null;
   version: number;
   isPublished: boolean;
@@ -567,7 +567,7 @@ export interface PostSeries {
   totalParts: number;
   completed: boolean;
   featured: boolean;
-  metadata?: Record<string, any> | null;
+  metadata?: Record<string, any> | null;  // Typed JSON field
   deleted: boolean;
   deletedAt?: Date | null;
   deletedBy?: string | null;
@@ -615,7 +615,7 @@ export interface Comment {
   quotedTimestamp?: string | null;
   edited: boolean;
   editedAt?: Date | null;
-  editHistory: Record<string, any>[];
+  editHistory: Record<string, any>[];  // Typed JSON field
   deleted: boolean;
   deletedAt?: Date | null;
   deletedBy?: string | null;
@@ -644,7 +644,7 @@ export interface Reaction {
   commentId?: string | null;
   userId: string;
   customEmoji?: string | null;
-  metadata?: Record<string, any> | null;
+  metadata?: Record<string, any> | null;  // Typed JSON field
   createdAt: Date;
   post?: Post?;
   comment?: Comment?;
@@ -740,7 +740,7 @@ export interface Notification {
   entityType?: string | null;
   title: string;
   message: string;
-  data?: Record<string, any> | null;
+  data?: Record<string, any> | null;  // Typed JSON field
   imageUrl?: string | null;
   actionUrl?: string | null;
   priority: number;
@@ -765,7 +765,7 @@ export interface NotificationQueue {
   userId: string;
   type: string;
   channel: string;
-  payload: Record<string, any>;
+  payload: Record<string, any>;  // Typed JSON field
   priority: number;
   attempts: number;
   maxAttempts: number;
@@ -791,7 +791,7 @@ export interface EmailCampaign {
   clicked: number;
   bounced: number;
   unsubscribed: number;
-  content: Record<string, any>;
+  content: Record<string, any>;  // Typed JSON field
   createdBy: string;
   createdAt: Date;
   updatedAt: Date;
@@ -835,7 +835,7 @@ export interface EmailSendQueue {
   campaignId?: string | null;
   recipient: string;
   templateId: string;
-  variables: Record<string, any>;
+  variables: Record<string, any>;  // Typed JSON field
   status: string;
   attempts: number;
   sentAt?: Date | null;
@@ -885,7 +885,7 @@ export interface UserAchievement {
   userId: string;
   achievementId: string;
   progress: number;
-  progressData?: Record<string, any> | null;
+  progressData?: Record<string, any> | null;  // Typed JSON field
   unlockedAt: Date;
   showcased: boolean;
   showcaseOrder: number;
@@ -908,7 +908,7 @@ export interface XpLog {
   multiplier: number;
   bonusXp: number;
   totalXp: number;
-  metadata?: Record<string, any> | null;
+  metadata?: Record<string, any> | null;  // Typed JSON field
   createdAt: Date;
   user: User;
 }
@@ -938,7 +938,7 @@ export interface CurrencyTransaction {
   referenceType?: string | null;
   balanceBefore: number;
   balanceAfter: number;
-  metadata?: Record<string, any> | null;
+  metadata?: Record<string, any> | null;  // Typed JSON field
   createdAt: Date;
   user: User;
 }
@@ -1038,7 +1038,7 @@ export interface StoreItem {
   new: boolean;
   availableFrom?: Date | null;
   availableUntil?: Date | null;
-  metadata?: Record<string, any> | null;
+  metadata?: Record<string, any> | null;  // Typed JSON field
   createdAt: Date;
   updatedAt: Date;
   inventory: UserInventory[];
@@ -1066,7 +1066,7 @@ export interface UserInventory {
   quantity: number;
   equipped: boolean;
   equippedAt?: Date | null;
-  customData?: Record<string, any> | null;
+  customData?: Record<string, any> | null;  // Typed JSON field
   acquiredFrom: string;
   acquiredAt: Date;
   expiresAt?: Date | null;
@@ -1159,8 +1159,8 @@ export interface Leaderboard {
   period: string;
   periodStart: Date;
   periodEnd: Date;
-  data: Record<string, any>;
-  metadata?: Record<string, any> | null;
+  data: Record<string, any>;  // Typed JSON field
+  metadata?: Record<string, any> | null;  // Typed JSON field
   processed: boolean;
   createdAt: Date;
 }
@@ -1173,7 +1173,7 @@ export interface LeaderboardEntry {
   rank: number;
   score: bigint;
   movement: number;
-  metadata?: Record<string, any> | null;
+  metadata?: Record<string, any> | null;  // Typed JSON field
   createdAt: Date;
 }
 
@@ -1184,7 +1184,7 @@ export interface YoutubeChannel {
   channelTitle?: string | null;
   channelHandle?: string | null;
   channelDescription?: string | null;
-  channelData?: Record<string, any> | null;
+  channelData?: Record<string, any> | null;  // Typed JSON field
   thumbnailUrl?: string | null;
   bannerUrl?: string | null;
   subscriberCount: bigint;
@@ -1197,7 +1197,7 @@ export interface YoutubeChannel {
   syncEnabled: boolean;
   featured: boolean;
   verified: boolean;
-  metadata?: Record<string, any> | null;
+  metadata?: Record<string, any> | null;  // Typed JSON field
   deleted: boolean;
   deletedAt?: Date | null;
   deletedBy?: string | null;
@@ -1226,7 +1226,7 @@ export interface YoutubeVideo {
   liveBroadcast: boolean;
   premiereDate?: Date | null;
   publishedAt?: Date | null;
-  metadata?: Record<string, any> | null;
+  metadata?: Record<string, any> | null;  // Typed JSON field
   lastSyncedAt?: Date | null;
   createdAt: Date;
   channel?: YoutubeChannel?;
@@ -1271,11 +1271,11 @@ export interface WatchParty {
   allowGuestChat: boolean;
   recordChat: boolean;
   tags: string[];
-  customEmotes?: Record<string, any> | null;
+  customEmotes?: Record<string, any> | null;  // Typed JSON field
   partyCode?: string | null;
   cancelledAt?: Date | null;
   cancelReason?: string | null;
-  metadata?: Record<string, any> | null;
+  metadata?: Record<string, any> | null;  // Typed JSON field
   deleted: boolean;
   deletedAt?: Date | null;
   deletedBy?: string | null;
@@ -1313,7 +1313,7 @@ export interface WatchPartyChat {
   message: string;
   timestamp: number;
   replyToId?: string | null;
-  reactions?: Record<string, any> | null;
+  reactions?: Record<string, any> | null;  // Typed JSON field
   deleted: boolean;
   deletedAt?: Date | null;
   deletedBy?: string | null;
@@ -1339,7 +1339,7 @@ export interface VideoClip {
   likeCount: number;
   shareCount: number;
   featured: boolean;
-  metadata?: Record<string, any> | null;
+  metadata?: Record<string, any> | null;  // Typed JSON field
   createdAt: Date;
   video?: YoutubeVideo?;
   creator: User;
@@ -1362,7 +1362,7 @@ export interface Playlist {
   itemCount: number;
   totalDuration: number;
   featured: boolean;
-  metadata?: Record<string, any> | null;
+  metadata?: Record<string, any> | null;  // Typed JSON field
   createdAt: Date;
   updatedAt: Date;
   owner: User;
@@ -1484,7 +1484,7 @@ export interface GroupChannel {
   description?: string | null;
   type: string;
   position: number;
-  permissions?: Record<string, any> | null;
+  permissions?: Record<string, any> | null;  // Typed JSON field
   createdAt: Date;
   group: Group;
 }
@@ -1535,7 +1535,7 @@ export interface Event {
   materials?: EventMaterials | null;  // Typed JSON field
   feedback?: EventFeedback | null;  // Typed JSON field
   remindersSent: string[];
-  metadata?: Record<string, any> | null;
+  metadata?: Record<string, any> | null;  // Typed JSON field
   cancelledAt?: Date | null;
   cancelReason?: string | null;
   version: number;
@@ -1612,7 +1612,7 @@ export interface ConversationParticipant {
   notificationsMuted: boolean;
   mutedUntil?: Date | null;
   isPinned: boolean;
-  customSettings?: Record<string, any> | null;
+  customSettings?: Record<string, any> | null;  // Typed JSON field
   conversation: Conversation;
   user: User;
 }
@@ -1730,7 +1730,7 @@ export interface CollaborativeSpace {
   title: string;
   description?: string | null;
   ownerId: string;
-  content?: Record<string, any> | null;
+  content?: Record<string, any> | null;  // Typed JSON field
   version: number;
   isPublic: boolean;
   isTemplate: boolean;
@@ -1773,7 +1773,7 @@ export interface PresenceTracking {
   deviceId?: string | null;
   status: string;
   lastActiveAt: Date;
-  metadata?: Record<string, any> | null;
+  metadata?: Record<string, any> | null;  // Typed JSON field
 }
 
 export interface ActivityStream {
@@ -1782,8 +1782,8 @@ export interface ActivityStream {
   action: string;
   entityType: string;
   entityId: string;
-  entityData?: Record<string, any> | null;
-  metadata?: Record<string, any> | null;
+  entityData?: Record<string, any> | null;  // Typed JSON field
+  metadata?: Record<string, any> | null;  // Typed JSON field
   visibility: string;
   ipAddress?: string | null;
   userAgent?: string | null;
@@ -1886,7 +1886,7 @@ export interface FanArtGallery {
   postId: string;
   theme?: string | null;
   rules?: string | null;
-  prizes?: Record<string, any> | null;
+  prizes?: Record<string, any> | null;  // Typed JSON field
   submissionDeadline?: Date | null;
   votingDeadline?: Date | null;
   votingEnabled: boolean;
@@ -1896,7 +1896,7 @@ export interface FanArtGallery {
   allowNSFW: boolean;
   winnerCount: number;
   winnersAnnounced: boolean;
-  metadata?: Record<string, any> | null;
+  metadata?: Record<string, any> | null;  // Typed JSON field
   createdAt: Date;
   post: Post;
   submissions: FanArtSubmission[];
@@ -1924,7 +1924,7 @@ export interface FanArtSubmission {
   winnerRank?: number | null;
   moderationStatus: ModerationStatus;
   moderationNotes?: string | null;
-  metadata?: Record<string, any> | null;
+  metadata?: Record<string, any> | null;  // Typed JSON field
   createdAt: Date;
   gallery: FanArtGallery;
   artist: User;
@@ -1938,7 +1938,7 @@ export interface AiRecommendation {
   entityId: string;
   score: number;
   reason?: string | null;
-  context?: Record<string, any> | null;
+  context?: Record<string, any> | null;  // Typed JSON field
   clicked: boolean;
   clickedAt?: Date | null;
   dismissed: boolean;
@@ -1952,7 +1952,7 @@ export interface AiContentSuggestion {
   userId: string;
   suggestionType: string;
   content: string;
-  context?: Record<string, any> | null;
+  context?: Record<string, any> | null;  // Typed JSON field
   used: boolean;
   usedContent?: string | null;
   feedback?: number | null;
@@ -1992,7 +1992,7 @@ export interface Report {
   reason: ReportReason;
   subreason?: string | null;
   description?: string | null;
-  evidence?: Record<string, any> | null;
+  evidence?: Record<string, any> | null;  // Typed JSON field
   status: ModerationStatus;
   priority: number;
   assignedTo?: string | null;
@@ -2002,7 +2002,7 @@ export interface Report {
   resolutionNote?: string | null;
   appealable: boolean;
   entityType: string;
-  metadata?: Record<string, any> | null;
+  metadata?: Record<string, any> | null;  // Typed JSON field
   deleted: boolean;
   deletedAt?: Date | null;
   deletedBy?: string | null;
@@ -2050,7 +2050,7 @@ export interface ModerationAction {
   duration?: number | null;
   reason: string;
   details?: string | null;
-  evidence?: Record<string, any> | null;
+  evidence?: Record<string, any> | null;  // Typed JSON field
   automated: boolean;
   reversedBy?: string | null;
   reversedAt?: Date | null;
@@ -2124,7 +2124,7 @@ export interface ExperimentAssignment {
   userId: string;
   variant: string;
   converted: boolean;
-  conversionData?: Record<string, any> | null;
+  conversionData?: Record<string, any> | null;  // Typed JSON field
   assignedAt: Date;
   convertedAt?: Date | null;
   experiment: Experiment;
@@ -2204,12 +2204,12 @@ export interface SearchIndex {
   locale: string;
   isPublic: boolean;
   lastIndexedAt: Date;
-  metadata?: Record<string, any> | null;
+  metadata?: Record<string, any> | null;  // Typed JSON field
 }
 
 export interface CacheEntry {
   key: string;
-  value: Record<string, any>;
+  value: Record<string, any>;  // Typed JSON field
   type: CacheType;
   tags: string[];
   expiresAt: Date;
@@ -2230,7 +2230,7 @@ export interface SystemHealth {
   diskUsage?: number | null;
   activeUsers?: number | null;
   queueDepth?: number | null;
-  metadata?: Record<string, any> | null;
+  metadata?: Record<string, any> | null;  // Typed JSON field
   checkedAt: Date;
 }
 

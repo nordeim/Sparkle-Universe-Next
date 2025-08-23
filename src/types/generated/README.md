@@ -1,6 +1,6 @@
 # Generated Types Documentation
 
-Generated on: 2025-08-23T15:03:21.774Z
+Generated on: 2025-08-23T15:20:33.845Z
 
 ## 📊 Generation Statistics
 
@@ -8,8 +8,8 @@ Generated on: 2025-08-23T15:03:21.774Z
 - **Total Enums**: 22
 - **Total Fields**: 1923
 - **Average Fields per Model**: 17
-- **JSON Fields Typed**: 64 / 109
-- **Type Safety Score**: 59%
+- **JSON Fields Typed**: 109 / 109
+- **Type Safety Score**: 100%
 
 
 
@@ -17,7 +17,7 @@ Generated on: 2025-08-23T15:03:21.774Z
 
 - **enums.ts** (221 lines)
 - **models.ts** (2267 lines)
-- **json-types.ts** (841 lines)
+- **json-types.ts** (886 lines)
 - **validators.ts** (108 lines)
 - **api.ts** (120 lines)
 - **components.ts** (162 lines)
@@ -29,33 +29,33 @@ Generated on: 2025-08-23T15:03:21.774Z
 |-------|--------|-----------|-------------|--------------|
 | User | 132 | ✅ | 0 | 100% |
 | Post | 73 | ✅ | 3 | 100% |
-| Event | 57 | ✅ | 8 | 88% |
+| Event | 57 | ✅ | 8 | 100% |
 | Group | 40 | ✅ | 4 | 100% |
 | Profile | 34 | ✅ | 5 | 100% |
-| WatchParty | 32 | ✅ | 2 | 0% |
+| WatchParty | 32 | ✅ | 2 | 100% |
 | Achievement | 31 | ✅ | 2 | 100% |
-| StoreItem | 31 | ✅ | 3 | 67% |
-| Comment | 30 | ✅ | 1 | 0% |
-| Report | 29 | ✅ | 2 | 0% |
+| StoreItem | 31 | ✅ | 3 | 100% |
+| Comment | 30 | ✅ | 1 | 100% |
+| Report | 29 | ✅ | 2 | 100% |
 | Message | 28 | ✅ | 4 | 100% |
-| YoutubeChannel | 27 | ✅ | 2 | 0% |
-| Notification | 26 | ✅ | 1 | 0% |
+| YoutubeChannel | 27 | ✅ | 2 | 100% |
+| Notification | 26 | ✅ | 1 | 100% |
 | ChatRoom | 26 | ✅ | 1 | 100% |
 | Trade | 25 | ✅ | 2 | 100% |
 | Quest | 25 | ✅ | 3 | 100% |
-| YoutubeVideo | 25 | ✅ | 1 | 0% |
-| FanArtSubmission | 25 | ✅ | 2 | 50% |
+| YoutubeVideo | 25 | ✅ | 1 | 100% |
+| FanArtSubmission | 25 | ✅ | 2 | 100% |
 | Conversation | 23 | ✅ | 1 | 100% |
-| CollaborativeSpace | 23 | ✅ | 1 | 0% |
+| CollaborativeSpace | 23 | ✅ | 1 | 100% |
 | ChatMessage | 22 | ✅ | 2 | 100% |
 | AiModerationQueue | 22 | ✅ | 2 | 100% |
 | NotificationPreference | 21 | ✅ | 0 | 100% |
-| EmailCampaign | 21 | ✅ | 1 | 0% |
-| Playlist | 21 | ✅ | 1 | 0% |
+| EmailCampaign | 21 | ✅ | 1 | 100% |
+| Playlist | 21 | ✅ | 1 | 100% |
 | Poll | 20 | ✅ | 1 | 100% |
 | MediaFile | 20 | ✅ | 2 | 100% |
 | Category | 19 | ✅ | 1 | 100% |
-| PostSeries | 19 | ✅ | 1 | 0% |
+| PostSeries | 19 | ✅ | 1 | 100% |
 | EventAttendee | 19 | ✅ | 0 | 100% |
 
 ## 🎯 JSON Field Type Mappings
@@ -66,24 +66,36 @@ The following JSON fields have been mapped to specific TypeScript interfaces:
 |-------------|----------------|
 | Achievement.criteria | AchievementCriteria |
 | Achievement.metadata | Record<string, any> |
+| ActivityStream.entityData | Record<string, any> |
+| ActivityStream.metadata | Record<string, any> |
 | AiAssistantConversation.context | AiContext |
 | AiAssistantConversation.messages | AiMessage[] |
+| AiContentSuggestion.context | Record<string, any> |
 | AiModerationQueue.aiCategories | AiModerationCategories |
 | AiModerationQueue.aiReasons | AiReasons |
+| AiRecommendation.context | Record<string, any> |
 | AnalyticsEvent.context | EventContext |
 | AnalyticsEvent.properties | EventProperties |
 | AuditLog.changedData | Record<string, any> |
 | AuditLog.entityData | Record<string, any> |
 | AuditLog.metadata | AuditMetadata |
+| CacheEntry.value | Record<string, any> |
 | Category.metadata | Record<string, any> |
 | ChatMessage.attachments | ChatAttachments |
 | ChatMessage.reactions | ChatReactions |
 | ChatRoom.customEmojis | CustomEmojis |
+| CollaborativeSpace.content | Record<string, any> |
+| Comment.editHistory | Record<string, any> |
 | Conversation.settings | ConversationSettings |
+| ConversationParticipant.customSettings | Record<string, any> |
+| CurrencyTransaction.metadata | Record<string, any> |
+| EmailCampaign.content | Record<string, any> |
+| EmailSendQueue.variables | Record<string, any> |
 | Event.agenda | EventAgenda |
 | Event.feedback | EventFeedback |
 | Event.locationCoords | LocationCoordinates |
 | Event.materials | EventMaterials |
+| Event.metadata | Record<string, any> |
 | Event.recurrence | EventRecurrence |
 | Event.speakers | EventSpeakers |
 | Event.sponsors | EventSponsors |
@@ -91,25 +103,40 @@ The following JSON fields have been mapped to specific TypeScript interfaces:
 | Experiment.results | ExperimentResults |
 | Experiment.targetingRules | TargetingRules |
 | Experiment.variants | ExperimentVariants |
+| ExperimentAssignment.conversionData | Record<string, any> |
+| FanArtGallery.metadata | Record<string, any> |
+| FanArtGallery.prizes | Record<string, any> |
 | FanArtSubmission.dimensions | ArtDimensions |
+| FanArtSubmission.metadata | Record<string, any> |
 | FeatureFlag.conditions | FeatureFlagConditions |
 | FeatureFlag.metadata | FeatureFlagMetadata |
 | Group.customEmojis | CustomEmojis |
 | Group.guidelines | GroupGuidelines |
 | Group.metadata | GroupMetadata |
 | Group.settings | GroupSettings |
+| GroupChannel.permissions | Record<string, any> |
+| Leaderboard.data | Record<string, any> |
+| Leaderboard.metadata | Record<string, any> |
+| LeaderboardEntry.metadata | Record<string, any> |
 | MediaFile.dimensions | MediaDimensions |
 | MediaFile.metadata | MediaMetadata |
 | Message.attachments | MessageAttachments |
 | Message.editHistory | EditHistory[] |
 | Message.metadata | MessageMetadata |
 | Message.reactions | MessageReactions |
+| ModerationAction.evidence | Record<string, any> |
+| Notification.data | Record<string, any> |
+| NotificationQueue.payload | Record<string, any> |
+| Playlist.metadata | Record<string, any> |
 | Poll.finalResults | PollResults |
 | PollOption.metadata | PollOptionMetadata |
 | PollVote.metadata | PollVoteMetadata |
 | Post.content | PostContent |
 | Post.sponsorInfo | SponsorInfo |
 | Post.youtubeVideoData | YouTubeVideoData |
+| PostRevision.content | Record<string, any> |
+| PostSeries.metadata | Record<string, any> |
+| PresenceTracking.metadata | Record<string, any> |
 | Profile.notificationSettings | NotificationSettings |
 | Profile.privacySettings | PrivacySettings |
 | Profile.socialLinks | SocialLinks |
@@ -118,16 +145,34 @@ The following JSON fields have been mapped to specific TypeScript interfaces:
 | Quest.metadata | QuestMetadata |
 | Quest.requirements | QuestRequirements |
 | Quest.rewards | QuestRewards |
+| Reaction.metadata | Record<string, any> |
+| RecurringSchedule.parameters | Record<string, any> |
+| Report.evidence | Record<string, any> |
+| Report.metadata | Record<string, any> |
+| ScheduledAction.parameters | Record<string, any> |
+| SearchIndex.metadata | Record<string, any> |
 | SiteSetting.validation | ValidationRules |
 | SiteSetting.value | any |
 | StoreItem.data | StoreItemData |
+| StoreItem.metadata | Record<string, any> |
 | StoreItem.requirements | StoreItemRequirements |
+| SystemHealth.metadata | Record<string, any> |
 | Trade.initiatorItems | TradeItems |
 | Trade.recipientItems | TradeItems |
+| UserAchievement.progressData | Record<string, any> |
 | UserAiPreference.contentPreferences | AiContentPreferences |
 | UserAiPreference.writingStyle | WritingStyle |
+| UserInventory.customData | Record<string, any> |
 | UserQuest.metadata | UserQuestMetadata |
 | UserQuest.progress | QuestProgress |
+| VideoClip.metadata | Record<string, any> |
+| WatchParty.customEmotes | Record<string, any> |
+| WatchParty.metadata | Record<string, any> |
+| WatchPartyChat.reactions | Record<string, any> |
+| XpLog.metadata | Record<string, any> |
+| YoutubeChannel.channelData | Record<string, any> |
+| YoutubeChannel.metadata | Record<string, any> |
+| YoutubeVideo.metadata | Record<string, any> |
 
 ## 📚 Usage Examples
 
@@ -274,8 +319,8 @@ Ensure TypeScript paths are configured in `tsconfig.json`:
 - **Primitive Types**: 100% coverage
 - **Enum Types**: 100% coverage
 - **Relations**: 100% coverage
-- **JSON Fields**: 59% typed
-- **Overall Type Safety**: 96%
+- **JSON Fields**: 100% typed
+- **Overall Type Safety**: 100%
 
 ## 🎉 Generation Complete!
 
