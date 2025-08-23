@@ -25,17 +25,7 @@ import {
 import { useSocket } from '@/hooks/use-socket'
 import { formatNumber, formatPercentage, formatFileSize } from '@/lib/utils'
 import { cn } from '@/lib/utils'
-
-interface RealtimeMetric {
-  label: string
-  value: number
-  unit: string
-  trend: 'up' | 'down' | 'stable'
-  percentage?: number
-  threshold?: { warning: number; critical: number }
-  icon: React.ElementType
-  color: string
-}
+import type { RealtimeMetric } from '@/types/global'
 
 export function RealtimeMetrics() {
   const { on, off, isConnected } = useSocket()
@@ -131,6 +121,8 @@ export function RealtimeMetrics() {
         // Simulate metric changes
         Object.keys(updated).forEach(key => {
           const metric = updated[key]
+          if (!metric) return
+          
           const prevValue = previousValues.current[key] || metric.value
           
           // Generate random changes
@@ -178,7 +170,9 @@ export function RealtimeMetrics() {
           
           // Check thresholds and create alerts
           if (metric.threshold) {
-            if (metric.value >= metric.threshold.critical || (metric.percentage && metric.percentage >= metric.threshold.critical)) {
+            const checkValue = metric.percentage !== undefined ? metric.percentage : metric.value
+            
+            if (checkValue >= metric.threshold.critical) {
               const alertExists = alerts.some(a => a.message.includes(metric.label) && a.type === 'critical')
               if (!alertExists) {
                 setAlerts(prev => [...prev, {
@@ -188,7 +182,7 @@ export function RealtimeMetrics() {
                   timestamp: new Date()
                 }])
               }
-            } else if (metric.value >= metric.threshold.warning || (metric.percentage && metric.percentage >= metric.threshold.warning)) {
+            } else if (checkValue >= metric.threshold.warning) {
               const alertExists = alerts.some(a => a.message.includes(metric.label))
               if (!alertExists) {
                 setAlerts(prev => [...prev, {
@@ -208,7 +202,6 @@ export function RealtimeMetrics() {
 
     // Initial values
     setMetrics(prev => ({
-      ...prev,
       activeUsers: { ...prev.activeUsers, value: 1234 },
       requestsPerSecond: { ...prev.requestsPerSecond, value: 567 },
       cpuUsage: { ...prev.cpuUsage, value: 45 },
@@ -232,7 +225,7 @@ export function RealtimeMetrics() {
   const getStatusColor = (metric: RealtimeMetric): string => {
     if (!metric.threshold) return 'bg-green-500'
     
-    const value = metric.percentage || metric.value
+    const value = metric.percentage !== undefined ? metric.percentage : metric.value
     if (value >= metric.threshold.critical) return 'bg-red-500'
     if (value >= metric.threshold.warning) return 'bg-yellow-500'
     return 'bg-green-500'
@@ -287,7 +280,8 @@ export function RealtimeMetrics() {
       {/* Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {Object.entries(metrics).map(([key, metric]) => {
-          const Icon = metric.icon
+          if (!metric) return null
+          const Icon = metric.icon || Activity
           
           return (
             <Card key={key} className="relative overflow-hidden">

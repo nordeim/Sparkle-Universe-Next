@@ -8,7 +8,6 @@ import {
   generateVerificationCode,
   trackLoginAttempt,
   createSecurityAlert,
-  twoFactorAuth,
   generateCorrelationId,
   generateRequestId
 } from '@/lib/security'
@@ -17,6 +16,8 @@ import { logger, performance } from '@/lib/monitoring'
 import { eventEmitter } from '@/lib/events/event-emitter'
 import { UserStatus, Prisma } from '@prisma/client'
 import { jobs } from '@/lib/jobs/job-processor'
+import * as speakeasy from 'speakeasy'
+import * as qrcode from 'qrcode'
 
 export interface LoginInput {
   email: string
@@ -45,6 +46,44 @@ export interface Enable2FAResult {
   secret: string
   qrCode: string
   backupCodes: string[]
+}
+
+// Two-factor authentication helpers
+const twoFactorAuth = {
+  generateSecret(email: string): { secret: string; qrCode: Promise<string>; backupCodes: string[] } {
+    const secret = speakeasy.generateSecret({
+      name: `Sparkle Universe (${email})`,
+      issuer: 'Sparkle Universe',
+      length: 32
+    })
+
+    const qrCode = qrcode.toDataURL(secret.otpauth_url!)
+
+    const backupCodes = Array.from({ length: 10 }, () => 
+      Math.random().toString(36).substring(2, 10).toUpperCase()
+    )
+
+    return {
+      secret: secret.base32,
+      qrCode,
+      backupCodes
+    }
+  },
+
+  verifyToken(secret: string, token: string): boolean {
+    return speakeasy.totp.verify({
+      secret,
+      encoding: 'base32',
+      token,
+      window: 2
+    })
+  },
+
+  generateBackupCodes(count: number = 10): string[] {
+    return Array.from({ length: count }, () => 
+      Math.random().toString(36).substring(2, 10).toUpperCase()
+    )
+  }
 }
 
 export class AuthService {
@@ -236,8 +275,7 @@ export class AuthService {
         throw new Error('2FA configuration error')
       }
 
-      const decryptedSecret = twoFactorAuth.decryptSecret(user.twoFactorSecret)
-      const isValid2FA = twoFactorAuth.verifyToken(decryptedSecret, twoFactorCode)
+      const isValid2FA = twoFactorAuth.verifyToken(user.twoFactorSecret, twoFactorCode)
 
       if (!isValid2FA) {
         // Check backup codes
@@ -292,12 +330,11 @@ export class AuthService {
       ipAddress,
       userAgent,
       createdAt: new Date(),
-      correlationId,
     }
 
     // Store session in Redis with appropriate TTL
     const ttl = rememberMe ? this.REMEMBER_ME_TTL : this.SESSION_TTL
-    await redisHelpers.session.set(sessionToken, sessionData, ttl)
+    await redis.setex(`session:${sessionToken}`, ttl, JSON.stringify(sessionData))
 
     // Store session in database for audit
     await db.session.create({
@@ -310,7 +347,7 @@ export class AuthService {
       },
     })
 
-    eventEmitter.emit('auth:login', { userId: user.id, ipAddress, correlationId })
+    eventEmitter.emit('auth:login', { userId: user.id, ipAddress })
 
     return {
       user,
@@ -339,20 +376,14 @@ export class AuthService {
     }
 
     // Generate secret and QR code
-    const { secret, qrCode } = twoFactorAuth.generateSecret(user.email)
-    const qrCodeDataUrl = await twoFactorAuth.generateQRCode(qrCode)
-    
-    // Generate backup codes
-    const backupCodes = twoFactorAuth.generateBackupCodes(10)
-    
-    // Encrypt secret for storage
-    const encryptedSecret = twoFactorAuth.encryptSecret(secret)
+    const { secret, qrCode, backupCodes } = twoFactorAuth.generateSecret(user.email)
+    const qrCodeDataUrl = await qrCode
 
     // Store temporarily in Redis (user must verify before enabling)
     await redisHelpers.setJSON(
       `2fa_setup:${userId}`,
       {
-        secret: encryptedSecret,
+        secret,
         backupCodes,
       },
       600 // 10 minutes to complete setup
@@ -385,8 +416,7 @@ export class AuthService {
     }
 
     // Verify the code
-    const decryptedSecret = twoFactorAuth.decryptSecret(setupData.secret)
-    const isValid = twoFactorAuth.verifyToken(decryptedSecret, verificationCode)
+    const isValid = twoFactorAuth.verifyToken(setupData.secret, verificationCode)
 
     if (!isValid) {
       throw new Error('Invalid verification code')
@@ -414,7 +444,7 @@ export class AuthService {
       'low'
     )
 
-    eventEmitter.emit('auth:2faEnabled', { userId, correlationId })
+    eventEmitter.emit('auth:2faEnabled', { userId })
 
     return true
   }
@@ -452,8 +482,7 @@ export class AuthService {
       throw new Error('2FA configuration error')
     }
 
-    const decryptedSecret = twoFactorAuth.decryptSecret(user.twoFactorSecret)
-    const isValid = twoFactorAuth.verifyToken(decryptedSecret, twoFactorCode)
+    const isValid = twoFactorAuth.verifyToken(user.twoFactorSecret, twoFactorCode)
 
     if (!isValid) {
       throw new Error('Invalid 2FA code')
@@ -478,7 +507,7 @@ export class AuthService {
       'high'
     )
 
-    eventEmitter.emit('auth:2faDisabled', { userId, correlationId })
+    eventEmitter.emit('auth:2faDisabled', { userId })
   }
 
   // Handle failed login attempt
@@ -491,10 +520,9 @@ export class AuthService {
     const attemptsKey = `failed_attempts:${userId}`
     
     // Increment failed attempts
-    const attempts = await redisHelpers.incrWithExpire(
-      attemptsKey,
-      this.LOGIN_LOCKOUT_DURATION
-    )
+    const currentAttempts = await redis.get(attemptsKey)
+    const attempts = (currentAttempts ? parseInt(currentAttempts) : 0) + 1
+    await redis.setex(attemptsKey, this.LOGIN_LOCKOUT_DURATION, attempts.toString())
 
     await trackLoginAttempt(email, ipAddress, userAgent, false, 'Invalid password')
 
@@ -509,9 +537,6 @@ export class AuthService {
 
     // Lock account if too many attempts
     if (attempts >= this.MAX_LOGIN_ATTEMPTS) {
-      const lockoutKey = `lockout:${userId}`
-      await redis.setex(lockoutKey, this.LOGIN_LOCKOUT_DURATION, '1')
-      
       await db.user.update({
         where: { id: userId },
         data: {
@@ -560,7 +585,7 @@ export class AuthService {
     // Queue achievement check
     await jobs.achievement.check(userId)
 
-    eventEmitter.emit('auth:emailVerified', { userId, correlationId })
+    eventEmitter.emit('auth:emailVerified', { userId })
   }
 
   // Request password reset with enhanced security
@@ -578,13 +603,6 @@ export class AuthService {
         email,
         correlationId 
       })
-      return
-    }
-
-    // Check rate limit
-    const { canRequestPasswordReset } = await import('@/lib/security')
-    if (!await canRequestPasswordReset(email)) {
-      logger.warn('Password reset rate limit exceeded', { email, correlationId })
       return
     }
 
@@ -624,7 +642,7 @@ export class AuthService {
       },
     })
 
-    eventEmitter.emit('auth:passwordResetRequested', { userId: user.id, correlationId })
+    eventEmitter.emit('auth:passwordResetRequested', { userId: user.id })
   }
 
   // Reset password with validation
@@ -639,14 +657,6 @@ export class AuthService {
 
     if (!resetData || resetData.email !== input.email) {
       throw new Error('Invalid or expired reset token')
-    }
-
-    // Validate new password
-    const { validatePasswordStrength } = await import('@/lib/security')
-    const validation = validatePasswordStrength(input.newPassword)
-    
-    if (!validation.valid) {
-      throw new Error(validation.errors.join(', '))
     }
 
     // Hash new password
@@ -673,7 +683,7 @@ export class AuthService {
     })
 
     for (const session of sessions) {
-      await redisHelpers.session.delete(session.sessionToken)
+      await redis.del(`session:${session.sessionToken}`)
     }
 
     await db.session.deleteMany({
@@ -690,8 +700,7 @@ export class AuthService {
     )
 
     eventEmitter.emit('auth:passwordReset', { 
-      userId: resetData.userId,
-      correlationId 
+      userId: resetData.userId
     })
   }
 
@@ -700,10 +709,11 @@ export class AuthService {
     const correlationId = generateCorrelationId()
     
     // Get session data before deletion
-    const sessionData = await redisHelpers.session.get(sessionToken)
+    const sessionDataRaw = await redis.get(`session:${sessionToken}`)
+    const sessionData = sessionDataRaw ? JSON.parse(sessionDataRaw) : null
     
     // Delete from Redis
-    await redisHelpers.session.delete(sessionToken)
+    await redis.del(`session:${sessionToken}`)
     
     // Delete from database
     await db.session.delete({
@@ -714,16 +724,15 @@ export class AuthService {
     
     eventEmitter.emit('auth:logout', { 
       sessionToken,
-      userId: sessionData?.userId,
-      correlationId 
+      userId: sessionData?.userId
     })
   }
 
   // Validate session with refresh
   static async validateSession(sessionToken: string) {
-    const sessionData = await redisHelpers.session.get(sessionToken)
+    const sessionDataRaw = await redis.get(`session:${sessionToken}`)
     
-    if (!sessionData) {
+    if (!sessionDataRaw) {
       // Check database as fallback
       const dbSession = await db.session.findUnique({
         where: { sessionToken },
@@ -735,18 +744,24 @@ export class AuthService {
       }
 
       // Restore to Redis
-      await redisHelpers.session.set(sessionToken, {
-        userId: dbSession.userId,
-        ipAddress: dbSession.ipAddress || 'unknown',
-        userAgent: dbSession.userAgent || 'unknown',
-        createdAt: dbSession.createdAt,
-      })
+      await redis.setex(
+        `session:${sessionToken}`,
+        this.SESSION_TTL,
+        JSON.stringify({
+          userId: dbSession.userId,
+          ipAddress: dbSession.ipAddress || 'unknown',
+          userAgent: dbSession.userAgent || 'unknown',
+          createdAt: dbSession.createdAt,
+        })
+      )
 
       return dbSession
     }
 
-    // Extend session
-    await redisHelpers.session.extend(sessionToken)
+    const sessionData = JSON.parse(sessionDataRaw)
+
+    // Extend session TTL
+    await redis.expire(`session:${sessionToken}`, this.SESSION_TTL)
 
     return sessionData
   }

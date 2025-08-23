@@ -47,9 +47,7 @@ import { ContentPerformance } from '@/components/admin/charts/content-performanc
 import { formatNumber, formatPercentage, formatDuration } from '@/lib/utils'
 import { useSocket } from '@/hooks/use-socket'
 import { cn } from '@/lib/utils'
-
-// Fix TimePeriod type to match expected values
-type TimePeriod = 'day' | 'week' | 'month' | 'quarter' | 'year'
+import type { TimePeriod, UserGrowthChartProps, ContentPerformanceProps, EngagementHeatmapProps } from '@/types/global'
 
 export default function AdminDashboard() {
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('week')
@@ -98,7 +96,7 @@ export default function AdminDashboard() {
       refetchStats()
     })
 
-    const unsubscribeAlert = socket.on('admin:alert', (alert: any) => {
+    const unsubscribeAlert = socket.on('admin:alert', () => {
       // Handle real-time alerts
     })
 
@@ -204,7 +202,8 @@ export default function AdminDashboard() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="day">Today</SelectItem>
+              <SelectItem value="today">Today</SelectItem>
+              <SelectItem value="day">Day</SelectItem>
               <SelectItem value="week">This Week</SelectItem>
               <SelectItem value="month">This Month</SelectItem>
               <SelectItem value="quarter">This Quarter</SelectItem>
@@ -248,7 +247,7 @@ export default function AdminDashboard() {
           <Card 
             key={stat.title} 
             className="group cursor-pointer hover:shadow-lg transition-all"
-            onClick={() => stat.href && window.location.href.replace(stat.href)}
+            onClick={() => stat.href && (window.location.href = stat.href)}
           >
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">
@@ -332,7 +331,7 @@ export default function AdminDashboard() {
             </div>
             <div className="pt-2 border-t">
               <p className="text-xs text-muted-foreground text-center">
-                Last refresh: {formatDuration(Date.now() - lastRefresh.getTime(), 'short')} ago
+                Last refresh: {formatDuration(Date.now() - lastRefresh.getTime())} ago
               </p>
             </div>
           </CardContent>
@@ -433,7 +432,7 @@ export default function AdminDashboard() {
                 </div>
                 <div className="text-center p-4 bg-muted rounded-lg">
                   <Eye className="w-8 h-8 mx-auto mb-2 text-purple-500" />
-                  <p className="text-2xl font-bold">{formatDuration(stats?.users.avgSessionDuration || 0, 'short')}</p>
+                  <p className="text-2xl font-bold">{formatDuration(stats?.users.avgSessionDuration || 0)}</p>
                   <p className="text-sm text-muted-foreground">Avg. Session</p>
                 </div>
                 <div className="text-center p-4 bg-muted rounded-lg">

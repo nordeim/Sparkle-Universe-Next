@@ -1,9 +1,11 @@
 // src/server/services/youtube.service.ts
 import { google, youtube_v3 } from 'googleapis'
-import { PrismaClient } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 import { CacheService, CacheType } from './cache.service'
 import { ActivityService } from './activity.service'
 import { TRPCError } from '@trpc/server'
+import { db } from '@/lib/db'
+import { generateUniqueCode } from '@/lib/utils'
 
 // YouTube API response types
 interface VideoDetails {
@@ -14,7 +16,7 @@ interface VideoDetails {
   thumbnailHd?: string
   channelId: string
   channelTitle: string
-  duration: number // in seconds
+  duration: number
   durationFormatted: string
   viewCount: number
   likeCount: number
@@ -57,7 +59,7 @@ export class YouTubeService {
   private youtube: youtube_v3.Youtube
   private cacheService: CacheService
   private activityService: ActivityService
-  private quotaLimit = 10000 // Daily quota limit
+  private quotaLimit = 10000
   private quotaCost = {
     search: 100,
     videos: 1,
@@ -65,7 +67,7 @@ export class YouTubeService {
     playlists: 1,
   }
 
-  constructor(private db: PrismaClient) {
+  constructor() {
     this.youtube = google.youtube({
       version: 'v3',
       auth: process.env.YOUTUBE_API_KEY,
@@ -74,9 +76,7 @@ export class YouTubeService {
     this.activityService = new ActivityService(db)
   }
 
-  // Get video details
   async getVideoDetails(videoId: string): Promise<VideoDetails | null> {
-    // Validate video ID
     if (!this.isValidVideoId(videoId)) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
@@ -84,15 +84,12 @@ export class YouTubeService {
       })
     }
 
-    // Check cache
     const cacheKey = `youtube:video:${videoId}`
     const cached = await this.cacheService.get<VideoDetails>(cacheKey)
     if (cached) return cached
 
     try {
-      // Check quota
       if (!await this.checkQuota(this.quotaCost.videos)) {
-        // Try to get from database instead
         return this.getVideoFromDatabase(videoId)
       }
 
@@ -111,7 +108,9 @@ export class YouTubeService {
         title: video.snippet?.title || '',
         description: video.snippet?.description || '',
         thumbnail: this.getBestThumbnail(video.snippet?.thumbnails),
-        thumbnailHd: video.snippet?.thumbnails?.maxres?.url || video.snippet?.thumbnails?.high?.url,
+        thumbnailHd: video.snippet?.thumbnails?.maxres?.url ?? 
+                     video.snippet?.thumbnails?.high?.url ?? 
+                     undefined,
         channelId: video.snippet?.channelId || '',
         channelTitle: video.snippet?.channelTitle || '',
         duration: this.parseDuration(video.contentDetails?.duration),
@@ -126,33 +125,23 @@ export class YouTubeService {
         premiereDate: video.liveStreamingDetails?.scheduledStartTime,
       }
 
-      // Cache for 1 hour
       await this.cacheService.set(cacheKey, details, 3600)
-
-      // Store in database
       await this.storeVideoData(details)
-
-      // Update quota usage
       await this.updateQuotaUsage(this.quotaCost.videos)
 
       return details
     } catch (error) {
       console.error('YouTube API error:', error)
-      
-      // Try to get from database as fallback
       return this.getVideoFromDatabase(videoId)
     }
   }
 
-  // Get channel details
   async getChannelDetails(channelId: string): Promise<ChannelDetails | null> {
-    // Check cache
     const cacheKey = `youtube:channel:${channelId}`
     const cached = await this.cacheService.get<ChannelDetails>(cacheKey)
     if (cached) return cached
 
     try {
-      // Check quota
       if (!await this.checkQuota(this.quotaCost.channels)) {
         return this.getChannelFromDatabase(channelId)
       }
@@ -181,13 +170,8 @@ export class YouTubeService {
         country: channel.snippet?.country,
       }
 
-      // Cache for 24 hours
       await this.cacheService.set(cacheKey, details, 86400)
-
-      // Store in database
       await this.storeChannelData(details)
-
-      // Update quota usage
       await this.updateQuotaUsage(this.quotaCost.channels)
 
       return details
@@ -197,7 +181,6 @@ export class YouTubeService {
     }
   }
 
-  // Sync YouTube channel
   async syncChannel(channelId: string, userId: string) {
     try {
       const channel = await this.getChannelDetails(channelId)
@@ -209,8 +192,7 @@ export class YouTubeService {
         })
       }
 
-      // Update user profile with channel
-      await this.db.profile.update({
+      await db.profile.update({
         where: { userId },
         data: {
           youtubeChannelId: channelId,
@@ -219,7 +201,6 @@ export class YouTubeService {
         },
       })
 
-      // Track activity
       await this.activityService.trackActivity({
         userId,
         action: 'youtube.channel.synced',
@@ -238,7 +219,6 @@ export class YouTubeService {
     }
   }
 
-  // Search videos
   async searchVideos(query: string, options: {
     maxResults?: number
     order?: 'relevance' | 'date' | 'viewCount' | 'rating'
@@ -260,7 +240,6 @@ export class YouTubeService {
       pageToken,
     } = options
 
-    // Check cache for first page
     if (!pageToken) {
       const cacheKey = `youtube:search:${query}:${JSON.stringify(options)}`
       const cached = await this.cacheService.get(cacheKey)
@@ -268,7 +247,6 @@ export class YouTubeService {
     }
 
     try {
-      // Check quota
       if (!await this.checkQuota(this.quotaCost.search)) {
         throw new TRPCError({
           code: 'RESOURCE_EXHAUSTED',
@@ -305,12 +283,11 @@ export class YouTubeService {
         publishedAt: item.snippet?.publishedAt || '',
       }))
 
-      // Get additional details for videos
       if (type === 'video' && items.length > 0) {
         const videoIds = items.map(item => item.id)
         const videoDetails = await this.getMultipleVideoDetails(videoIds)
         
-        items.forEach((item, index) => {
+        items.forEach((item) => {
           const details = videoDetails.find(v => v.id === item.id)
           if (details) {
             item.duration = details.duration
@@ -321,17 +298,15 @@ export class YouTubeService {
 
       const result = {
         items,
-        nextPageToken: response.data.nextPageToken,
+        nextPageToken: response.data.nextPageToken ?? undefined,
         totalResults: response.data.pageInfo?.totalResults || 0,
       }
 
-      // Cache first page for 30 minutes
       if (!pageToken) {
         const cacheKey = `youtube:search:${query}:${JSON.stringify(options)}`
         await this.cacheService.set(cacheKey, result, 1800)
       }
 
-      // Update quota usage
       await this.updateQuotaUsage(this.quotaCost.search)
 
       return result
@@ -341,7 +316,6 @@ export class YouTubeService {
     }
   }
 
-  // Get channel videos
   async getChannelVideos(channelId: string, options: {
     maxResults?: number
     order?: 'date' | 'viewCount'
@@ -350,14 +324,18 @@ export class YouTubeService {
     items: SearchResult[]
     nextPageToken?: string
   }> {
-    return this.searchVideos('', {
+    const result = await this.searchVideos('', {
       ...options,
       channelId,
       type: 'video',
     })
+    
+    return {
+      items: result.items,
+      nextPageToken: result.nextPageToken
+    }
   }
 
-  // Create video clip
   async createVideoClip(input: {
     youtubeVideoId: string
     title: string
@@ -367,7 +345,6 @@ export class YouTubeService {
     creatorId: string
     tags?: string[]
   }) {
-    // Validate times
     if (input.endTime <= input.startTime) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
@@ -376,14 +353,13 @@ export class YouTubeService {
     }
 
     const duration = input.endTime - input.startTime
-    if (duration > 300) { // 5 minutes max
+    if (duration > 300) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
         message: 'Clips cannot be longer than 5 minutes',
       })
     }
 
-    // Get video details
     const video = await this.getVideoDetails(input.youtubeVideoId)
     
     if (!video) {
@@ -393,8 +369,7 @@ export class YouTubeService {
       })
     }
 
-    // Create clip
-    const clip = await this.db.videoClip.create({
+    const clip = await db.videoClip.create({
       data: {
         youtubeVideoId: input.youtubeVideoId,
         creatorId: input.creatorId,
@@ -417,7 +392,6 @@ export class YouTubeService {
       },
     })
 
-    // Track activity
     await this.activityService.trackActivity({
       userId: input.creatorId,
       action: 'clip.created',
@@ -430,7 +404,6 @@ export class YouTubeService {
       },
     })
 
-    // Update video analytics
     await this.updateVideoAnalytics(input.youtubeVideoId, input.creatorId, {
       engagementType: 'clip',
     })
@@ -438,12 +411,11 @@ export class YouTubeService {
     return clip
   }
 
-  // Get video clips
   async getVideoClips(videoId: string, options: {
     limit?: number
     cursor?: string
   }) {
-    const clips = await this.db.videoClip.findMany({
+    const clips = await db.videoClip.findMany({
       where: { youtubeVideoId: videoId },
       include: {
         creator: {
@@ -471,12 +443,11 @@ export class YouTubeService {
     }
   }
 
-  // Get user's clips
   async getUserClips(userId: string, options: {
     limit?: number
     cursor?: string
   }) {
-    const clips = await this.db.videoClip.findMany({
+    const clips = await db.videoClip.findMany({
       where: { creatorId: userId },
       include: {
         video: true,
@@ -494,14 +465,12 @@ export class YouTubeService {
     }
   }
 
-  // Get trending videos
   async getTrendingVideos(limit: number) {
     const cacheKey = `youtube:trending:${limit}`
     const cached = await this.cacheService.get(cacheKey, CacheType.TRENDING)
     if (cached) return cached
 
-    // Get videos that have been shared/discussed recently
-    const videos = await this.db.youtubeVideo.findMany({
+    const videos = await db.youtubeVideo.findMany({
       orderBy: [
         { viewCount: 'desc' },
         { publishedAt: 'desc' },
@@ -518,11 +487,9 @@ export class YouTubeService {
       },
     })
 
-    // Transform BigInt to number for JSON serialization
     const transformed = videos.map(v => ({
       ...v,
       viewCount: Number(v.viewCount),
-      subscriberCount: v.subscriberCount ? Number(v.subscriberCount) : 0,
       engagementScore: v.analytics?.engagementRate || 0,
       watchPartyCount: v._count.watchParties,
       clipCount: v._count.clips,
@@ -532,9 +499,8 @@ export class YouTubeService {
     return transformed
   }
 
-  // Get video analytics
   async getVideoAnalytics(videoId: string) {
-    const analytics = await this.db.videoAnalytics.findUnique({
+    const analytics = await db.videoAnalytics.findUnique({
       where: { videoId },
       include: {
         video: true,
@@ -542,8 +508,7 @@ export class YouTubeService {
     })
 
     if (!analytics) {
-      // Create default analytics
-      return this.db.videoAnalytics.create({
+      return db.videoAnalytics.create({
         data: { 
           videoId,
           watchTime: BigInt(0),
@@ -564,7 +529,6 @@ export class YouTubeService {
     }
   }
 
-  // Update video analytics
   async updateVideoAnalytics(
     videoId: string, 
     userId: string,
@@ -573,11 +537,9 @@ export class YouTubeService {
       engagementType?: 'view' | 'clip' | 'share' | 'discussion'
     }
   ) {
-    // Ensure video exists in database
     await this.ensureVideoInDatabase(videoId)
 
-    // Update analytics
-    const analytics = await this.db.videoAnalytics.upsert({
+    const analytics = await db.videoAnalytics.upsert({
       where: { videoId },
       create: {
         videoId,
@@ -602,7 +564,6 @@ export class YouTubeService {
       },
     })
 
-    // Track activity
     await this.activityService.trackActivity({
       userId,
       action: `video.${data.engagementType || 'view'}`,
@@ -614,7 +575,6 @@ export class YouTubeService {
     return analytics
   }
 
-  // Helper methods
   private isValidVideoId(videoId: string): boolean {
     return /^[a-zA-Z0-9_-]{11}$/.test(videoId)
   }
@@ -655,11 +615,9 @@ export class YouTubeService {
     return `${minutes}:${secs.toString().padStart(2, '0')}`
   }
 
-  // Get multiple video details (batch request)
   private async getMultipleVideoDetails(videoIds: string[]): Promise<VideoDetails[]> {
     if (videoIds.length === 0) return []
 
-    // Check quota
     if (!await this.checkQuota(this.quotaCost.videos)) {
       return []
     }
@@ -676,7 +634,9 @@ export class YouTubeService {
         title: video.snippet?.title || '',
         description: video.snippet?.description || '',
         thumbnail: this.getBestThumbnail(video.snippet?.thumbnails),
-        thumbnailHd: video.snippet?.thumbnails?.maxres?.url || video.snippet?.thumbnails?.high?.url,
+        thumbnailHd: video.snippet?.thumbnails?.maxres?.url ?? 
+                     video.snippet?.thumbnails?.high?.url ?? 
+                     undefined,
         channelId: video.snippet?.channelId || '',
         channelTitle: video.snippet?.channelTitle || '',
         duration: this.parseDuration(video.contentDetails?.duration),
@@ -695,22 +655,21 @@ export class YouTubeService {
     }
   }
 
-  // Database methods
   private async storeVideoData(video: VideoDetails) {
-    await this.db.youtubeVideo.upsert({
+    await db.youtubeVideo.upsert({
       where: { videoId: video.id },
       update: {
         title: video.title,
         description: video.description,
         thumbnailUrl: video.thumbnail,
-        thumbnailUrlHd: video.thumbnailHd,
+        thumbnailUrlHd: video.thumbnailHd ?? null,
         duration: video.duration,
         durationFormatted: video.durationFormatted,
         viewCount: BigInt(video.viewCount),
         likeCount: video.likeCount,
         commentCount: video.commentCount,
         tags: video.tags,
-        categoryId: video.categoryId,
+        categoryId: video.categoryId ?? null,
         liveBroadcast: video.liveBroadcast,
         premiereDate: video.premiereDate ? new Date(video.premiereDate) : null,
         publishedAt: new Date(video.publishedAt),
@@ -722,14 +681,14 @@ export class YouTubeService {
         title: video.title,
         description: video.description,
         thumbnailUrl: video.thumbnail,
-        thumbnailUrlHd: video.thumbnailHd,
+        thumbnailUrlHd: video.thumbnailHd ?? null,
         duration: video.duration,
         durationFormatted: video.durationFormatted,
         viewCount: BigInt(video.viewCount),
         likeCount: video.likeCount,
         commentCount: video.commentCount,
         tags: video.tags,
-        categoryId: video.categoryId,
+        categoryId: video.categoryId ?? null,
         liveBroadcast: video.liveBroadcast,
         premiereDate: video.premiereDate ? new Date(video.premiereDate) : null,
         publishedAt: new Date(video.publishedAt),
@@ -739,14 +698,14 @@ export class YouTubeService {
   }
 
   private async storeChannelData(channel: ChannelDetails) {
-    await this.db.youtubeChannel.upsert({
+    await db.youtubeChannel.upsert({
       where: { channelId: channel.id },
       update: {
         channelTitle: channel.title,
         channelDescription: channel.description,
-        channelHandle: channel.customUrl,
+        channelHandle: channel.customUrl ?? null,
         thumbnailUrl: channel.thumbnail,
-        bannerUrl: channel.bannerUrl,
+        bannerUrl: channel.bannerUrl ?? null,
         subscriberCount: BigInt(channel.subscriberCount),
         videoCount: channel.videoCount,
         viewCount: BigInt(channel.viewCount),
@@ -756,9 +715,9 @@ export class YouTubeService {
         channelId: channel.id,
         channelTitle: channel.title,
         channelDescription: channel.description,
-        channelHandle: channel.customUrl,
+        channelHandle: channel.customUrl ?? null,
         thumbnailUrl: channel.thumbnail,
-        bannerUrl: channel.bannerUrl,
+        bannerUrl: channel.bannerUrl ?? null,
         subscriberCount: BigInt(channel.subscriberCount),
         videoCount: channel.videoCount,
         viewCount: BigInt(channel.viewCount),
@@ -768,7 +727,7 @@ export class YouTubeService {
   }
 
   private async getVideoFromDatabase(videoId: string): Promise<VideoDetails | null> {
-    const dbVideo = await this.db.youtubeVideo.findUnique({
+    const dbVideo = await db.youtubeVideo.findUnique({
       where: { videoId },
     })
 
@@ -779,7 +738,7 @@ export class YouTubeService {
       title: dbVideo.title || '',
       description: dbVideo.description || '',
       thumbnail: dbVideo.thumbnailUrl || '',
-      thumbnailHd: dbVideo.thumbnailUrlHd || undefined,
+      thumbnailHd: dbVideo.thumbnailUrlHd ?? undefined,
       channelId: dbVideo.channelId,
       channelTitle: '',
       duration: dbVideo.duration || 0,
@@ -789,14 +748,14 @@ export class YouTubeService {
       commentCount: dbVideo.commentCount,
       publishedAt: dbVideo.publishedAt?.toISOString() || '',
       tags: dbVideo.tags,
-      categoryId: dbVideo.categoryId || undefined,
+      categoryId: dbVideo.categoryId ?? undefined,
       liveBroadcast: dbVideo.liveBroadcast,
       premiereDate: dbVideo.premiereDate?.toISOString(),
     }
   }
 
   private async getChannelFromDatabase(channelId: string): Promise<ChannelDetails | null> {
-    const dbChannel = await this.db.youtubeChannel.findUnique({
+    const dbChannel = await db.youtubeChannel.findUnique({
       where: { channelId },
     })
 
@@ -806,9 +765,9 @@ export class YouTubeService {
       id: dbChannel.channelId,
       title: dbChannel.channelTitle || '',
       description: dbChannel.channelDescription || '',
-      customUrl: dbChannel.channelHandle || undefined,
+      customUrl: dbChannel.channelHandle ?? undefined,
       thumbnail: dbChannel.thumbnailUrl || '',
-      bannerUrl: dbChannel.bannerUrl || undefined,
+      bannerUrl: dbChannel.bannerUrl ?? undefined,
       subscriberCount: Number(dbChannel.subscriberCount),
       videoCount: dbChannel.videoCount,
       viewCount: Number(dbChannel.viewCount),
@@ -817,28 +776,26 @@ export class YouTubeService {
   }
 
   private async ensureVideoInDatabase(videoId: string) {
-    const exists = await this.db.youtubeVideo.findUnique({
+    const exists = await db.youtubeVideo.findUnique({
       where: { videoId },
       select: { videoId: true },
     })
 
     if (!exists) {
-      // Try to fetch and store video details
       await this.getVideoDetails(videoId)
     }
   }
 
-  // Quota management
   private async checkQuota(cost: number): Promise<boolean> {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
-    const quota = await this.db.youTubeApiQuota.findUnique({
+    const quota = await db.youTubeApiQuota.findUnique({
       where: { date: today },
     })
 
     if (!quota) {
-      return true // First request of the day
+      return true
     }
 
     return (quota.unitsUsed + cost) <= quota.quotaLimit
@@ -851,7 +808,7 @@ export class YouTubeService {
     const tomorrow = new Date(today)
     tomorrow.setDate(tomorrow.getDate() + 1)
 
-    await this.db.youTubeApiQuota.upsert({
+    await db.youTubeApiQuota.upsert({
       where: { date: today },
       update: {
         unitsUsed: { increment: cost },
@@ -867,12 +824,11 @@ export class YouTubeService {
     })
   }
 
-  // Public quota check
   async getRemainingQuota(): Promise<number> {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
-    const quota = await this.db.youTubeApiQuota.findUnique({
+    const quota = await db.youTubeApiQuota.findUnique({
       where: { date: today },
     })
 
@@ -884,14 +840,7 @@ export class YouTubeService {
   }
 }
 
-// src/server/services/watch-party.service.ts
-import { PrismaClient } from '@prisma/client'
-import { TRPCError } from '@trpc/server'
-import { generateUniqueCode } from '@/lib/utils'
-
 export class WatchPartyService {
-  constructor(private db: PrismaClient) {}
-
   async createWatchParty(input: {
     title: string
     description?: string
@@ -905,10 +854,9 @@ export class WatchPartyService {
     tags?: string[]
     hostId: string
   }) {
-    // Generate unique party code
     const partyCode = await this.generatePartyCode()
 
-    const party = await this.db.watchParty.create({
+    const party = await db.watchParty.create({
       data: {
         ...input,
         partyCode,
@@ -926,8 +874,7 @@ export class WatchPartyService {
       },
     })
 
-    // Add host as participant
-    await this.db.watchPartyParticipant.create({
+    await db.watchPartyParticipant.create({
       data: {
         partyId: party.id,
         userId: input.hostId,
@@ -939,7 +886,7 @@ export class WatchPartyService {
   }
 
   async joinParty(partyId: string, userId: string) {
-    const party = await this.db.watchParty.findUnique({
+    const party = await db.watchParty.findUnique({
       where: { id: partyId },
       include: {
         participants: {
@@ -976,8 +923,7 @@ export class WatchPartyService {
       })
     }
 
-    // Add participant
-    await this.db.watchPartyParticipant.create({
+    await db.watchPartyParticipant.create({
       data: {
         partyId,
         userId,
@@ -985,8 +931,7 @@ export class WatchPartyService {
       },
     })
 
-    // Update participant count
-    await this.db.watchParty.update({
+    await db.watchParty.update({
       where: { id: partyId },
       data: {
         currentParticipants: { increment: 1 },
@@ -997,7 +942,7 @@ export class WatchPartyService {
   }
 
   async leaveParty(partyId: string, userId: string) {
-    const participant = await this.db.watchPartyParticipant.findFirst({
+    const participant = await db.watchPartyParticipant.findFirst({
       where: {
         partyId,
         userId,
@@ -1012,8 +957,7 @@ export class WatchPartyService {
       })
     }
 
-    // Update participant status
-    await this.db.watchPartyParticipant.update({
+    await db.watchPartyParticipant.update({
       where: { id: participant.id },
       data: {
         isActive: false,
@@ -1021,8 +965,7 @@ export class WatchPartyService {
       },
     })
 
-    // Update participant count
-    await this.db.watchParty.update({
+    await db.watchParty.update({
       where: { id: partyId },
       data: {
         currentParticipants: { decrement: 1 },
@@ -1033,7 +976,7 @@ export class WatchPartyService {
   }
 
   async getPartyDetails(partyId: string) {
-    const party = await this.db.watchParty.findUnique({
+    const party = await db.watchParty.findUnique({
       where: { id: partyId },
       include: {
         host: {
@@ -1081,7 +1024,7 @@ export class WatchPartyService {
   }) {
     const now = new Date()
 
-    const parties = await this.db.watchParty.findMany({
+    const parties = await db.watchParty.findMany({
       where: {
         isPublic: input.onlyPublic ? true : undefined,
         scheduledStart: {
@@ -1142,7 +1085,7 @@ export class WatchPartyService {
       where.endedAt = null
     }
 
-    const parties = await this.db.watchParty.findMany({
+    const parties = await db.watchParty.findMany({
       where,
       include: {
         host: {
@@ -1175,7 +1118,7 @@ export class WatchPartyService {
 
     do {
       code = generateUniqueCode(8)
-      const existing = await this.db.watchParty.findUnique({
+      const existing = await db.watchParty.findUnique({
         where: { partyCode: code },
       })
       

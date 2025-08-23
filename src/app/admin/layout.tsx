@@ -5,9 +5,36 @@ import { AdminSidebar } from '@/components/admin/admin-sidebar'
 import { AdminHeader } from '@/components/admin/admin-header'
 import { AdminProvider } from '@/components/providers/admin-provider'
 import { Toaster } from '@/components/ui/toaster'
-import { ErrorBoundary } from '@/components/error-boundary'
 import { AdminNotifications } from '@/components/admin/admin-notifications'
 import { AdminActivityMonitor } from '@/components/admin/admin-activity-monitor'
+import { UserRole, UserStatus, AuthProvider } from '@prisma/client'
+import type { ExtendedUser } from '@/types/global'
+
+interface AdminLayoutErrorBoundaryProps {
+  error: Error
+  reset: () => void
+}
+
+function AdminLayoutErrorBoundary({ error, reset }: AdminLayoutErrorBoundaryProps) {
+  return (
+    <div className="flex items-center justify-center h-full p-8">
+      <div className="text-center space-y-4">
+        <h2 className="text-2xl font-bold text-destructive">
+          Admin Panel Error
+        </h2>
+        <p className="text-muted-foreground max-w-md">
+          {error?.message || 'An unexpected error occurred in the admin panel.'}
+        </p>
+        <button
+          onClick={reset}
+          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+        >
+          Try Again
+        </button>
+      </div>
+    </div>
+  )
+}
 
 export const metadata = {
   title: 'Admin Dashboard - Sparkle Universe',
@@ -34,55 +61,57 @@ export default async function AdminLayout({
   const isAdmin = session.user.role === 'ADMIN'
   const isModerator = session.user.role === 'MODERATOR'
 
-  // Create a simplified user object for the provider
-  const adminUser = {
+  // Create a properly typed admin user object
+  const adminUser: ExtendedUser = {
     id: session.user.id,
-    name: session.user.username || session.user.email,
-    email: session.user.email,
-    avatar: session.user.image || undefined,
-    role: session.user.role,
-    // Add all required fields to match the full User type
-    status: session.user.status,
-    createdAt: session.user.createdAt,
-    updatedAt: session.user.updatedAt,
-    level: session.user.level,
     username: session.user.username,
-    hashedPassword: session.user.hashedPassword,
-    authProvider: session.user.authProvider,
-    deleted: session.user.deleted,
-    deletedAt: session.user.deletedAt,
-    deletedBy: session.user.deletedBy,
-    bio: session.user.bio,
+    email: session.user.email,
+    role: session.user.role as UserRole,
     image: session.user.image,
-    verified: session.user.verified,
-    verifiedAt: session.user.verifiedAt,
+    level: session.user.level,
     sparklePoints: session.user.sparklePoints,
     premiumPoints: session.user.premiumPoints,
-    experience: session.user.experience,
-    reputationScore: session.user.reputationScore,
-    lastSeenAt: session.user.lastSeenAt,
-    loginStreak: session.user.loginStreak,
-    lastLoginAt: session.user.lastLoginAt,
-    emailVerified: session.user.emailVerified,
-    emailVerificationToken: session.user.emailVerificationToken,
-    emailVerificationExpires: session.user.emailVerificationExpires,
-    resetPasswordToken: session.user.resetPasswordToken,
-    resetPasswordExpires: session.user.resetPasswordExpires,
-    phoneNumber: session.user.phoneNumber,
-    phoneNumberHash: session.user.phoneNumberHash,
-    phoneVerified: session.user.phoneVerified,
-    twoFactorEnabled: session.user.twoFactorEnabled,
-    twoFactorSecret: session.user.twoFactorSecret,
-    twoFactorBackupCodes: session.user.twoFactorBackupCodes,
-    accountLockoutAttempts: session.user.accountLockoutAttempts,
-    accountLockedUntil: session.user.accountLockedUntil,
-    lastPasswordChangedAt: session.user.lastPasswordChangedAt,
-    lastFailedLoginAt: session.user.lastFailedLoginAt,
-    failedLoginAttempts: session.user.failedLoginAttempts,
-    onlineStatus: session.user.onlineStatus,
-    creatorRevenueShare: session.user.creatorRevenueShare,
-    totalRevenueEarned: session.user.totalRevenueEarned,
-    lastPayoutDate: session.user.lastPayoutDate,
+    status: (session.user as any).status as UserStatus || UserStatus.ACTIVE,
+    createdAt: (session.user as any).createdAt || new Date(),
+    updatedAt: (session.user as any).updatedAt || new Date(),
+    hashedPassword: (session.user as any).hashedPassword,
+    authProvider: (session.user as any).authProvider as AuthProvider || AuthProvider.LOCAL,
+    deleted: (session.user as any).deleted || false,
+    deletedAt: (session.user as any).deletedAt,
+    deletedBy: (session.user as any).deletedBy,
+    bio: (session.user as any).bio,
+    verified: (session.user as any).verified || false,
+    verifiedAt: (session.user as any).verifiedAt,
+    experience: (session.user as any).experience || 0,
+    reputationScore: (session.user as any).reputationScore || 0,
+    lastSeenAt: (session.user as any).lastSeenAt,
+    loginStreak: (session.user as any).loginStreak || 0,
+    lastLoginAt: (session.user as any).lastLoginAt,
+    emailVerified: (session.user as any).emailVerified,
+    emailVerificationToken: (session.user as any).emailVerificationToken,
+    emailVerificationExpires: (session.user as any).emailVerificationExpires,
+    resetPasswordToken: (session.user as any).resetPasswordToken,
+    resetPasswordExpires: (session.user as any).resetPasswordExpires,
+    phoneNumber: (session.user as any).phoneNumber,
+    phoneNumberHash: (session.user as any).phoneNumberHash,
+    phoneVerified: (session.user as any).phoneVerified,
+    twoFactorEnabled: (session.user as any).twoFactorEnabled || false,
+    twoFactorSecret: (session.user as any).twoFactorSecret,
+    twoFactorBackupCodes: (session.user as any).twoFactorBackupCodes || [],
+    accountLockoutAttempts: (session.user as any).accountLockoutAttempts || 0,
+    accountLockedUntil: (session.user as any).accountLockedUntil,
+    lastPasswordChangedAt: (session.user as any).lastPasswordChangedAt,
+    lastFailedLoginAt: (session.user as any).lastFailedLoginAt,
+    failedLoginAttempts: (session.user as any).failedLoginAttempts || 0,
+    onlineStatus: (session.user as any).onlineStatus || 'offline',
+    creatorRevenueShare: (session.user as any).creatorRevenueShare,
+    totalRevenueEarned: (session.user as any).totalRevenueEarned,
+    lastPayoutDate: (session.user as any).lastPayoutDate,
+    banned: (session.user as any).banned || false,
+    banReason: (session.user as any).banReason,
+    banExpiresAt: (session.user as any).banExpiresAt,
+    preferredLanguage: (session.user as any).preferredLanguage || 'en',
+    timezone: (session.user as any).timezone || 'UTC',
   }
 
   return (
@@ -115,30 +144,9 @@ export default async function AdminLayout({
           
           {/* Page Content */}
           <main className="flex-1 overflow-y-auto">
-            <ErrorBoundary
-              fallback={(error: Error, reset: () => void) => (
-                <div className="flex items-center justify-center h-full p-8">
-                  <div className="text-center space-y-4">
-                    <h2 className="text-2xl font-bold text-destructive">
-                      Admin Panel Error
-                    </h2>
-                    <p className="text-muted-foreground max-w-md">
-                      {error?.message || 'An unexpected error occurred in the admin panel.'}
-                    </p>
-                    <button
-                      onClick={reset}
-                      className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
-                    >
-                      Try Again
-                    </button>
-                  </div>
-                </div>
-              )}
-            >
-              <div className="container mx-auto p-6 max-w-7xl">
-                {children}
-              </div>
-            </ErrorBoundary>
+            <div className="container mx-auto p-6 max-w-7xl">
+              {children}
+            </div>
           </main>
           
           {/* Real-time activity monitor */}
