@@ -50,9 +50,10 @@ interface BackgroundJob {
 }
 
 export class SystemService {
-  private healthCheckInterval: NodeJS.Timer | null = null
+  private healthCheckInterval: NodeJS.Timeout | null = null
+  private monitoringInterval: NodeJS.Timeout | null = null
   private metricsCache: Map<string, { data: any; timestamp: number }> = new Map()
-  private readonly CACHE_TTL = 60000 // 1 minute
+  private readonly CACHE_TTL = 60000
 
   async getSystemHealth(): Promise<SystemHealth> {
     const [dbHealth, redisHealth] = await Promise.all([
@@ -127,8 +128,6 @@ export class SystemService {
   }
 
   async getBackgroundJobs(): Promise<BackgroundJob[]> {
-    // This would integrate with your job queue system
-    // For now, returning mock data
     return [
       {
         name: 'Email Queue',
@@ -160,20 +159,12 @@ export class SystemService {
   async runHealthChecks(): Promise<Record<string, boolean>> {
     const checks: Record<string, boolean> = {}
 
-    // Database check
     const dbHealth = await this.checkDatabaseHealth()
     checks.database = dbHealth.connected
 
-    // Redis check
     checks.redis = await this.checkRedisHealth()
-
-    // Disk space check
     checks.diskSpace = await this.checkDiskSpace()
-
-    // Memory check
     checks.memory = this.checkMemory()
-
-    // API endpoints check
     checks.api = await this.checkApiEndpoints()
 
     return checks
@@ -192,7 +183,6 @@ export class SystemService {
 
   async optimizeDatabase(): Promise<void> {
     try {
-      // Run VACUUM ANALYZE on PostgreSQL
       await prisma.$executeRawUnsafe('VACUUM ANALYZE')
       logger.info('Database optimization completed')
     } catch (error) {
@@ -202,8 +192,6 @@ export class SystemService {
   }
 
   async getErrorLogs(limit: number = 100): Promise<any[]> {
-    // This would integrate with your logging system
-    // For now, returning from audit log
     try {
       const logs = await prisma.auditLog.findMany({
         where: {
@@ -228,18 +216,14 @@ export class SystemService {
   async getPerformanceMetrics(): Promise<Record<string, any>> {
     const metrics: Record<string, any> = {}
 
-    // Database query performance
     const dbStats = await this.getDatabasePerformance()
     metrics.database = dbStats
 
-    // Redis performance
     const redisStats = await this.getRedisPerformance()
     metrics.redis = redisStats
 
-    // API response times
     metrics.api = await this.getApiPerformance()
 
-    // Resource usage
     metrics.resources = {
       cpu: this.getCpuUsage(),
       memory: this.getMemoryUsage(),
@@ -247,6 +231,51 @@ export class SystemService {
     }
 
     return metrics
+  }
+
+  // New methods for admin routers
+  async getSystemLogs(filters: any): Promise<any[]> {
+    const { level, limit = 100, offset = 0 } = filters
+    
+    try {
+      const where: any = {}
+      if (level) {
+        where.metadata = {
+          path: ['level'],
+          equals: level,
+        }
+      }
+
+      const logs = await prisma.auditLog.findMany({
+        where,
+        take: limit,
+        skip: offset,
+        orderBy: {
+          createdAt: 'desc',
+        },
+      })
+      
+      return logs
+    } catch (error) {
+      logger.error('Failed to fetch system logs:', error)
+      return []
+    }
+  }
+
+  async runMaintenance(type: string): Promise<void> {
+    switch (type) {
+      case 'cache':
+        await this.clearCache()
+        break
+      case 'database':
+        await this.optimizeDatabase()
+        break
+      case 'logs':
+        await this.cleanupOldLogs()
+        break
+      default:
+        throw new Error(`Unknown maintenance type: ${type}`)
+    }
   }
 
   startHealthMonitoring(intervalMs: number = 60000): void {
@@ -273,8 +302,14 @@ export class SystemService {
     }
   }
 
-  // Private helper methods
+  stopMonitoring(): void {
+    if (this.monitoringInterval) {
+      clearInterval(this.monitoringInterval)
+      this.monitoringInterval = null
+    }
+  }
 
+  // Private helper methods
   private async checkDatabaseHealth(): Promise<{ connected: boolean; latency?: number; error?: string }> {
     return checkDatabaseConnection()
   }
@@ -291,7 +326,7 @@ export class SystemService {
   private async checkDiskSpace(): Promise<boolean> {
     try {
       const diskUsage = await this.getDiskUsage()
-      return diskUsage < 90 // Less than 90% used
+      return diskUsage < 90
     } catch {
       return false
     }
@@ -299,11 +334,10 @@ export class SystemService {
 
   private checkMemory(): boolean {
     const usage = this.getMemoryUsage()
-    return usage < 90 // Less than 90% used
+    return usage < 90
   }
 
   private async checkApiEndpoints(): Promise<boolean> {
-    // Check critical API endpoints
     try {
       await prisma.user.count({ take: 1 })
       return true
@@ -380,13 +414,13 @@ export class SystemService {
   private async getDiskUsage(): Promise<number> {
     try {
       if (os.platform() === 'win32') {
-        return 50 // Default for Windows
+        return 50
       }
       
       const { stdout } = await execAsync("df -h / | awk 'NR==2 {print $(NF-1)}'")
       return parseInt(stdout.trim().replace('%', ''), 10)
     } catch {
-      return 50 // Default value
+      return 50
     }
   }
 
@@ -428,14 +462,22 @@ export class SystemService {
   }
 
   private async getApiPerformance(): Promise<any> {
-    // This would integrate with your APM system
-    // For now, returning mock data
     return {
       avgResponseTime: 45,
       p95ResponseTime: 120,
       p99ResponseTime: 250,
       requestsPerSecond: 150,
     }
+  }
+
+  private async cleanupOldLogs(): Promise<void> {
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+    
+    await prisma.auditLog.deleteMany({
+      where: {
+        createdAt: { lt: thirtyDaysAgo },
+      },
+    })
   }
 
   private getCached<T>(key: string): T | null {

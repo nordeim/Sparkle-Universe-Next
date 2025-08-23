@@ -15,7 +15,6 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  TooltipProps,
   ReferenceLine,
   Brush,
   PieChart,
@@ -28,35 +27,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
 import { TrendingUp, TrendingDown, Minus, AlertCircle, ChevronUp, ChevronDown } from 'lucide-react'
+import type { UserGrowthChartProps } from '@/types/global'
 
-/**
- * Data point structure for the user growth chart
- */
 interface UserGrowthDataPoint {
-  date: string // ISO date string
+  date: string
   users: number
   activeUsers?: number
   newUsers?: number
   returningUsers?: number
-  growth?: number // Percentage growth from previous period
-  target?: number // Optional target line
-  churnRate?: number // User churn rate
-  retentionRate?: number // User retention rate
+  growth?: number
+  target?: number
+  churnRate?: number
+  retentionRate?: number
 }
 
-/**
- * Chart type options
- */
 type ChartType = 'line' | 'area' | 'bar' | 'mixed'
-
-/**
- * Time period for data aggregation
- */
 type TimePeriod = 'day' | 'week' | 'month' | 'quarter' | 'year'
 
-/**
- * Trend information
- */
 interface TrendInfo {
   direction: 'up' | 'down' | 'stable'
   percentage: number
@@ -64,55 +51,7 @@ interface TrendInfo {
   previousValue: number
 }
 
-interface UserGrowthChartProps {
-  /** Chart data points */
-  data: UserGrowthDataPoint[]
-  /** Chart height in pixels */
-  height?: number
-  /** Chart type variant */
-  type?: ChartType
-  /** Show legend */
-  showLegend?: boolean
-  /** Show grid lines */
-  showGrid?: boolean
-  /** Show data brush for zooming */
-  showBrush?: boolean
-  /** Time period for x-axis formatting */
-  timePeriod?: TimePeriod
-  /** Loading state */
-  loading?: boolean
-  /** Error state */
-  error?: Error | null
-  /** Additional CSS classes */
-  className?: string
-  /** Chart title */
-  title?: string
-  /** Chart description */
-  description?: string
-  /** Show trend indicator */
-  showTrend?: boolean
-  /** Show statistics cards */
-  showStats?: boolean
-  /** Enable animations */
-  animate?: boolean
-  /** Custom colors */
-  colors?: {
-    users?: string
-    activeUsers?: string
-    newUsers?: string
-    returningUsers?: string
-    target?: string
-  }
-}
-
-/**
- * Custom tooltip component for better UX
- */
-const CustomTooltip: React.FC<TooltipProps<number, string>> = ({ 
-  active, 
-  payload, 
-  label 
-}) => {
+const CustomTooltip: React.FC<any> = ({ active, payload, label }) => {
   if (!active || !payload || !payload.length) return null
   
   const date = label ? parseISO(label) : null
@@ -124,7 +63,7 @@ const CustomTooltip: React.FC<TooltipProps<number, string>> = ({
     <div className="rounded-lg border bg-background p-3 shadow-lg">
       <p className="text-sm font-semibold mb-2">{formattedDate}</p>
       <div className="space-y-1">
-        {payload.map((entry, index) => {
+        {payload.map((entry: any, index: number) => {
           const Icon = entry.value && Number(entry.value) > 0 ? ChevronUp : ChevronDown
           const color = entry.value && Number(entry.value) > 0 ? 'text-green-500' : 'text-red-500'
           
@@ -157,9 +96,6 @@ const CustomTooltip: React.FC<TooltipProps<number, string>> = ({
   )
 }
 
-/**
- * Format axis tick based on time period
- */
 const formatXAxisTick = (value: string, timePeriod: TimePeriod): string => {
   try {
     const date = parseISO(value)
@@ -184,9 +120,6 @@ const formatXAxisTick = (value: string, timePeriod: TimePeriod): string => {
   }
 }
 
-/**
- * Format large numbers for display
- */
 const formatNumber = (value: number): string => {
   if (value >= 1000000) {
     return `${(value / 1000000).toFixed(1)}M`
@@ -197,9 +130,6 @@ const formatNumber = (value: number): string => {
   return value.toString()
 }
 
-/**
- * Calculate trend from data
- */
 const calculateTrend = (data: UserGrowthDataPoint[]): TrendInfo => {
   if (data.length < 2) {
     return { 
@@ -232,9 +162,6 @@ const calculateTrend = (data: UserGrowthDataPoint[]): TrendInfo => {
   }
 }
 
-/**
- * Calculate statistics from data
- */
 const calculateStats = (data: UserGrowthDataPoint[]) => {
   if (data.length === 0) {
     return {
@@ -265,12 +192,6 @@ const calculateStats = (data: UserGrowthDataPoint[]) => {
   }
 }
 
-/**
- * User Growth Chart Component
- * 
- * A flexible, responsive chart component for visualizing user growth metrics
- * Supports multiple chart types and time periods with built-in loading and error states
- */
 export function UserGrowthChart({
   data = [],
   height = 350,
@@ -278,7 +199,7 @@ export function UserGrowthChart({
   showLegend = true,
   showGrid = true,
   showBrush = false,
-  timePeriod = 'day',
+  period: timePeriod = 'day',
   loading = false,
   error = null,
   className,
@@ -289,7 +210,6 @@ export function UserGrowthChart({
   animate = true,
   colors = {},
 }: UserGrowthChartProps) {
-  // Merge default colors with custom colors
   const chartColors = React.useMemo(() => ({
     users: colors.users || '#8B5CF6',
     activeUsers: colors.activeUsers || '#10B981',
@@ -298,7 +218,6 @@ export function UserGrowthChart({
     target: colors.target || '#EF4444',
   }), [colors])
   
-  // Calculate trend and stats
   const trend = React.useMemo(() => {
     return showTrend ? calculateTrend(data) : null
   }, [data, showTrend])
@@ -307,7 +226,6 @@ export function UserGrowthChart({
     return showStats ? calculateStats(data) : null
   }, [data, showStats])
   
-  // Loading state
   if (loading) {
     return (
       <Card className={className}>
@@ -329,7 +247,6 @@ export function UserGrowthChart({
     )
   }
   
-  // Error state
   if (error) {
     return (
       <Card className={cn('border-destructive', className)}>
@@ -356,7 +273,6 @@ export function UserGrowthChart({
     )
   }
   
-  // Empty state
   if (data.length === 0) {
     return (
       <Card className={className}>
@@ -373,7 +289,6 @@ export function UserGrowthChart({
     )
   }
   
-  // Render chart based on type
   const renderChart = () => {
     const commonProps = {
       data,
@@ -387,7 +302,7 @@ export function UserGrowthChart({
     
     const xAxisProps = {
       dataKey: 'date',
-      tickFormatter: (value: string) => formatXAxisTick(value, timePeriod),
+      tickFormatter: (value: string) => formatXAxisTick(value, timePeriod || 'day'),
       ...commonAxisProps,
     }
     
@@ -647,6 +562,5 @@ export function UserGrowthChart({
   )
 }
 
-// Export additional utility functions and types
 export { calculateTrend, calculateStats, formatXAxisTick, formatNumber }
 export type { UserGrowthDataPoint, ChartType, TimePeriod, TrendInfo }

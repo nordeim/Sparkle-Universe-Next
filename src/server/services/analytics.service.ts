@@ -5,7 +5,7 @@ import { logger } from '@/lib/monitoring'
 import type { Prisma, User } from '@prisma/client'
 import { startOfDay, endOfDay, subDays, subMonths, subYears, format } from 'date-fns'
 
-export type TimePeriod = 'day' | 'week' | 'month' | 'quarter' | 'year'
+export type TimePeriod = 'day' | 'week' | 'month' | 'today' | 'quarter' | 'year'
 
 interface DashboardStats {
   users: number
@@ -56,11 +56,11 @@ interface TopCreator {
 
 export class AnalyticsService {
   private readonly CACHE_TTL = {
-    DASHBOARD: 300, // 5 minutes
-    GROWTH: 600, // 10 minutes
-    CONTENT: 300, // 5 minutes
-    REVENUE: 900, // 15 minutes
-    CREATORS: 600, // 10 minutes
+    DASHBOARD: 300,
+    GROWTH: 600,
+    CONTENT: 300,
+    REVENUE: 900,
+    CREATORS: 600,
   }
 
   async getDashboardStats(period: TimePeriod = 'week'): Promise<DashboardStats> {
@@ -175,7 +175,6 @@ export class AnalyticsService {
       },
     })
 
-    // Group by date and calculate cumulative
     const growthMap = new Map<string, number>()
     let cumulative = await prisma.user.count({
       where: {
@@ -232,9 +231,9 @@ export class AnalyticsService {
             reactions: true,
           },
         },
+        stats: true,
       },
       orderBy: [
-        { viewCount: 'desc' },
         { createdAt: 'desc' },
       ],
       take: limit,
@@ -243,15 +242,15 @@ export class AnalyticsService {
     const performance: ContentPerformanceData[] = posts.map(post => ({
       id: post.id,
       title: post.title,
-      views: post.viewCount,
+      views: post.stats?.totalViews || 0,
       comments: post._count.comments,
       reactions: post._count.reactions,
-      shares: post.shareCount || 0,
+      shares: post.stats?.totalShares || 0,
       engagement: this.calculateEngagement(
-        post.viewCount,
+        post.stats?.totalViews || 0,
         post._count.comments,
         post._count.reactions,
-        post.shareCount || 0
+        post.stats?.totalShares || 0
       ),
       author: post.author?.username || 'Unknown',
       createdAt: post.createdAt,
@@ -275,7 +274,6 @@ export class AnalyticsService {
     const transactions = await prisma.currencyTransaction.findMany({
       where: {
         createdAt: { gte: startDate },
-        status: 'COMPLETED',
       },
       select: {
         createdAt: true,
@@ -334,7 +332,6 @@ export class AnalyticsService {
         stats: {
           select: {
             totalLikesReceived: true,
-            totalCommentsReceived: true,
             totalViews: true,
             contentQualityScore: true,
           },
@@ -425,29 +422,32 @@ export class AnalyticsService {
               reactions: true,
             },
           },
+          stats: true,
         },
         take: 100,
         orderBy: {
           createdAt: 'desc',
         },
       }),
-      prisma.post.aggregate({
+      prisma.postStats.aggregate({
         where: {
-          ...where,
-          deleted: false,
-          published: true,
+          post: {
+            ...where,
+            deleted: false,
+            published: true,
+          },
         },
         _avg: {
-          viewCount: true,
-          shareCount: true,
+          totalViews: true,
+          totalShares: true,
         },
       }),
     ])
 
-    const totalViews = posts.reduce((sum, post) => sum + post.viewCount, 0)
+    const totalViews = posts.reduce((sum, post) => sum + (post.stats?.totalViews || 0), 0)
     const totalComments = posts.reduce((sum, post) => sum + post._count.comments, 0)
     const totalReactions = posts.reduce((sum, post) => sum + post._count.reactions, 0)
-    const totalShares = posts.reduce((sum, post) => sum + (post.shareCount || 0), 0)
+    const totalShares = posts.reduce((sum, post) => sum + (post.stats?.totalShares || 0), 0)
 
     return {
       posts: posts.length,
@@ -455,15 +455,100 @@ export class AnalyticsService {
       totalComments,
       totalReactions,
       totalShares,
-      avgViews: avgEngagement._avg.viewCount || 0,
-      avgShares: avgEngagement._avg.shareCount || 0,
+      avgViews: avgEngagement._avg.totalViews || 0,
+      avgShares: avgEngagement._avg.totalShares || 0,
       engagementRate: this.calculateEngagement(totalViews, totalComments, totalReactions, totalShares),
     }
   }
 
+  // New methods for admin dashboard
+  async getAdvancedMetrics(period: TimePeriod) {
+    const startDate = this.getStartDate(period)
+    
+    const [userMetrics, contentMetrics, revenueMetrics] = await Promise.all([
+      this.getUserMetrics(startDate),
+      this.getContentMetrics(startDate),
+      this.getRevenueMetrics(startDate),
+    ])
+
+    return {
+      users: userMetrics,
+      content: contentMetrics,
+      revenue: revenueMetrics,
+      period,
+    }
+  }
+
+  async getAnalytics(filters: any) {
+    const period = filters.period || 'week'
+    const [
+      userGrowth,
+      contentPerformance,
+      topCreators,
+      engagementMetrics,
+    ] = await Promise.all([
+      this.getUserGrowth(period),
+      this.getContentPerformance(),
+      this.getTopCreators(),
+      this.getEngagementMetrics(),
+    ])
+
+    return {
+      userGrowth,
+      contentPerformance,
+      topCreators,
+      engagementMetrics,
+    }
+  }
+
+  async getRealtimeMetrics() {
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000)
+    
+    const [
+      activeUsers,
+      recentPosts,
+      recentComments,
+      currentSessions,
+    ] = await Promise.all([
+      prisma.user.count({
+        where: {
+          lastSeenAt: { gte: fiveMinutesAgo },
+          deleted: false,
+        },
+      }),
+      prisma.post.count({
+        where: {
+          createdAt: { gte: fiveMinutesAgo },
+          deleted: false,
+        },
+      }),
+      prisma.comment.count({
+        where: {
+          createdAt: { gte: fiveMinutesAgo },
+          deleted: false,
+        },
+      }),
+      prisma.session.count({
+        where: {
+          expires: { gte: new Date() },
+        },
+      }),
+    ])
+
+    return {
+      activeUsers,
+      recentPosts,
+      recentComments,
+      currentSessions,
+      timestamp: new Date(),
+    }
+  }
+
+  // Private helper methods
   private getStartDate(period: TimePeriod): Date {
     const now = new Date()
     switch (period) {
+      case 'today':
       case 'day':
         return startOfDay(now)
       case 'week':
@@ -482,6 +567,7 @@ export class AnalyticsService {
   private getPreviousPeriodStart(period: TimePeriod): Date {
     const now = new Date()
     switch (period) {
+      case 'today':
       case 'day':
         return subDays(startOfDay(now), 1)
       case 'week':
@@ -501,7 +587,6 @@ export class AnalyticsService {
     const result = await prisma.currencyTransaction.aggregate({
       where: {
         createdAt: { gte: since },
-        status: 'COMPLETED',
       },
       _sum: {
         amount: true,
@@ -515,7 +600,7 @@ export class AnalyticsService {
     const result = await prisma.creatorPayout.aggregate({
       where: {
         userId,
-        status: 'COMPLETED',
+        payoutStatus: 'COMPLETED',
       },
       _sum: {
         finalAmount: true,
@@ -535,12 +620,11 @@ export class AnalyticsService {
   private calculateCreatorEngagement(creator: any): number {
     if (!creator.stats) return 0
     
-    const { totalViews, totalLikesReceived, totalCommentsReceived } = creator.stats
+    const { totalViews, totalLikesReceived } = creator.stats
     
     if (totalViews === 0) return 0
     
-    const interactions = totalLikesReceived + totalCommentsReceived
-    return (interactions / totalViews) * 100
+    return (totalLikesReceived / totalViews) * 100
   }
 
   private async getStorageUsage(): Promise<string> {
@@ -552,6 +636,73 @@ export class AnalyticsService {
     } catch (error) {
       logger.error('Failed to get storage usage:', error)
       return 'Unknown'
+    }
+  }
+
+  private async getUserMetrics(since: Date) {
+    const [total, active, new_users, verified] = await Promise.all([
+      prisma.user.count({ where: { deleted: false } }),
+      prisma.user.count({
+        where: {
+          lastSeenAt: { gte: since },
+          deleted: false,
+        },
+      }),
+      prisma.user.count({
+        where: {
+          createdAt: { gte: since },
+          deleted: false,
+        },
+      }),
+      prisma.user.count({
+        where: {
+          verified: true,
+          deleted: false,
+        },
+      }),
+    ])
+
+    return { total, active, new: new_users, verified }
+  }
+
+  private async getContentMetrics(since: Date) {
+    const [posts, comments, reactions] = await Promise.all([
+      prisma.post.count({
+        where: {
+          createdAt: { gte: since },
+          deleted: false,
+        },
+      }),
+      prisma.comment.count({
+        where: {
+          createdAt: { gte: since },
+          deleted: false,
+        },
+      }),
+      prisma.reaction.count({
+        where: {
+          createdAt: { gte: since },
+        },
+      }),
+    ])
+
+    return { posts, comments, reactions }
+  }
+
+  private async getRevenueMetrics(since: Date) {
+    const result = await prisma.currencyTransaction.aggregate({
+      where: {
+        createdAt: { gte: since },
+      },
+      _sum: {
+        amount: true,
+      },
+      _count: true,
+    })
+
+    return {
+      total: Number(result._sum.amount || 0),
+      transactions: result._count,
     }
   }
 }

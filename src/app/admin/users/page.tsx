@@ -71,12 +71,13 @@ import { UserAnalytics } from '@/components/admin/user-analytics'
 import { formatDate, formatNumber } from '@/lib/utils'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useDebounce } from '@/hooks/use-debounce'
-import { toast } from '@/components/ui/use-toast'
+import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
 type UserFilter = 'all' | 'active' | 'verified' | 'banned' | 'admin' | 'new'
 type SortField = 'username' | 'email' | 'createdAt' | 'level' | 'posts' | 'followers'
 type SortOrder = 'asc' | 'desc'
+type BulkActionType = 'email' | 'role' | 'delete' | 'verify' | 'ban' | 'unban'
 
 interface SelectedUsers {
   [userId: string]: boolean
@@ -91,9 +92,9 @@ export default function UsersManagementPage() {
   const [selectedUser, setSelectedUser] = useState<string | null>(null)
   const [bulkActionDialog, setBulkActionDialog] = useState<{
     open: boolean
-    action: string
+    action: BulkActionType
     users: string[]
-  }>({ open: false, action: '', users: [] })
+  }>({ open: false, action: 'email', users: [] })
   const [page, setPage] = useState(0)
   const [showColumns, setShowColumns] = useState({
     avatar: true,
@@ -109,7 +110,6 @@ export default function UsersManagementPage() {
 
   const debouncedSearch = useDebounce(search, 300)
 
-  // Fetch users with filters
   const { data, isLoading, refetch } = api.admin.getUsers.useQuery({
     search: debouncedSearch,
     filter,
@@ -119,80 +119,76 @@ export default function UsersManagementPage() {
     limit: 50,
   })
 
-  // Mutations
   const banUser = api.admin.banUser.useMutation({
     onSuccess: () => {
-      toast({ title: 'User banned successfully' })
+      toast.success('User banned successfully')
       refetch()
     },
   })
 
   const unbanUser = api.admin.unbanUser.useMutation({
     onSuccess: () => {
-      toast({ title: 'User unbanned successfully' })
+      toast.success('User unbanned successfully')
       refetch()
     },
   })
 
   const verifyUser = api.admin.verifyUser.useMutation({
     onSuccess: () => {
-      toast({ title: 'User verified successfully' })
+      toast.success('User verified successfully')
       refetch()
     },
   })
 
   const updateUserRole = api.admin.updateUserRole.useMutation({
     onSuccess: () => {
-      toast({ title: 'User role updated successfully' })
+      toast.success('User role updated successfully')
       refetch()
     },
   })
 
   const deleteUser = api.admin.deleteUser.useMutation({
     onSuccess: () => {
-      toast({ title: 'User deleted successfully' })
+      toast.success('User deleted successfully')
       refetch()
     },
   })
 
   const sendEmail = api.admin.sendUserEmail.useMutation({
     onSuccess: () => {
-      toast({ title: 'Email sent successfully' })
+      toast.success('Email sent successfully')
     },
   })
 
-  // Bulk actions
   const bulkAction = api.admin.bulkUserAction.useMutation({
     onSuccess: () => {
-      toast({ title: 'Bulk action completed successfully' })
+      toast.success('Bulk action completed successfully')
       setSelectedUsers({})
       refetch()
     },
   })
 
-  // Computed values
   const selectedUserIds = useMemo(
     () => Object.keys(selectedUsers).filter(id => selectedUsers[id]),
     [selectedUsers]
   )
 
   const allUsersSelected = useMemo(
-    () => data?.users.length > 0 && data.users.every(user => selectedUsers[user.id]),
+    () => data?.users?.length ? data.users.length > 0 && data.users.every(user => selectedUsers[user.id]) : false,
     [data?.users, selectedUsers]
   )
 
   const someUsersSelected = useMemo(
-    () => data?.users.some(user => selectedUsers[user.id]) && !allUsersSelected,
+    () => data?.users?.some(user => selectedUsers[user.id]) && !allUsersSelected,
     [data?.users, selectedUsers, allUsersSelected]
   )
 
-  // Handlers
   const handleSelectAll = useCallback(() => {
     if (allUsersSelected) {
       setSelectedUsers({})
     } else {
       const newSelected: SelectedUsers = {}
-      data?.users.forEach(user => {
+      data?.users?.forEach(user => {
         newSelected[user.id] = true
       })
       setSelectedUsers(newSelected)
@@ -206,12 +202,10 @@ export default function UsersManagementPage() {
     }))
   }, [])
 
-  const handleBulkAction = useCallback((action: string) => {
+  const handleBulkAction = useCallback((action: BulkActionType) => {
     if (selectedUserIds.length === 0) {
-      toast({
-        title: 'No users selected',
+      toast.error('No users selected', {
         description: 'Please select at least one user to perform this action.',
-        variant: 'destructive',
       })
       return
     }
@@ -223,13 +217,13 @@ export default function UsersManagementPage() {
     })
   }, [selectedUserIds])
 
-  const executeBulkAction = useCallback(async (action: string, params?: any) => {
+  const executeBulkAction = useCallback(async (action: BulkActionType, params?: any) => {
     await bulkAction.mutateAsync({
       action,
       userIds: bulkActionDialog.users,
       params,
     })
-    setBulkActionDialog({ open: false, action: '', users: [] })
+    setBulkActionDialog({ open: false, action: 'email', users: [] })
   }, [bulkAction, bulkActionDialog.users])
 
   const handleSort = useCallback((field: SortField) => {
@@ -260,12 +254,13 @@ export default function UsersManagementPage() {
     a.click()
   }, [filter, debouncedSearch, selectedUserIds])
 
-  // Helper functions
   const getRoleBadge = (role: string) => {
     const badges = {
       ADMIN: { label: 'Admin', className: 'bg-red-500 text-white' },
       MODERATOR: { label: 'Moderator', className: 'bg-orange-500 text-white' },
       CREATOR: { label: 'Creator', className: 'bg-purple-500 text-white' },
+      VERIFIED_CREATOR: { label: 'Verified Creator', className: 'bg-purple-600 text-white' },
+      SYSTEM: { label: 'System', className: 'bg-gray-800 text-white' },
       USER: { label: 'User', className: 'bg-gray-500 text-white' },
     }
     const badge = badges[role as keyof typeof badges] || badges.USER
@@ -300,7 +295,6 @@ export default function UsersManagementPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
         <h1 className="text-3xl font-bold">User Management</h1>
         <p className="text-muted-foreground">
@@ -308,16 +302,13 @@ export default function UsersManagementPage() {
         </p>
       </div>
 
-      {/* Analytics Overview */}
       <UserAnalytics />
 
-      {/* Actions and Filters */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>Users</CardTitle>
             <div className="flex items-center gap-2">
-              {/* Search */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input
@@ -328,7 +319,6 @@ export default function UsersManagementPage() {
                 />
               </div>
 
-              {/* Filter */}
               <Select value={filter} onValueChange={(value) => setFilter(value as UserFilter)}>
                 <SelectTrigger className="w-[150px]">
                   <SelectValue />
@@ -343,7 +333,6 @@ export default function UsersManagementPage() {
                 </SelectContent>
               </Select>
 
-              {/* Column visibility */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="icon">
@@ -367,7 +356,6 @@ export default function UsersManagementPage() {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              {/* Actions */}
               <Button variant="outline" size="icon" onClick={() => refetch()}>
                 <RefreshCw className="w-4 h-4" />
               </Button>
@@ -382,7 +370,6 @@ export default function UsersManagementPage() {
           </div>
         </CardHeader>
         <CardContent>
-          {/* Bulk Actions */}
           {selectedUserIds.length > 0 && (
             <Alert className="mb-4">
               <AlertDescription className="flex items-center justify-between">
@@ -426,7 +413,6 @@ export default function UsersManagementPage() {
             </Alert>
           )}
 
-          {/* Users Table */}
           <div className="rounded-md border">
             <Table>
               <TableHeader>
@@ -434,7 +420,6 @@ export default function UsersManagementPage() {
                   <TableHead className="w-[50px]">
                     <Checkbox
                       checked={allUsersSelected}
-                      indeterminate={someUsersSelected}
                       onCheckedChange={handleSelectAll}
                     />
                   </TableHead>
@@ -536,7 +521,7 @@ export default function UsersManagementPage() {
                       </div>
                     </TableCell>
                   </TableRow>
-                ) : data?.users.length === 0 ? (
+                ) : !data?.users || data.users.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={11} className="text-center py-8">
                       <div className="text-muted-foreground">
@@ -545,7 +530,7 @@ export default function UsersManagementPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  data?.users.map((user) => (
+                  data.users.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell>
                         <Checkbox
@@ -645,25 +630,23 @@ export default function UsersManagementPage() {
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             
-                            {/* Role Actions */}
                             <DropdownMenuLabel>Change Role</DropdownMenuLabel>
-                            {['USER', 'CREATOR', 'MODERATOR', 'ADMIN'].map(role => (
+                            {['USER', 'CREATOR', 'VERIFIED_CREATOR', 'MODERATOR', 'ADMIN', 'SYSTEM'].map(role => (
                               <DropdownMenuItem
                                 key={role}
                                 onClick={() => updateUserRole.mutate({
                                   userId: user.id,
-                                  role
+                                  role: role as any
                                 })}
                                 disabled={user.role === role}
                               >
                                 <Shield className="w-4 h-4 mr-2" />
-                                Make {role.toLowerCase()}
+                                Make {role.toLowerCase().replace('_', ' ')}
                               </DropdownMenuItem>
                             ))}
                             
                             <DropdownMenuSeparator />
                             
-                            {/* Account Actions */}
                             {!user.verified && (
                               <DropdownMenuItem
                                 onClick={() => verifyUser.mutate({ userId: user.id })}
@@ -683,7 +666,8 @@ export default function UsersManagementPage() {
                               <DropdownMenuItem
                                 onClick={() => banUser.mutate({
                                   userId: user.id,
-                                  reason: 'Manual ban by admin'
+                                  reason: 'Manual ban by admin',
+                                  deleteContent: false
                                 })}
                                 className="text-orange-600"
                               >
@@ -712,11 +696,10 @@ export default function UsersManagementPage() {
             </Table>
           </div>
 
-          {/* Pagination */}
           {data && data.totalPages > 1 && (
             <div className="flex items-center justify-between mt-4">
               <p className="text-sm text-muted-foreground">
-                Showing {data.users.length} of {data.totalCount} users
+                Showing {data.users?.length || 0} of {data.totalCount} users
               </p>
               <div className="flex items-center gap-2">
                 <Button
@@ -744,25 +727,22 @@ export default function UsersManagementPage() {
         </CardContent>
       </Card>
 
-      {/* User Details Dialog */}
       {selectedUser && (
         <UserDetailsDialog
-          userId={selectedUser}
+          user={data?.users?.find(u => u.id === selectedUser)}
           onClose={() => setSelectedUser(null)}
-          onAction={(action, params) => {
-            // Handle actions from details dialog
+          onAction={(action: any, params: any) => {
             refetch()
           }}
         />
       )}
 
-      {/* Bulk Action Dialog */}
       <BulkActionDialog
         open={bulkActionDialog.open}
         action={bulkActionDialog.action}
         userCount={bulkActionDialog.users.length}
         onConfirm={executeBulkAction}
-        onCancel={() => setBulkActionDialog({ open: false, action: '', users: [] })}
+        onCancel={() => setBulkActionDialog({ open: false, action: 'email', users: [] })}
       />
     </div>
   )

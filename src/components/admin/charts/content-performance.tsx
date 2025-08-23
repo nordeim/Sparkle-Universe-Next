@@ -50,10 +50,8 @@ import {
   BarChart3,
   Download,
 } from 'lucide-react'
+import type { ContentPerformanceProps } from '@/types/global'
 
-/**
- * Content performance data types
- */
 interface ContentMetrics {
   id: string
   title: string
@@ -69,10 +67,10 @@ interface ContentMetrics {
   likes: number
   comments: number
   shares: number
-  avgReadTime: number // in seconds
-  bounceRate: number // percentage
-  engagementRate: number // percentage
-  viralityScore: number // 0-100
+  avgReadTime: number
+  bounceRate: number
+  engagementRate: number
+  viralityScore: number
   tags: string[]
   category?: string
 }
@@ -104,24 +102,6 @@ interface TopPerformer {
   }
 }
 
-interface ContentPerformanceProps {
-  data?: ContentMetrics[]
-  overTimeData?: PerformanceOverTime[]
-  typeDistribution?: ContentTypeDistribution[]
-  topPerformers?: TopPerformer[]
-  loading?: boolean
-  error?: Error | null
-  className?: string
-  title?: string
-  description?: string
-  period?: 'day' | 'week' | 'month' | 'quarter' | 'year'
-  onPeriodChange?: (period: string) => void
-  onExport?: () => void
-}
-
-/**
- * Get icon for content type
- */
 function getContentTypeIcon(type: string) {
   switch (type) {
     case 'post':
@@ -139,9 +119,6 @@ function getContentTypeIcon(type: string) {
   }
 }
 
-/**
- * Format large numbers
- */
 function formatNumber(num: number): string {
   if (num >= 1000000) {
     return `${(num / 1000000).toFixed(1)}M`
@@ -152,9 +129,6 @@ function formatNumber(num: number): string {
   return num.toString()
 }
 
-/**
- * Calculate performance score
- */
 function calculatePerformanceScore(metrics: ContentMetrics): number {
   const viewsWeight = 0.3
   const engagementWeight = 0.4
@@ -171,11 +145,6 @@ function calculatePerformanceScore(metrics: ContentMetrics): number {
   ) * 100
 }
 
-/**
- * Content Performance Chart Component
- * 
- * Comprehensive analytics dashboard for content performance tracking
- */
 export function ContentPerformance({
   data = [],
   overTimeData = [],
@@ -193,9 +162,8 @@ export function ContentPerformance({
   const [selectedMetric, setSelectedMetric] = React.useState<'views' | 'engagement' | 'shares'>('views')
   const [selectedContentType, setSelectedContentType] = React.useState<string>('all')
   
-  // Calculate summary statistics
   const summaryStats = React.useMemo(() => {
-    if (data.length === 0) {
+    if (!data || data.length === 0) {
       return {
         totalViews: 0,
         totalEngagement: 0,
@@ -205,40 +173,45 @@ export function ContentPerformance({
         viralContent: 0,
       }
     }
+
+    const contentData = Array.isArray(data) ? data : []
     
-    const totalViews = data.reduce((sum, item) => sum + item.views, 0)
-    const totalEngagement = data.reduce((sum, item) => sum + item.likes + item.comments + item.shares, 0)
-    const avgEngagementRate = data.reduce((sum, item) => sum + item.engagementRate, 0) / data.length
+    const totalViews = contentData.reduce((sum, item) => sum + (item.views || 0), 0)
+    const totalEngagement = contentData.reduce((sum, item) => 
+      sum + (item.likes || 0) + (item.comments || 0) + (item.shares || 0), 0)
+    const avgEngagementRate = contentData.length > 0
+      ? contentData.reduce((sum, item) => sum + (item.engagementRate || 0), 0) / contentData.length
+      : 0
     
-    // Find top category
     const categoryCount: Record<string, number> = {}
-    data.forEach(item => {
+    contentData.forEach(item => {
       if (item.category) {
         categoryCount[item.category] = (categoryCount[item.category] || 0) + 1
       }
     })
     const topCategory = Object.entries(categoryCount).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A'
     
-    // Find best performing content type
     const typePerformance: Record<string, number[]> = {}
-    data.forEach(item => {
+    contentData.forEach(item => {
       if (!typePerformance[item.type]) {
         typePerformance[item.type] = []
       }
-      typePerformance[item.type].push(item.engagementRate)
+      typePerformance[item.type].push(item.engagementRate || 0)
     })
     
     let bestType = 'N/A'
     let bestAvgEngagement = 0
     Object.entries(typePerformance).forEach(([type, rates]) => {
-      const avg = rates.reduce((sum, rate) => sum + rate, 0) / rates.length
-      if (avg > bestAvgEngagement) {
-        bestAvgEngagement = avg
-        bestType = type
+      if (rates.length > 0) {
+        const avg = rates.reduce((sum, rate) => sum + rate, 0) / rates.length
+        if (avg > bestAvgEngagement) {
+          bestAvgEngagement = avg
+          bestType = type
+        }
       }
     })
     
-    const viralContent = data.filter(item => item.viralityScore > 70).length
+    const viralContent = contentData.filter(item => (item.viralityScore || 0) > 70).length
     
     return {
       totalViews,
@@ -250,16 +223,14 @@ export function ContentPerformance({
     }
   }, [data])
   
-  // Filter data by content type
   const filteredData = React.useMemo(() => {
+    if (!data || !Array.isArray(data)) return []
     if (selectedContentType === 'all') return data
     return data.filter(item => item.type === selectedContentType)
   }, [data, selectedContentType])
   
-  // Prepare chart colors
   const COLORS = ['#8B5CF6', '#EC4899', '#10B981', '#F59E0B', '#3B82F6', '#EF4444']
   
-  // Custom tooltip
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (!active || !payload || !payload.length) return null
     
@@ -283,8 +254,29 @@ export function ContentPerformance({
       </div>
     )
   }
+
+  const CustomPieLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }: any) => {
+    if (percent === undefined || percent === null) return null
+    
+    const RADIAN = Math.PI / 180
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.5
+    const x = cx + radius * Math.cos(-midAngle * RADIAN)
+    const y = cy + radius * Math.sin(-midAngle * RADIAN)
+
+    return (
+      <text 
+        x={x} 
+        y={y} 
+        fill="white" 
+        textAnchor={x > cx ? 'start' : 'end'} 
+        dominantBaseline="central"
+        className="text-xs font-semibold"
+      >
+        {`${(percent * 100).toFixed(0)}%`}
+      </text>
+    )
+  }
   
-  // Loading state
   if (loading) {
     return (
       <Card className={className}>
@@ -304,7 +296,6 @@ export function ContentPerformance({
     )
   }
   
-  // Error state
   if (error) {
     return (
       <Card className={cn('border-destructive', className)}>
@@ -332,7 +323,7 @@ export function ContentPerformance({
             {description && <CardDescription>{description}</CardDescription>}
           </div>
           <div className="flex items-center gap-2">
-            <Select value={period} onValueChange={onPeriodChange}>
+            <Select value={period || 'week'} onValueChange={onPeriodChange}>
               <SelectTrigger className="w-32">
                 <SelectValue />
               </SelectTrigger>
@@ -354,7 +345,6 @@ export function ContentPerformance({
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Summary Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
@@ -405,7 +395,6 @@ export function ContentPerformance({
           </div>
         </div>
         
-        {/* Main Charts */}
         <Tabs defaultValue="overview" className="space-y-4">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -415,7 +404,6 @@ export function ContentPerformance({
           </TabsList>
           
           <TabsContent value="overview" className="space-y-4">
-            {/* Performance Over Time */}
             <div>
               <h3 className="text-sm font-medium mb-4">Performance Over Time</h3>
               <ResponsiveContainer width="100%" height={350}>
@@ -433,7 +421,13 @@ export function ContentPerformance({
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   <XAxis 
                     dataKey="date"
-                    tickFormatter={(value) => format(parseISO(value), 'MMM dd')}
+                    tickFormatter={(value) => {
+                      try {
+                        return format(parseISO(value), 'MMM dd')
+                      } catch {
+                        return value
+                      }
+                    }}
                     className="text-xs"
                   />
                   <YAxis className="text-xs" />
@@ -459,7 +453,6 @@ export function ContentPerformance({
           </TabsContent>
           
           <TabsContent value="engagement" className="space-y-4">
-            {/* Engagement Metrics */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div>
                 <h3 className="text-sm font-medium mb-4">Engagement by Type</h3>
@@ -487,7 +480,7 @@ export function ContentPerformance({
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      label={CustomPieLabel}
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
@@ -504,7 +497,6 @@ export function ContentPerformance({
           </TabsContent>
           
           <TabsContent value="distribution" className="space-y-4">
-            {/* Content Type Distribution */}
             <div>
               <h3 className="text-sm font-medium mb-4">Content Type Distribution</h3>
               <ResponsiveContainer width="100%" height={350}>
@@ -515,7 +507,6 @@ export function ContentPerformance({
                     fill: COLORS[typeDistribution.indexOf(item) % COLORS.length],
                   }))}
                   dataKey="size"
-                  ratio={4 / 3}
                   stroke="#fff"
                   fill="#8B5CF6"
                 />
@@ -524,7 +515,6 @@ export function ContentPerformance({
           </TabsContent>
           
           <TabsContent value="top" className="space-y-4">
-            {/* Top Performing Content */}
             <div className="space-y-4">
               <h3 className="text-sm font-medium">Top Performing Content</h3>
               {topPerformers.slice(0, 5).map((item, index) => (
@@ -576,6 +566,5 @@ export function ContentPerformance({
   )
 }
 
-// Export types and utilities
 export type { ContentMetrics, PerformanceOverTime, ContentTypeDistribution, TopPerformer }
 export { formatNumber, calculatePerformanceScore }

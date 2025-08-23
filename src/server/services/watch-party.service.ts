@@ -20,7 +20,6 @@ export class WatchPartyService {
     isPublic: boolean
     hostId: string
   }) {
-    // Generate unique party code
     const partyCode = generateSecureToken(6).toUpperCase()
 
     const watchParty = await this.db.watchParty.create({
@@ -28,7 +27,7 @@ export class WatchPartyService {
         ...input,
         partyCode,
         youtubeVideoUrl: `https://youtube.com/watch?v=${input.youtubeVideoId}`,
-        currentParticipants: 1, // Host counts as participant
+        currentParticipants: 1,
       },
       include: {
         host: {
@@ -40,7 +39,6 @@ export class WatchPartyService {
       },
     })
 
-    // Add host as participant
     await this.db.watchPartyParticipant.create({
       data: {
         partyId: watchParty.id,
@@ -49,7 +47,6 @@ export class WatchPartyService {
       },
     })
 
-    // Notify followers if public
     if (input.isPublic) {
       const followers = await this.db.follow.findMany({
         where: { followingId: input.hostId },
@@ -93,13 +90,11 @@ export class WatchPartyService {
       })
     }
 
-    // Check if already participant
     const existing = party.participants.find(p => p.userId === userId)
     if (existing) {
       return existing
     }
 
-    // Add participant
     const participant = await this.db.watchPartyParticipant.create({
       data: {
         partyId,
@@ -108,13 +103,136 @@ export class WatchPartyService {
       },
     })
 
-    // Update participant count
     await this.db.watchParty.update({
       where: { id: partyId },
       data: { currentParticipants: { increment: 1 } },
     })
 
     return participant
+  }
+
+  async leaveParty(partyId: string, userId: string) {
+    const participant = await this.db.watchPartyParticipant.findFirst({
+      where: {
+        partyId,
+        userId,
+        isActive: true,
+      },
+    })
+
+    if (!participant) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Not in this watch party',
+      })
+    }
+
+    await this.db.watchPartyParticipant.update({
+      where: { id: participant.id },
+      data: {
+        isActive: false,
+        leftAt: new Date(),
+      },
+    })
+
+    await this.db.watchParty.update({
+      where: { id: partyId },
+      data: {
+        currentParticipants: { decrement: 1 },
+      },
+    })
+
+    return { success: true }
+  }
+
+  async getPartyDetails(partyId: string) {
+    const party = await this.db.watchParty.findUnique({
+      where: { id: partyId },
+      include: {
+        host: {
+          select: {
+            id: true,
+            username: true,
+            image: true,
+          },
+        },
+        video: true,
+        participants: {
+          where: { isActive: true },
+          include: {
+            user: {
+              select: {
+                id: true,
+                username: true,
+                image: true,
+              },
+            },
+          },
+        },
+        _count: {
+          select: {
+            chat: true,
+          },
+        },
+      },
+    })
+
+    if (!party) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Watch party not found',
+      })
+    }
+
+    return party
+  }
+
+  async getUserParties(userId: string, input: {
+    includeEnded: boolean
+    limit: number
+  }) {
+    const where: any = {
+      OR: [
+        { hostId: userId },
+        {
+          participants: {
+            some: {
+              userId,
+            },
+          },
+        },
+      ],
+      deleted: false,
+    }
+
+    if (!input.includeEnded) {
+      where.endedAt = null
+    }
+
+    const parties = await this.db.watchParty.findMany({
+      where,
+      include: {
+        host: {
+          select: {
+            id: true,
+            username: true,
+            image: true,
+          },
+        },
+        video: true,
+        _count: {
+          select: {
+            participants: true,
+          },
+        },
+      },
+      orderBy: {
+        scheduledStart: 'desc',
+      },
+      take: input.limit,
+    })
+
+    return parties
   }
 
   async getUpcomingParties(params: {
