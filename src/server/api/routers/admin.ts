@@ -7,6 +7,7 @@ import { AnalyticsService } from '@/server/services/analytics.service'
 import { ModerationService } from '@/server/services/moderation.service'
 import { SystemService } from '@/server/services/system.service'
 import { UserRole } from '@prisma/client'
+import type { TimePeriod } from '@/types/global'
 
 // Admin middleware - ensures user is admin or moderator
 const adminProcedure = protectedProcedure.use(async (opts) => {
@@ -40,15 +41,17 @@ export const adminRouter = createTRPCRouter({
   // ===== DASHBOARD =====
   getDashboardStats: adminProcedure
     .input(z.object({
-      period: z.enum(['today', 'week', 'month', 'quarter', 'year']).optional(),
+      period: z.enum(['day', 'week', 'month', 'quarter', 'year']).optional(),
     }))
     .query(async ({ ctx, input }) => {
       const adminService = new AdminService(ctx.db)
       const analyticsService = new AnalyticsService(ctx.db)
       
+      const period = (input.period || 'week') as TimePeriod
+      
       const [basicStats, advancedStats] = await Promise.all([
-        adminService.getDashboardStats(input.period || 'week'),
-        analyticsService.getAdvancedMetrics(input.period || 'week'),
+        adminService.getDashboardStats(period),
+        analyticsService.getAdvancedMetrics(period),
       ])
 
       return {
@@ -58,12 +61,12 @@ export const adminRouter = createTRPCRouter({
           new: basicStats.newUsers,
           online: basicStats.onlineUsers,
           growth: basicStats.userGrowth,
-          activeGrowth: advancedStats.activeUserGrowth,
+          activeGrowth: advancedStats.users.activeGrowth || 0,
           newToday: basicStats.newUsersToday,
-          dau: advancedStats.dau,
-          mau: advancedStats.mau,
-          avgSessionDuration: advancedStats.avgSessionDuration,
-          retentionRate: advancedStats.retentionRate,
+          dau: advancedStats.users.dau || 0,
+          mau: advancedStats.users.mau || 0,
+          avgSessionDuration: advancedStats.users.avgSessionDuration || 0,
+          retentionRate: advancedStats.users.retentionRate || 0,
         },
         content: {
           posts: basicStats.totalPosts,
@@ -74,16 +77,16 @@ export const adminRouter = createTRPCRouter({
         engagement: {
           reactions: basicStats.totalReactions,
           comments: basicStats.totalComments,
-          shares: advancedStats.totalShares,
-          rate: advancedStats.engagementRate,
-          rateChange: advancedStats.engagementRateChange,
-          viralityScore: advancedStats.viralityScore,
+          shares: advancedStats.content.shares || 0,
+          rate: advancedStats.engagement?.rate || 0,
+          rateChange: advancedStats.engagement?.rateChange || 0,
+          viralityScore: advancedStats.engagement?.viralityScore || 0,
         },
         moderation: {
           pending: basicStats.pendingReports,
           approvedToday: basicStats.approvedToday,
           rejectedToday: basicStats.rejectedToday,
-          aiAccuracy: advancedStats.aiModerationAccuracy,
+          aiAccuracy: advancedStats.moderation?.aiAccuracy || 0,
         },
       }
     }),
@@ -95,7 +98,7 @@ export const adminRouter = createTRPCRouter({
     }))
     .query(async ({ ctx, input }) => {
       const analyticsService = new AnalyticsService(ctx.db)
-      return analyticsService.getAnalytics(input.period, input.metric)
+      return analyticsService.getAnalytics(input.period as TimePeriod, input.metric)
     }),
 
   getSystemHealth: adminProcedure
@@ -359,7 +362,8 @@ export const adminRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const systemService = new SystemService(ctx.db)
       return systemService.runMaintenance({
-        ...input,
+        task: input.task,
+        force: input.force,
         initiatedBy: ctx.session.user.id,
       })
     }),

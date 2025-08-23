@@ -82,47 +82,56 @@ export function YouTubeEmbed({
 
   // YouTube Player API
   useEffect(() => {
-    if (!showPlayer || !window.YT) return
+    if (!showPlayer || typeof window === 'undefined') return
 
-    const player = new window.YT.Player(iframeRef.current, {
-      videoId,
-      playerVars: {
-        autoplay: autoplay ? 1 : 0,
-        controls: controls ? 1 : 0,
-        loop: loop ? 1 : 0,
-        mute: muted ? 1 : 0,
-        start: startTime,
-        rel: 0,
-        modestbranding: 1,
-        playsinline: 1,
-      },
-      events: {
-        onReady: (event: any) => {
-          setIsLoaded(true)
-          onReady?.()
-        },
-        onStateChange: (event: any) => {
-          if (event.data === window.YT.PlayerState.PLAYING) {
-            setIsPlaying(true)
-            onPlay?.()
-          } else if (event.data === window.YT.PlayerState.PAUSED) {
-            setIsPlaying(false)
-            onPause?.()
-          } else if (event.data === window.YT.PlayerState.ENDED) {
-            setIsPlaying(false)
-            onEnd?.()
-          }
-        },
-        onError: (event: any) => {
-          console.error('YouTube player error:', event.data)
-          setError('Failed to load video')
-        },
-      },
-    })
+    // Wait for YT API to be ready
+    const checkYTReady = () => {
+      if (window.YT && window.YT.Player) {
+        const player = new window.YT.Player(iframeRef.current, {
+          videoId,
+          playerVars: {
+            autoplay: autoplay ? 1 : 0,
+            controls: controls ? 1 : 0,
+            loop: loop ? 1 : 0,
+            mute: muted ? 1 : 0,
+            start: startTime,
+            rel: 0,
+            modestbranding: 1,
+            playsinline: 1,
+          },
+          events: {
+            onReady: (event: any) => {
+              setIsLoaded(true)
+              onReady?.()
+            },
+            onStateChange: (event: any) => {
+              if (event.data === window.YT.PlayerState.PLAYING) {
+                setIsPlaying(true)
+                onPlay?.()
+              } else if (event.data === window.YT.PlayerState.PAUSED) {
+                setIsPlaying(false)
+                onPause?.()
+              } else if (event.data === window.YT.PlayerState.ENDED) {
+                setIsPlaying(false)
+                onEnd?.()
+              }
+            },
+            onError: (event: any) => {
+              console.error('YouTube player error:', event.data)
+              setError('Failed to load video')
+            },
+          },
+        })
 
-    return () => {
-      player.destroy()
+        return () => {
+          player.destroy()
+        }
+      } else {
+        setTimeout(checkYTReady, 100)
+      }
     }
+    
+    checkYTReady()
   }, [showPlayer, videoId, autoplay, controls, loop, muted, startTime, onReady, onPlay, onPause, onEnd])
 
   // Handle play button click
@@ -132,7 +141,7 @@ export function YouTubeEmbed({
 
   // Toggle mute
   const toggleMute = useCallback(() => {
-    if (iframeRef.current && window.YT) {
+    if (iframeRef.current && window.YT && window.YT.Player) {
       const player = window.YT.get(iframeRef.current)
       if (isMuted) {
         player.unMute()
@@ -234,7 +243,7 @@ export function YouTubeEmbed({
                   <div className="flex items-center gap-2">
                     <Button
                       size="icon"
-                      variant="ghost"
+                      variant="outline"
                       className="text-white hover:bg-white/20"
                       onClick={toggleMute}
                     >
@@ -249,7 +258,7 @@ export function YouTubeEmbed({
                   <div className="flex items-center gap-2">
                     <Button
                       size="icon"
-                      variant="ghost"
+                      variant="outline"
                       className="text-white hover:bg-white/20"
                       onClick={toggleFullscreen}
                     >
@@ -385,7 +394,7 @@ export function YouTubeEmbed({
                 </Badge>
               ))}
               {video.tags.length > 5 && (
-                <Badge variant="ghost" className="text-xs">
+                <Badge variant="outline" className="text-xs">
                   +{video.tags.length - 5} more
                 </Badge>
               )}
@@ -409,5 +418,7 @@ if (typeof window !== 'undefined' && !window.YT) {
   const tag = document.createElement('script')
   tag.src = 'https://www.youtube.com/iframe_api'
   const firstScriptTag = document.getElementsByTagName('script')[0]
-  firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag)
+  if (firstScriptTag && firstScriptTag.parentNode) {
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag)
+  }
 }

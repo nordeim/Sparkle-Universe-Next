@@ -2,8 +2,9 @@
 import { PrismaClient, UserRole, UserStatus, AuditAction } from '@prisma/client'
 import { TRPCError } from '@trpc/server'
 import { NotificationService } from './notification.service'
-import { EmailService } from './email.service'
+import { EmailService } from '../email.service'
 import { Redis } from 'ioredis'
+import type { TimePeriod } from '@/types/global'
 
 export class AdminService {
   private redis: Redis
@@ -16,7 +17,7 @@ export class AdminService {
     this.emailService = new EmailService()
   }
 
-  async getDashboardStats(period: string) {
+  async getDashboardStats(period: TimePeriod) {
     const now = new Date()
     const startDate = this.getStartDate(period)
 
@@ -566,7 +567,7 @@ export class AdminService {
             break
         }
         results.push({ userId, success: true, result })
-      } catch (error) {
+      } catch (error: any) {
         results.push({ userId, success: false, error: error.message })
       }
     }
@@ -745,10 +746,10 @@ export class AdminService {
     }
   }
 
-  private getStartDate(period: string, multiplier = -1): Date {
+  private getStartDate(period: TimePeriod, multiplier = -1): Date {
     const now = new Date()
     switch (period) {
-      case 'today':
+      case 'day':
         return new Date(now.setHours(0, 0, 0, 0))
       case 'week':
         return new Date(now.setDate(now.getDate() + 7 * multiplier))

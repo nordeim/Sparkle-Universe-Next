@@ -6,19 +6,22 @@
 
 import { UserRole, UserStatus, AuthProvider } from '@prisma/client'
 
-// Extended User type for admin layout
+// Extended User type for admin layout with all required fields
 export interface ExtendedUser {
   id: string
   username: string
   email: string
+  name?: string // Added for admin layout compatibility
   role: UserRole
   image: string | null
+  avatar?: string // Alias for image
   level?: number
   sparklePoints?: number
   premiumPoints?: number
   status?: UserStatus
   createdAt?: Date
   updatedAt?: Date
+  version?: number // Added required version field
   hashedPassword?: string
   authProvider?: AuthProvider
   deleted?: boolean
@@ -59,41 +62,150 @@ export interface ExtendedUser {
   timezone?: string
 }
 
-// Chart component props
+// Fixed TimePeriod type - removed 'today' to match API expectations
+export type TimePeriod = 'day' | 'week' | 'month' | 'quarter' | 'year'
+
+// Chart component props with complete definitions
 export interface UserGrowthChartProps {
-  data: any
-  period?: 'day' | 'week' | 'month' | 'today' | 'quarter' | 'year'
+  data: UserGrowthData[]
+  period?: TimePeriod
   height?: number
+  type?: 'line' | 'area' | 'bar'
+  showLegend?: boolean
+  showGrid?: boolean
+  showBrush?: boolean
+  loading?: boolean
+  error?: string
+  className?: string
+  title?: string
+  description?: string
+  showTrend?: boolean
+  showStats?: boolean
+  animate?: boolean
+  colors?: string[]
+}
+
+export interface UserGrowthData {
+  date: string
+  users: number
+  cumulative?: number
+  activeUsers?: number
+  newUsers?: number
 }
 
 export interface ContentPerformanceProps {
   data: any
+  period?: TimePeriod
+  overTimeData?: any[]
+  typeDistribution?: any[]
+  topPerformers?: any[]
+  loading?: boolean
+  error?: string
+  className?: string
+  title?: string
+  description?: string
+  onPeriodChange?: (period: TimePeriod) => void
+  onExport?: () => void
   type?: string
   height?: number
   showLegend?: boolean
   horizontal?: boolean
-  period?: string
+}
+
+export interface ContentPerformanceData {
+  id: string
+  title: string
+  views: number
+  comments: number
+  reactions: number
+  shares: number
+  engagement: number
+  author: string
+  createdAt: Date
 }
 
 export interface EngagementHeatmapProps {
   data: any
   height?: number
+  loading?: boolean
+  error?: string
+  className?: string
+  title?: string
+  description?: string
+}
+
+export interface TopCreator {
+  id: string
+  username: string
+  avatar: string | null
+  postsCount: number
+  followersCount: number
+  engagementRate: number
+  revenue: number
+}
+
+// Analytics Chart Props
+export interface AnalyticsChartProps {
+  data?: any
+  type?: 'line' | 'bar' | 'area' | 'pie' | 'donut' | 'radar' | 'scatter' | 'heatmap' | 'treemap' | 'map' | 'stacked-bar'
+  height?: number
+  showLegend?: boolean
+  showGrid?: boolean
+  animate?: boolean
+  className?: string
+  title?: string
+  colors?: string[]
+  horizontal?: boolean
 }
 
 // Real-time metrics types
 export interface RealtimeMetric {
   label: string
   value: number
-  unit: string
-  trend: 'up' | 'down' | 'stable'
+  unit?: string
+  trend?: 'up' | 'down' | 'stable'
   percentage?: number
   threshold?: { warning: number; critical: number }
   icon?: React.ComponentType<any>
   color?: string
 }
 
-// Admin types
-export type TimePeriod = 'day' | 'week' | 'month' | 'today' | 'quarter' | 'year'
+// Admin Dashboard Types
+export interface DashboardStats {
+  users: {
+    total: number
+    active: number
+    new: number
+    online: number
+    growth: number
+    activeGrowth?: number
+    newToday?: number
+    dau?: number
+    mau?: number
+    avgSessionDuration?: number
+    retentionRate?: number
+  }
+  content: {
+    posts: number
+    comments: number
+    postsGrowth: number
+    postsToday?: number
+  }
+  engagement: {
+    reactions: number
+    comments: number
+    shares?: number
+    rate?: number
+    rateChange?: number
+    viralityScore?: number
+  }
+  moderation: {
+    pending: number
+    approvedToday: number
+    rejectedToday: number
+    aiAccuracy?: number
+  }
+}
 
 // EdgeRuntime type
 declare const EdgeRuntime: string | undefined
@@ -113,11 +225,19 @@ declare module '@prisma/client' {
 }
 
 // YouTube API Global Types
-interface Window {
-  YT: typeof YT
-  onYouTubeIframeAPIReady?: () => void
-  dataLayer: any[]
-  gtag?: (...args: any[]) => void
+declare global {
+  interface Window {
+    YT: {
+      Player: typeof YT.Player
+      PlayerState: typeof YT.PlayerState
+      PlayerError: typeof YT.PlayerError
+      loaded: number
+      ready: (callback: () => void) => void
+    }
+    onYouTubeIframeAPIReady?: () => void
+    dataLayer: any[]
+    gtag?: (...args: any[]) => void
+  }
 }
 
 declare namespace YT {
@@ -152,6 +272,7 @@ declare namespace YT {
     destroy(): void
     addEventListener(event: string, listener: Function): void
     removeEventListener(event: string, listener: Function): void
+    get(iframeRef: HTMLIFrameElement): Player
   }
   
   interface PlayerOptions {
@@ -187,6 +308,7 @@ declare namespace YT {
     showinfo?: 0 | 1
     start?: number
     widget_referrer?: string
+    mute?: 0 | 1
   }
   
   interface Events {
@@ -239,21 +361,129 @@ declare namespace YT {
 
 // Algolia Search Types
 declare module 'algoliasearch' {
+  export default function algoliasearch(
+    appId: string,
+    apiKey: string,
+    options?: any
+  ): SearchClient
+
   export interface SearchClient {
     initIndex(indexName: string): SearchIndex
+    search<T = any>(requests: MultipleQueriesQuery[]): Promise<MultipleQueriesResponse<T>>
+    searchForFacetValues(queries: SearchForFacetValuesQuery[]): Promise<SearchForFacetValuesResponse[]>
+    clearCache(): void
   }
   
   export interface SearchIndex {
-    search(query: string, options?: any): Promise<any>
-    saveObjects(objects: any[]): Promise<any>
-    deleteObjects(objectIDs: string[]): Promise<any>
-    clearObjects(): Promise<any>
+    search<T = any>(query: string, options?: SearchOptions): Promise<SearchResponse<T>>
+    searchForFacetValues(facetName: string, facetQuery: string, options?: SearchForFacetValuesOptions): Promise<SearchForFacetValuesResponse>
+    saveObjects(objects: any[], options?: SaveObjectsOptions): Promise<SaveObjectsResponse>
+    deleteObjects(objectIDs: string[]): Promise<DeleteObjectsResponse>
+    clearObjects(): Promise<ClearObjectsResponse>
+    partialUpdateObject(object: any, options?: PartialUpdateObjectOptions): Promise<UpdateObjectResponse>
+    partialUpdateObjects(objects: any[], options?: PartialUpdateObjectsOptions): Promise<UpdateObjectsResponse>
+  }
+
+  export interface SearchOptions {
+    query?: string
+    similarQuery?: string
+    facetFilters?: string | string[] | string[][]
+    optionalFacetFilters?: string | string[] | string[][]
+    numericFilters?: string | string[]
+    filters?: string
+    page?: number
+    hitsPerPage?: number
+    offset?: number
+    length?: number
+    [key: string]: any
+  }
+
+  export interface SearchResponse<T = any> {
+    hits: Array<T & { objectID: string; _highlightResult?: any }>
+    nbHits: number
+    page: number
+    nbPages: number
+    hitsPerPage: number
+    processingTimeMS: number
+    query: string
+    params: string
+  }
+
+  export interface MultipleQueriesQuery {
+    indexName: string
+    query?: string
+    params?: SearchOptions
+  }
+
+  export interface MultipleQueriesResponse<T = any> {
+    results: SearchResponse<T>[]
+  }
+
+  export interface SearchForFacetValuesQuery {
+    indexName: string
+    facetName: string
+    facetQuery: string
+    params?: SearchForFacetValuesOptions
+  }
+
+  export interface SearchForFacetValuesOptions {
+    facetQuery?: string
+    maxFacetHits?: number
+  }
+
+  export interface SearchForFacetValuesResponse {
+    facetHits: FacetHit[]
+    exhaustiveFacetsCount: boolean
+    processingTimeMS: number
+  }
+
+  export interface FacetHit {
+    value: string
+    highlighted: string
+    count: number
+  }
+
+  export interface SaveObjectsOptions {
+    autoGenerateObjectIDIfNotExist?: boolean
+  }
+
+  export interface SaveObjectsResponse {
+    objectIDs: string[]
+    taskID: number
+  }
+
+  export interface DeleteObjectsResponse {
+    objectIDs: string[]
+    taskID: number
+  }
+
+  export interface ClearObjectsResponse {
+    updatedAt: string
+    taskID: number
+  }
+
+  export interface UpdateObjectResponse {
+    objectID: string
+    taskID: number
+  }
+
+  export interface UpdateObjectsResponse {
+    objectIDs: string[]
+    taskID: number
+  }
+
+  export interface PartialUpdateObjectOptions {
+    createIfNotExists?: boolean
+  }
+
+  export interface PartialUpdateObjectsOptions {
+    createIfNotExists?: boolean
   }
 }
 
 // Recharts Custom Types
 declare module 'recharts' {
-  export interface CustomTooltipProps<TValue, TName> {
+  export interface CustomTooltipProps<TValue = any, TName = any> {
     active?: boolean
     payload?: Array<{
       value: TValue
@@ -261,8 +491,24 @@ declare module 'recharts' {
       color?: string
       dataKey?: string
       payload?: any
+      unit?: string
     }>
     label?: string
+    labelFormatter?: (value: any) => string
+    formatter?: (value: any, name: any) => [string, string] | string
+  }
+
+  export interface CustomLegendProps {
+    payload?: Array<{
+      value: string
+      type?: string
+      id?: string
+      color?: string
+    }>
+    iconSize?: number
+    layout?: 'horizontal' | 'vertical'
+    align?: 'left' | 'center' | 'right'
+    verticalAlign?: 'top' | 'middle' | 'bottom'
   }
 }
 
@@ -270,7 +516,7 @@ declare module 'recharts' {
 declare module 'next-themes' {
   export interface ThemeProviderProps {
     children: React.ReactNode
-    attribute?: string
+    attribute?: string | string[]
     defaultTheme?: string
     enableSystem?: boolean
     disableTransitionOnChange?: boolean
@@ -280,6 +526,7 @@ declare module 'next-themes' {
     enableColorScheme?: boolean
     scriptProps?: React.HTMLAttributes<HTMLScriptElement>
     nonce?: string
+    value?: { [themeName: string]: string }
   }
   
   export interface UseThemeProps {
@@ -290,6 +537,9 @@ declare module 'next-themes' {
     forcedTheme?: string
     resolvedTheme?: string
   }
+
+  export function ThemeProvider(props: ThemeProviderProps): JSX.Element
+  export function useTheme(): UseThemeProps
 }
 
 // Custom Event Types for Sparkle Universe
@@ -313,6 +563,22 @@ interface SparkleCustomEvents {
     userId: string
     points: number
     type: 'sparkle' | 'premium'
+  }>
+  'sparkle:post-created': CustomEvent<{
+    postId: string
+    userId: string
+    title: string
+  }>
+  'sparkle:comment-added': CustomEvent<{
+    commentId: string
+    postId: string
+    userId: string
+  }>
+  'sparkle:reaction-added': CustomEvent<{
+    reactionType: string
+    entityId: string
+    entityType: 'post' | 'comment'
+    userId: string
   }>
 }
 
@@ -343,8 +609,28 @@ declare global {
       OPENAI_API_KEY?: string
       STRIPE_SECRET_KEY?: string
       STRIPE_WEBHOOK_SECRET?: string
+      STRIPE_PUBLISHABLE_KEY?: string
+      PAYPAL_CLIENT_ID?: string
+      PAYPAL_CLIENT_SECRET?: string
+      TWILIO_ACCOUNT_SID?: string
+      TWILIO_AUTH_TOKEN?: string
+      TWILIO_PHONE_NUMBER?: string
+      EMAIL_SERVER_HOST?: string
+      EMAIL_SERVER_PORT?: string
+      EMAIL_SERVER_USER?: string
+      EMAIL_SERVER_PASSWORD?: string
+      EMAIL_FROM?: string
       NEXT_PUBLIC_APP_URL?: string
       NEXT_PUBLIC_WS_URL?: string
+      NEXT_PUBLIC_ENABLE_YOUTUBE?: string
+      NEXT_PUBLIC_ENABLE_WEBSOCKET?: string
+      NEXT_PUBLIC_ENABLE_PWA?: string
+      NEXT_PUBLIC_ENABLE_PHONE_VERIFICATION?: string
+      NEXT_PUBLIC_ENABLE_2FA?: string
+      ENCRYPTION_KEY?: string
+      JWT_SECRET?: string
+      HASH_SALT?: string
+      AI_MODEL?: string
       NODE_ENV: 'development' | 'production' | 'test'
     }
   }
@@ -369,11 +655,64 @@ declare global {
   // React patterns
   type PropsWithClassName<P = {}> = P & { className?: string }
   type PropsWithChildren<P = {}> = P & { children?: React.ReactNode }
+  
+  // API Response types
+  interface ApiResponse<T = any> {
+    data?: T
+    error?: string
+    message?: string
+    status: number
+    success: boolean
+  }
+  
+  interface PaginatedResponse<T = any> {
+    data: T[]
+    page: number
+    pageSize: number
+    totalPages: number
+    totalCount: number
+    hasMore: boolean
+  }
+  
+  // Form types
+  interface FormState<T = any> {
+    values: T
+    errors: Partial<Record<keyof T, string>>
+    touched: Partial<Record<keyof T, boolean>>
+    isSubmitting: boolean
+    isValid: boolean
+  }
+  
+  // Table types
+  interface TableColumn<T = any> {
+    key: keyof T | string
+    label: string
+    sortable?: boolean
+    width?: string | number
+    align?: 'left' | 'center' | 'right'
+    render?: (value: any, row: T, index: number) => React.ReactNode
+  }
+  
+  interface TableState<T = any> {
+    data: T[]
+    columns: TableColumn<T>[]
+    page: number
+    pageSize: number
+    sortBy?: keyof T | string
+    sortOrder?: 'asc' | 'desc'
+    filters?: Record<string, any>
+    selectedRows?: T[]
+  }
 }
 
 // Module declarations for assets
 declare module '*.svg' {
   const content: React.FunctionComponent<React.SVGAttributes<SVGElement>>
+  export default content
+}
+
+declare module '*.svg?url' {
+  const content: string
   export default content
 }
 
@@ -402,6 +741,11 @@ declare module '*.webp' {
   export default content
 }
 
+declare module '*.avif' {
+  const content: string
+  export default content
+}
+
 declare module '*.ico' {
   const content: string
   export default content
@@ -417,9 +761,89 @@ declare module '*.mp4' {
   export default content
 }
 
+declare module '*.mp3' {
+  const content: string
+  export default content
+}
+
+declare module '*.wav' {
+  const content: string
+  export default content
+}
+
+declare module '*.ogg' {
+  const content: string
+  export default content
+}
+
+declare module '*.pdf' {
+  const content: string
+  export default content
+}
+
+declare module '*.woff' {
+  const content: string
+  export default content
+}
+
+declare module '*.woff2' {
+  const content: string
+  export default content
+}
+
+declare module '*.eot' {
+  const content: string
+  export default content
+}
+
+declare module '*.ttf' {
+  const content: string
+  export default content
+}
+
+declare module '*.otf' {
+  const content: string
+  export default content
+}
+
 declare module '*.json' {
   const value: any
   export default value
+}
+
+declare module '*.md' {
+  const content: string
+  export default content
+}
+
+declare module '*.mdx' {
+  const MDXComponent: (props: any) => JSX.Element
+  export default MDXComponent
+}
+
+declare module '*.css' {
+  const content: { [className: string]: string }
+  export default content
+}
+
+declare module '*.scss' {
+  const content: { [className: string]: string }
+  export default content
+}
+
+declare module '*.sass' {
+  const content: { [className: string]: string }
+  export default content
+}
+
+declare module '*.less' {
+  const content: { [className: string]: string }
+  export default content
+}
+
+declare module '*.styl' {
+  const content: { [className: string]: string }
+  export default content
 }
 
 export {}

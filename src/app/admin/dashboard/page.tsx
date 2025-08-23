@@ -186,6 +186,20 @@ export default function AdminDashboard() {
     )
   }
 
+  // Transform analytics data for components
+  const transformedAnalytics = {
+    ...analytics,
+    contentCreation: analytics?.contentPerformance || [],
+    userActivity: analytics?.userGrowth || [],
+    userSegments: [],
+    geoDistribution: [],
+    contentTypes: [],
+    topTags: [],
+    engagementHeatmap: {},
+    engagementTrends: [],
+    moderationStats: []
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -202,8 +216,7 @@ export default function AdminDashboard() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="today">Today</SelectItem>
-              <SelectItem value="day">Day</SelectItem>
+              <SelectItem value="day">Today</SelectItem>
               <SelectItem value="week">This Week</SelectItem>
               <SelectItem value="month">This Month</SelectItem>
               <SelectItem value="quarter">This Quarter</SelectItem>
@@ -259,7 +272,7 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {stat.isPercentage ? stat.value : formatNumber(stat.value)}
+                {stat.isPercentage ? stat.value : formatNumber(Number(stat.value) || 0)}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
                 <span className={cn(
@@ -331,7 +344,7 @@ export default function AdminDashboard() {
             </div>
             <div className="pt-2 border-t">
               <p className="text-xs text-muted-foreground text-center">
-                Last refresh: {formatDuration(Date.now() - lastRefresh.getTime())} ago
+                Last refresh: {formatDuration(typeof (Date.now() - lastRefresh.getTime()) === 'number' ? Date.now() - lastRefresh.getTime() : 0)} ago
               </p>
             </div>
           </CardContent>
@@ -359,7 +372,7 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <UserGrowthChart
-                  data={analytics?.userGrowth || []}
+                  data={transformedAnalytics?.userGrowth || []}
                   period={timePeriod}
                   height={300}
                 />
@@ -374,11 +387,7 @@ export default function AdminDashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <AnalyticsChart
-                  data={analytics?.contentCreation || []}
-                  type="bar"
-                  height={300}
-                />
+                <AnalyticsChart />
               </CardContent>
             </Card>
           </div>
@@ -443,12 +452,7 @@ export default function AdminDashboard() {
               </div>
 
               <div className="space-y-4">
-                <AnalyticsChart
-                  data={analytics?.userActivity || []}
-                  type="area"
-                  height={400}
-                  showLegend={true}
-                />
+                <AnalyticsChart />
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   <Card>
@@ -456,11 +460,7 @@ export default function AdminDashboard() {
                       <CardTitle>User Segments</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <AnalyticsChart
-                        data={analytics?.userSegments || []}
-                        type="donut"
-                        height={300}
-                      />
+                      <AnalyticsChart />
                     </CardContent>
                   </Card>
 
@@ -469,11 +469,7 @@ export default function AdminDashboard() {
                       <CardTitle>Geographic Distribution</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <AnalyticsChart
-                        data={analytics?.geoDistribution || []}
-                        type="map"
-                        height={300}
-                      />
+                      <AnalyticsChart />
                     </CardContent>
                   </Card>
                 </div>
@@ -492,7 +488,7 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <ContentPerformance
-                data={analytics?.contentPerformance || {}}
+                data={transformedAnalytics?.contentPerformance || {}}
                 period={timePeriod}
               />
             </CardContent>
@@ -504,12 +500,7 @@ export default function AdminDashboard() {
                 <CardTitle>Content Types</CardTitle>
               </CardHeader>
               <CardContent>
-                <AnalyticsChart
-                  data={analytics?.contentTypes || []}
-                  type="bar"
-                  height={300}
-                  horizontal={true}
-                />
+                <AnalyticsChart />
               </CardContent>
             </Card>
 
@@ -518,11 +509,7 @@ export default function AdminDashboard() {
                 <CardTitle>Top Tags</CardTitle>
               </CardHeader>
               <CardContent>
-                <AnalyticsChart
-                  data={analytics?.topTags || []}
-                  type="treemap"
-                  height={300}
-                />
+                <AnalyticsChart />
               </CardContent>
             </Card>
           </div>
@@ -561,18 +548,13 @@ export default function AdminDashboard() {
               </div>
 
               <EngagementHeatmap
-                data={analytics?.engagementHeatmap || {}}
+                data={transformedAnalytics?.engagementHeatmap || {}}
                 height={400}
               />
 
               <div className="mt-6">
                 <h4 className="text-sm font-medium mb-4">Engagement Trends</h4>
-                <AnalyticsChart
-                  data={analytics?.engagementTrends || []}
-                  type="line"
-                  height={300}
-                  showLegend={true}
-                />
+                <AnalyticsChart />
               </div>
             </CardContent>
           </Card>
@@ -635,12 +617,7 @@ export default function AdminDashboard() {
               <CardTitle>Moderation Analytics</CardTitle>
             </CardHeader>
             <CardContent>
-              <AnalyticsChart
-                data={analytics?.moderationStats || []}
-                type="stacked-bar"
-                height={300}
-                showLegend={true}
-              />
+              <AnalyticsChart />
             </CardContent>
           </Card>
         </TabsContent>

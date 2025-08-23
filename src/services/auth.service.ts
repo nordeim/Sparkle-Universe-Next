@@ -99,7 +99,8 @@ export class AuthService {
     const correlationId = generateCorrelationId()
     const timer = performance.start('auth.register')
     
-    logger.info('User registration attempt', { 
+    logger.info({
+      message: 'User registration attempt',
       email: input.email,
       correlationId 
     })
@@ -197,7 +198,8 @@ export class AuthService {
       })
 
       const timing = performance.end('auth.register')
-      logger.info('User registered successfully', { 
+      logger.info({
+        message: 'User registered successfully',
         userId: user.id,
         duration: timing?.duration,
         correlationId 
@@ -206,7 +208,9 @@ export class AuthService {
       return user
     } catch (error) {
       const timing = performance.end('auth.register')
-      logger.error('Registration failed', error, {
+      logger.error({
+        message: 'Registration failed',
+        error,
         duration: timing?.duration,
         correlationId,
       })
@@ -220,7 +224,7 @@ export class AuthService {
     const correlationId = generateCorrelationId()
     const requestId = generateRequestId()
 
-    logger.info('Login attempt', { email, ipAddress, correlationId, requestId })
+    logger.info({ message: 'Login attempt', email, ipAddress, correlationId, requestId })
 
     // Check if user exists
     const user = await db.user.findUnique({
@@ -229,7 +233,13 @@ export class AuthService {
     })
 
     if (!user) {
-      await trackLoginAttempt(email, ipAddress, userAgent, false, 'User not found')
+      await trackLoginAttempt({
+        email,
+        ipAddress,
+        userAgent,
+        success: false,
+        reason: 'User not found'
+      })
       throw new Error('Invalid credentials')
     }
 
@@ -297,18 +307,23 @@ export class AuthService {
         })
 
         // Alert user about backup code usage
-        await createSecurityAlert(
-          user.id,
-          'BACKUP_CODE_USED',
-          'Backup Code Used',
-          'A backup code was used to access your account',
-          'medium'
-        )
+        await createSecurityAlert({
+          userId: user.id,
+          type: 'BACKUP_CODE_USED',
+          severity: 'medium',
+          title: 'Backup Code Used',
+          description: 'A backup code was used to access your account',
+        })
       }
     }
 
     // Track successful login
-    await trackLoginAttempt(email, ipAddress, userAgent, true)
+    await trackLoginAttempt({
+      email,
+      ipAddress,
+      userAgent,
+      success: true
+    })
 
     // Update user
     await db.user.update({
@@ -324,7 +339,7 @@ export class AuthService {
     await redis.del(`failed_attempts:${user.id}`)
 
     // Generate session token
-    const sessionToken = generateSecureToken(32, 'sess')
+    const sessionToken = generateSecureToken(32)
     const sessionData = {
       userId: user.id,
       ipAddress,
@@ -360,7 +375,7 @@ export class AuthService {
   static async enableTwoFactor(userId: string): Promise<Enable2FAResult> {
     const correlationId = generateCorrelationId()
     
-    logger.info('Enabling 2FA', { userId, correlationId })
+    logger.info({ message: 'Enabling 2FA', userId, correlationId })
 
     const user = await db.user.findUnique({
       where: { id: userId },
@@ -403,7 +418,7 @@ export class AuthService {
   ): Promise<boolean> {
     const correlationId = generateCorrelationId()
     
-    logger.info('Verifying 2FA setup', { userId, correlationId })
+    logger.info({ message: 'Verifying 2FA setup', userId, correlationId })
 
     // Get setup data from Redis
     const setupData = await redisHelpers.getJSON<{
@@ -436,13 +451,13 @@ export class AuthService {
     await redis.del(`2fa_setup:${userId}`)
 
     // Create security alert
-    await createSecurityAlert(
+    await createSecurityAlert({
       userId,
-      '2FA_ENABLED',
-      'Two-Factor Authentication Enabled',
-      'Two-factor authentication has been successfully enabled on your account',
-      'low'
-    )
+      type: '2FA_ENABLED',
+      severity: 'low',
+      title: 'Two-Factor Authentication Enabled',
+      description: 'Two-factor authentication has been successfully enabled on your account',
+    })
 
     eventEmitter.emit('auth:2faEnabled', { userId })
 
@@ -457,7 +472,7 @@ export class AuthService {
   ): Promise<void> {
     const correlationId = generateCorrelationId()
     
-    logger.info('Disabling 2FA', { userId, correlationId })
+    logger.info({ message: 'Disabling 2FA', userId, correlationId })
 
     const user = await db.user.findUnique({
       where: { id: userId },
@@ -499,13 +514,13 @@ export class AuthService {
     })
 
     // Create security alert
-    await createSecurityAlert(
+    await createSecurityAlert({
       userId,
-      '2FA_DISABLED',
-      'Two-Factor Authentication Disabled',
-      'Two-factor authentication has been disabled on your account',
-      'high'
-    )
+      type: '2FA_DISABLED',
+      severity: 'high',
+      title: 'Two-Factor Authentication Disabled',
+      description: 'Two-factor authentication has been disabled on your account',
+    })
 
     eventEmitter.emit('auth:2faDisabled', { userId })
   }
@@ -524,7 +539,13 @@ export class AuthService {
     const attempts = (currentAttempts ? parseInt(currentAttempts) : 0) + 1
     await redis.setex(attemptsKey, this.LOGIN_LOCKOUT_DURATION, attempts.toString())
 
-    await trackLoginAttempt(email, ipAddress, userAgent, false, 'Invalid password')
+    await trackLoginAttempt({
+      email,
+      ipAddress,
+      userAgent,
+      success: false,
+      reason: 'Invalid password'
+    })
 
     // Update user record
     await db.user.update({
@@ -545,13 +566,13 @@ export class AuthService {
         },
       })
       
-      await createSecurityAlert(
+      await createSecurityAlert({
         userId,
-        'ACCOUNT_LOCKED',
-        'Account Locked',
-        `Account locked due to ${attempts} failed login attempts`,
-        'high'
-      )
+        type: 'ACCOUNT_LOCKED',
+        severity: 'high',
+        title: 'Account Locked',
+        description: `Account locked due to ${attempts} failed login attempts`,
+      })
     }
   }
 
@@ -583,7 +604,10 @@ export class AuthService {
     await UserService.addExperience(userId, 20, 'email_verified')
 
     // Queue achievement check
-    await jobs.achievement.check(userId)
+    await jobs.achievement.check({
+      userId,
+      achievementType: 'email_verification'
+    })
 
     eventEmitter.emit('auth:emailVerified', { userId })
   }
@@ -599,7 +623,8 @@ export class AuthService {
 
     if (!user) {
       // Don't reveal if email exists
-      logger.info('Password reset requested for non-existent email', { 
+      logger.info({ 
+        message: 'Password reset requested for non-existent email',
         email,
         correlationId 
       })
@@ -607,7 +632,7 @@ export class AuthService {
     }
 
     // Generate reset token
-    const resetToken = generateSecureToken(32, 'reset')
+    const resetToken = generateSecureToken(32)
     const resetData = {
       userId: user.id,
       email: user.email,
@@ -691,13 +716,13 @@ export class AuthService {
     })
 
     // Create security alert
-    await createSecurityAlert(
-      resetData.userId,
-      'PASSWORD_CHANGED',
-      'Password Changed',
-      'Your password was successfully changed. All sessions have been terminated.',
-      'medium'
-    )
+    await createSecurityAlert({
+      userId: resetData.userId,
+      type: 'PASSWORD_CHANGED',
+      severity: 'medium',
+      title: 'Password Changed',
+      description: 'Your password was successfully changed. All sessions have been terminated.',
+    })
 
     eventEmitter.emit('auth:passwordReset', { 
       userId: resetData.userId
@@ -716,7 +741,7 @@ export class AuthService {
     await redis.del(`session:${sessionToken}`)
     
     // Delete from database
-    await db.session.delete({
+    await db.session.deleteMany({
       where: { sessionToken },
     }).catch(() => {
       // Session might not exist in DB
