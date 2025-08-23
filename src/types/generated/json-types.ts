@@ -1,5 +1,42 @@
+// Auto-generated json-types
+
+export interface NotificationData {
+  title?: string
+  body?: string
+  context?: Record<string, any>
+  url?: string
+  silent?: boolean
+}
+
+export type PostRevisionContent = {
+  ops?: Array<{ insert?: string | Record<string, any>; attributes?: Record<string, any> }>
+  metadata?: Record<string, any>
+}
+
+export interface PlaylistMetadata {
+  visibility?: 'public' | 'private' | 'unlisted'
+  tags?: string[]
+  order?: string[]
+  extras?: Record<string, any>
+}
+
+export interface UserAchievementProgress {
+  percent?: number
+  stepsCompleted?: number
+  lastUpdated?: string
+  details?: Record<string, any>
+}
+
+export interface YouTubeMetadata {
+  videoId?: string
+  channelId?: string
+  thumbnails?: Record<string, { url: string; width?: number; height?: number }>
+  publishedAt?: string
+  extras?: Record<string, any>
+}
+
 // JSON Field Type Definitions
-// Generated on 2025-08-23T15:20:33.842Z
+// Generated on 2025-08-23T16:03:08.077Z
 // Complete type definitions for all JSON fields in the schema
 
 // ============================================
@@ -398,7 +435,7 @@ export interface StoreItemRequirements {
   achievements?: string[];
   items?: string[];
   reputation?: number;
-  subscription?: string;
+  subscription?: string | number;
 }
 
 // ============================================
@@ -845,10 +882,7 @@ export const JSON_FIELD_TYPES = {
   "Leaderboard.metadata": "Record<string, any>",
   "LeaderboardEntry.metadata": "Record<string, any>",
   "ModerationAction.evidence": "Record<string, any>",
-  "Notification.data": "Record<string, any>",
   "NotificationQueue.payload": "Record<string, any>",
-  "Playlist.metadata": "Record<string, any>",
-  "PostRevision.content": "Record<string, any>",
   "PostSeries.metadata": "Record<string, any>",
   "PresenceTracking.metadata": "Record<string, any>",
   "Reaction.metadata": "Record<string, any>",
@@ -859,7 +893,6 @@ export const JSON_FIELD_TYPES = {
   "SearchIndex.metadata": "Record<string, any>",
   "StoreItem.metadata": "Record<string, any>",
   "SystemHealth.metadata": "Record<string, any>",
-  "UserAchievement.progressData": "Record<string, any>",
   "UserInventory.customData": "Record<string, any>",
   "VideoClip.metadata": "Record<string, any>",
   "WatchParty.customEmotes": "Record<string, any>",
@@ -868,7 +901,11 @@ export const JSON_FIELD_TYPES = {
   "XpLog.metadata": "Record<string, any>",
   "YoutubeChannel.channelData": "Record<string, any>",
   "YoutubeChannel.metadata": "Record<string, any>",
-  "YoutubeVideo.metadata": "Record<string, any>"
+  "YoutubeVideo.metadata": "Record<string, any>",
+  "Notification.data": "NotificationData",
+  "Playlist.metadata": "PlaylistMetadata",
+  "PostRevision.content": "PostRevisionContent",
+  "UserAchievement.progressData": "UserAchievementProgress"
 } as const;
 
 // Type guard helpers for runtime checking

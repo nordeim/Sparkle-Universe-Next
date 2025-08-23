@@ -1,10 +1,10 @@
 // Prisma Model Types with Complete JSON Typing
-// Generated on 2025-08-23T15:20:33.841Z
+// Generated on 2025-08-23T16:03:08.076Z
 // Total Models: 112
 
 import { Decimal } from 'decimal.js'
 import { UserRole, UserStatus, NotificationType, ReactionType, ReportReason, ModerationStatus, ContentType, ContentStatus, BadgeRarity, QuestType, QuestStatus, TradeStatus, MessageStatus, EventType, EventStatus, GroupVisibility, GroupMemberRole, CacheType, AuditAction, PaymentStatus, SubscriptionTier, AuthProvider } from './enums'
-import { YouTubeVideoData, ThemePreference, NotificationSettings, PrivacySettings, SocialLinks, PostContent, SponsorInfo, AchievementCriteria, StoreItemData, StoreItemRequirements, TradeItems, QuestRequirements, QuestRewards, QuestMetadata, QuestProgress, UserQuestMetadata, GroupGuidelines, GroupSettings, CustomEmojis, GroupMetadata, LocationCoordinates, EventRecurrence, EventAgenda, EventSpeakers, EventSponsors, EventMaterials, EventFeedback, ConversationSettings, MessageAttachments, MessageReactions, MessageMetadata, EditHistory, ChatAttachments, ChatReactions, PollResults, PollOptionMetadata, PollVoteMetadata, ArtDimensions, AiContentPreferences, WritingStyle, AiMessage, AiContext, AiModerationCategories, AiReasons, MediaDimensions, MediaMetadata, ExperimentVariants, ExperimentMetrics, TargetingRules, ExperimentResults, FeatureFlagConditions, FeatureFlagMetadata, ValidationRules, AuditMetadata, EventProperties, EventContext } from './json-types'
+import { YouTubeVideoData, ThemePreference, NotificationSettings, PrivacySettings, SocialLinks, PostContent, SponsorInfo, PostRevisionContent, NotificationData, AchievementCriteria, UserAchievementProgress, StoreItemData, StoreItemRequirements, TradeItems, QuestRequirements, QuestRewards, QuestMetadata, QuestProgress, UserQuestMetadata, PlaylistMetadata, GroupGuidelines, GroupSettings, CustomEmojis, GroupMetadata, LocationCoordinates, EventRecurrence, EventAgenda, EventSpeakers, EventSponsors, EventMaterials, EventFeedback, ConversationSettings, MessageAttachments, MessageReactions, MessageMetadata, EditHistory, ChatAttachments, ChatReactions, PollResults, PollOptionMetadata, PollVoteMetadata, ArtDimensions, AiContentPreferences, WritingStyle, AiMessage, AiContext, AiModerationCategories, AiReasons, MediaDimensions, MediaMetadata, ExperimentVariants, ExperimentMetrics, TargetingRules, ExperimentResults, FeatureFlagConditions, FeatureFlagMetadata, ValidationRules, AuditMetadata, EventProperties, EventContext } from './json-types'
 
 export interface User {
   id: string;
@@ -57,10 +57,10 @@ export interface User {
   lastPayoutDate?: Date | null;
   accounts: Account[];
   sessions: Session[];
-  profile?: Profile?;
-  stats?: UserStats?;
-  balance?: UserBalance?;
-  subscription?: UserSubscription?;
+  profile?: Profile;
+  stats?: UserStats;
+  balance?: UserBalance;
+  subscription?: UserSubscription;
   posts: Post[];
   comments: Comment[];
   reactions: Reaction[];
@@ -71,7 +71,7 @@ export interface User {
   achievements: UserAchievement[];
   notifications: Notification[];
   notificationsSent: Notification[];
-  notificationPrefs?: NotificationPreference?;
+  notificationPrefs?: NotificationPreference;
   xpLogs: XpLog[];
   currencyTransactions: CurrencyTransaction[];
   inventory: UserInventory[];
@@ -115,7 +115,7 @@ export interface User {
   viewHistory: ViewHistory[];
   loginHistory: LoginHistory[];
   securityAlerts: SecurityAlert[];
-  referralCodeUsed?: Referral?;
+  referralCodeUsed?: Referral;
   referralsMade: Referral[];
   pollVotes: PollVote[];
   bookmarks: Bookmark[];
@@ -127,7 +127,7 @@ export interface User {
   mentionsReceived: Mention[];
   aiRecommendations: AiRecommendation[];
   aiContentSuggestions: AiContentSuggestion[];
-  aiPreference?: UserAiPreference?;
+  aiPreference?: UserAiPreference;
   aiAssistantConversations: AiAssistantConversation[];
   payouts: CreatorPayout[];
   sentFanFunding: FanFunding[];
@@ -136,7 +136,7 @@ export interface User {
   sentTips: TipTransaction[];
   receivedTips: TipTransaction[];
   createdEmailCampaigns: EmailCampaign[];
-  newsletterSubscription?: NewsletterSubscription?;
+  newsletterSubscription?: NewsletterSubscription;
   createdEmailTemplates: EmailTemplate[];
   recurringSchedules: RecurringSchedule[];
 }
@@ -364,7 +364,7 @@ export interface Referral {
   completedAt?: Date | null;
   createdAt: Date;
   referrer: User;
-  referredUser?: User?;
+  referredUser?: User;
 }
 
 export interface Category {
@@ -384,7 +384,7 @@ export interface Category {
   deletedBy?: string | null;
   createdAt: Date;
   updatedAt: Date;
-  parent?: Category?;
+  parent?: Category;
   children: Category[];
   posts: Post[];
 }
@@ -443,17 +443,17 @@ export interface Post {
   aiModel?: string | null;
   aiPrompt?: string | null;
   aiRevisionCount: number;
-  author?: User?;
-  category?: Category?;
-  series?: PostSeries?;
-  parentVersion?: Post?;
+  author?: User;
+  category?: Category;
+  series?: PostSeries;
+  parentVersion?: Post;
   childVersions: Post[];
   tags: PostTag[];
   comments: Comment[];
   reactions: Reaction[];
-  poll?: Poll?;
-  fanArtGallery?: FanArtGallery?;
-  stats?: PostStats?;
+  poll?: Poll;
+  fanArtGallery?: FanArtGallery;
+  stats?: PostStats;
   revisions: PostRevision[];
   viewHistory: ViewHistory[];
   relatedPosts: PostRelation[];
@@ -462,7 +462,7 @@ export interface Post {
   bookmarks: Bookmark[];
   reports: Report[];
   aiModerationEntries: AiModerationQueue[];
-  publishQueueEntry?: PublishQueue?;
+  publishQueueEntry?: PublishQueue;
 }
 
 export interface ScheduledAction {
@@ -535,7 +535,7 @@ export interface PostRevision {
   postId: string;
   editorId: string;
   title: string;
-  content: Record<string, any>;  // Typed JSON field
+  content: PostRevisionContent;  // Typed JSON field
   changeNote?: string | null;
   version: number;
   isPublished: boolean;
@@ -573,7 +573,7 @@ export interface PostSeries {
   deletedBy?: string | null;
   createdAt: Date;
   updatedAt: Date;
-  author?: User?;
+  author?: User;
   posts: Post[];
 }
 
@@ -629,8 +629,8 @@ export interface Comment {
   createdAt: Date;
   updatedAt: Date;
   post: Post;
-  author?: User?;
-  parent?: Comment?;
+  author?: User;
+  parent?: Comment;
   replies: Comment[];
   reactions: Reaction[];
   mentions: Mention[];
@@ -646,8 +646,8 @@ export interface Reaction {
   customEmoji?: string | null;
   metadata?: Record<string, any> | null;  // Typed JSON field
   createdAt: Date;
-  post?: Post?;
-  comment?: Comment?;
+  post?: Post;
+  comment?: Comment;
   user: User;
 }
 
@@ -662,8 +662,8 @@ export interface Mention {
   createdAt: Date;
   mentioner: User;
   mentioned: User;
-  post?: Post?;
-  comment?: Comment?;
+  post?: Post;
+  comment?: Comment;
 }
 
 export interface Bookmark {
@@ -676,7 +676,7 @@ export interface Bookmark {
   createdAt: Date;
   user: User;
   post: Post;
-  folder?: BookmarkFolder?;
+  folder?: BookmarkFolder;
 }
 
 export interface BookmarkFolder {
@@ -728,7 +728,7 @@ export interface SearchHistory {
   searchType?: string | null;
   deviceType?: string | null;
   createdAt: Date;
-  user?: User?;
+  user?: User;
 }
 
 export interface Notification {
@@ -740,7 +740,7 @@ export interface Notification {
   entityType?: string | null;
   title: string;
   message: string;
-  data?: Record<string, any> | null;  // Typed JSON field
+  data?: NotificationData | null;  // Typed JSON field
   imageUrl?: string | null;
   actionUrl?: string | null;
   priority: number;
@@ -757,7 +757,7 @@ export interface Notification {
   createdAt: Date;
   updatedAt: Date;
   user: User;
-  actor?: User?;
+  actor?: User;
 }
 
 export interface NotificationQueue {
@@ -842,7 +842,7 @@ export interface EmailSendQueue {
   failedAt?: Date | null;
   error?: string | null;
   createdAt: Date;
-  campaign?: EmailCampaign?;
+  campaign?: EmailCampaign;
   template: EmailTemplate;
 }
 
@@ -885,7 +885,7 @@ export interface UserAchievement {
   userId: string;
   achievementId: string;
   progress: number;
-  progressData?: Record<string, any> | null;  // Typed JSON field
+  progressData?: UserAchievementProgress | null;  // Typed JSON field
   unlockedAt: Date;
   showcased: boolean;
   showcaseOrder: number;
@@ -1203,7 +1203,7 @@ export interface YoutubeChannel {
   deletedBy?: string | null;
   createdAt: Date;
   updatedAt: Date;
-  user?: User?;
+  user?: User;
   videos: YoutubeVideo[];
 }
 
@@ -1229,10 +1229,10 @@ export interface YoutubeVideo {
   metadata?: Record<string, any> | null;  // Typed JSON field
   lastSyncedAt?: Date | null;
   createdAt: Date;
-  channel?: YoutubeChannel?;
+  channel?: YoutubeChannel;
   watchParties: WatchParty[];
   clips: VideoClip[];
-  analytics?: VideoAnalytics?;
+  analytics?: VideoAnalytics;
 }
 
 export interface VideoAnalytics {
@@ -1282,7 +1282,7 @@ export interface WatchParty {
   createdAt: Date;
   updatedAt: Date;
   host: User;
-  video?: YoutubeVideo?;
+  video?: YoutubeVideo;
   participants: WatchPartyParticipant[];
   chat: WatchPartyChat[];
 }
@@ -1320,7 +1320,7 @@ export interface WatchPartyChat {
   createdAt: Date;
   party: WatchParty;
   user: User;
-  replyTo?: WatchPartyChat?;
+  replyTo?: WatchPartyChat;
   replies: WatchPartyChat[];
 }
 
@@ -1341,7 +1341,7 @@ export interface VideoClip {
   featured: boolean;
   metadata?: Record<string, any> | null;  // Typed JSON field
   createdAt: Date;
-  video?: YoutubeVideo?;
+  video?: YoutubeVideo;
   creator: User;
 }
 
@@ -1362,7 +1362,7 @@ export interface Playlist {
   itemCount: number;
   totalDuration: number;
   featured: boolean;
-  metadata?: Record<string, any> | null;  // Typed JSON field
+  metadata?: PlaylistMetadata | null;  // Typed JSON field
   createdAt: Date;
   updatedAt: Date;
   owner: User;
@@ -1431,7 +1431,7 @@ export interface Group {
   deletedBy?: string | null;
   createdAt: Date;
   updatedAt: Date;
-  owner?: User?;
+  owner?: User;
   members: GroupMember[];
   events: Event[];
   posts: GroupPost[];
@@ -1544,8 +1544,8 @@ export interface Event {
   deletedBy?: string | null;
   createdAt: Date;
   updatedAt: Date;
-  host?: User?;
-  group?: Group?;
+  host?: User;
+  group?: Group;
   attendees: EventAttendee[];
 }
 
@@ -1643,7 +1643,7 @@ export interface Message {
   createdAt: Date;
   conversation: Conversation;
   sender: User;
-  replyTo?: Message?;
+  replyTo?: Message;
   replies: Message[];
   reads: MessageRead[];
 }
@@ -1720,7 +1720,7 @@ export interface ChatMessage {
   createdAt: Date;
   room: ChatRoom;
   user: User;
-  replyTo?: ChatMessage?;
+  replyTo?: ChatMessage;
   replies: ChatMessage[];
 }
 
@@ -2009,10 +2009,10 @@ export interface Report {
   createdAt: Date;
   updatedAt: Date;
   reporter: User;
-  reportedUser?: User?;
-  resolver?: User?;
-  post?: Post?;
-  comment?: Comment?;
+  reportedUser?: User;
+  resolver?: User;
+  post?: Post;
+  comment?: Comment;
 }
 
 export interface AiModerationQueue {
@@ -2036,8 +2036,8 @@ export interface AiModerationQueue {
   processingTime?: number | null;
   createdAt: Date;
   reviewedAt?: Date | null;
-  reviewer?: User?;
-  post?: Post?;
+  reviewer?: User;
+  post?: Post;
 }
 
 export interface ModerationAction {
@@ -2157,7 +2157,7 @@ export interface SiteSetting {
   validation?: ValidationRules | null;  // Typed JSON field
   updatedBy?: string | null;
   updatedAt: Date;
-  updater?: User?;
+  updater?: User;
 }
 
 export interface AuditLog {
@@ -2177,7 +2177,7 @@ export interface AuditLog {
   errorMessage?: string | null;
   metadata?: AuditMetadata | null;  // Typed JSON field
   createdAt: Date;
-  user?: User?;
+  user?: User;
 }
 
 export interface AnalyticsEvent {
@@ -2189,7 +2189,7 @@ export interface AnalyticsEvent {
   properties?: EventProperties | null;  // Typed JSON field
   context?: EventContext | null;  // Typed JSON field
   timestamp: Date;
-  user?: User?;
+  user?: User;
 }
 
 export interface SearchIndex {

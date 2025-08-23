@@ -1,6 +1,6 @@
 # Generated Types Documentation
 
-Generated on: 2025-08-23T15:20:33.845Z
+Generated on: 2025-08-23T16:03:08.080Z
 
 ## 📊 Generation Statistics
 
@@ -17,7 +17,7 @@ Generated on: 2025-08-23T15:20:33.845Z
 
 - **enums.ts** (221 lines)
 - **models.ts** (2267 lines)
-- **json-types.ts** (886 lines)
+- **json-types.ts** (924 lines)
 - **validators.ts** (108 lines)
 - **api.ts** (120 lines)
 - **components.ts** (162 lines)
@@ -125,16 +125,16 @@ The following JSON fields have been mapped to specific TypeScript interfaces:
 | Message.metadata | MessageMetadata |
 | Message.reactions | MessageReactions |
 | ModerationAction.evidence | Record<string, any> |
-| Notification.data | Record<string, any> |
+| Notification.data | NotificationData |
 | NotificationQueue.payload | Record<string, any> |
-| Playlist.metadata | Record<string, any> |
+| Playlist.metadata | PlaylistMetadata |
 | Poll.finalResults | PollResults |
 | PollOption.metadata | PollOptionMetadata |
 | PollVote.metadata | PollVoteMetadata |
 | Post.content | PostContent |
 | Post.sponsorInfo | SponsorInfo |
 | Post.youtubeVideoData | YouTubeVideoData |
-| PostRevision.content | Record<string, any> |
+| PostRevision.content | PostRevisionContent |
 | PostSeries.metadata | Record<string, any> |
 | PresenceTracking.metadata | Record<string, any> |
 | Profile.notificationSettings | NotificationSettings |
@@ -159,7 +159,7 @@ The following JSON fields have been mapped to specific TypeScript interfaces:
 | SystemHealth.metadata | Record<string, any> |
 | Trade.initiatorItems | TradeItems |
 | Trade.recipientItems | TradeItems |
-| UserAchievement.progressData | Record<string, any> |
+| UserAchievement.progressData | UserAchievementProgress |
 | UserAiPreference.contentPreferences | AiContentPreferences |
 | UserAiPreference.writingStyle | WritingStyle |
 | UserInventory.customData | Record<string, any> |

@@ -1,5 +1,5 @@
 // Prisma Enum Types
-// Generated on 2025-08-23T15:20:33.834Z
+// Generated on 2025-08-23T16:03:08.072Z
 // Total Enums: 22
 
 export enum UserRole {
