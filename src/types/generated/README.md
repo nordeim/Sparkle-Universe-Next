@@ -1,10 +1,10 @@
 # Generated Types Documentation
 
-Generated on: 2025-08-23T14:31:51.131Z
+Generated on: 2025-08-23T14:45:26.287Z
 
 ## 📊 Generation Statistics
 
-- **Total Models**: 112 (Expected: 126)
+- **Total Models**: 112 (Expected: 112)
 - **Total Enums**: 22
 - **Total Fields**: 1923
 - **Average Fields per Model**: 17

@@ -1,5 +1,5 @@
 // Type Tests
-// Generated on 2025-08-23T14:31:51.132Z
+// Generated on 2025-08-23T14:45:26.289Z
 
 import { expectType } from 'tsd'
 import type {
