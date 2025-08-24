@@ -1,0 +1,345 @@
+$ diff -u scripts/generate-types-final.ts-previous scripts/generate-types-final.ts
+```diff
+--- scripts/generate-types-final.ts-previous	2025-08-24 08:45:39.492274969 +0800
++++ scripts/generate-types-final.ts	2025-08-24 00:13:33.243074128 +0800
+@@ -29,6 +29,49 @@
+   detail: (msg: string) => console.log(`  ${colors.dim}→${colors.reset} ${msg}`),
+ }
+ 
++// Precise JSON type stubs for prioritized fields (replace quick 'any' mappings over time)
++const PRECISE_JSON_STUBS: Record<string, string> = {
++  // Notification payloads used by business logic
++  'NotificationData': `export interface NotificationData {
++  title?: string
++  body?: string
++  context?: Record<string, any>
++  url?: string
++  silent?: boolean
++}`,
++
++  // Post revision content structure (structured delta or raw content)
++  'PostRevisionContent': `export type PostRevisionContent = {
++  ops?: Array<{ insert?: string | Record<string, any>; attributes?: Record<string, any> }>
++  metadata?: Record<string, any>
++}`,
++
++  // Playlist metadata (ordering, visibility, tags)
++  'PlaylistMetadata': `export interface PlaylistMetadata {
++  visibility?: 'public' | 'private' | 'unlisted'
++  tags?: string[]
++  order?: string[]
++  extras?: Record<string, any>
++}`,
++
++  // UserAchievement progress shape
++  'UserAchievementProgress': `export interface UserAchievementProgress {
++  percent?: number
++  stepsCompleted?: number
++  lastUpdated?: string
++  details?: Record<string, any>
++}`,
++
++  // YouTube video metadata
++  'YouTubeMetadata': `export interface YouTubeMetadata {
++  videoId?: string
++  channelId?: string
++  thumbnails?: Record<string, { url: string; width?: number; height?: number }>
++  publishedAt?: string
++  extras?: Record<string, any>
++}`,
++}
++
+ // JSON Field Type Mapping Configuration
+ const JSON_FIELD_TYPE_MAP: Record<string, string> = {
+   // Profile JSON fields
+@@ -135,7 +178,88 @@
+   'Achievement.metadata': 'Record<string, any>',
+   'StoreItem.data': 'StoreItemData',
+   'StoreItem.requirements': 'StoreItemRequirements',
+-}
++
++  // Quick mappings for previously unmapped JSON fields (safety-first: Record<string, any>)
++  'ActivityStream.entityData': 'Record<string, any>',
++  'ActivityStream.metadata': 'Record<string, any>',
++  'AiContentSuggestion.context': 'Record<string, any>',
++  'AiRecommendation.context': 'Record<string, any>',
++  'CacheEntry.value': 'Record<string, any>',
++  'CollaborativeSpace.content': 'Record<string, any>',
++  'Comment.editHistory': 'Record<string, any>',
++  'ConversationParticipant.customSettings': 'Record<string, any>',
++  'CurrencyTransaction.metadata': 'Record<string, any>',
++  'EmailCampaign.content': 'Record<string, any>',
++  'EmailSendQueue.variables': 'Record<string, any>',
++  'Event.metadata': 'Record<string, any>',
++  'ExperimentAssignment.conversionData': 'Record<string, any>',
++  'FanArtGallery.metadata': 'Record<string, any>',
++  'FanArtGallery.prizes': 'Record<string, any>',
++  'FanArtSubmission.metadata': 'Record<string, any>',
++  'GroupChannel.permissions': 'Record<string, any>',
++  'Leaderboard.data': 'Record<string, any>',
++  'Leaderboard.metadata': 'Record<string, any>',
++  'LeaderboardEntry.metadata': 'Record<string, any>',
++  'ModerationAction.evidence': 'Record<string, any>',
++  'NotificationQueue.payload': 'Record<string, any>',
++  'PostSeries.metadata': 'Record<string, any>',
++  'PresenceTracking.metadata': 'Record<string, any>',
++  'Reaction.metadata': 'Record<string, any>',
++  'RecurringSchedule.parameters': 'Record<string, any>',
++  'Report.evidence': 'Record<string, any>',
++  'Report.metadata': 'Record<string, any>',
++  'ScheduledAction.parameters': 'Record<string, any>',
++  'SearchIndex.metadata': 'Record<string, any>',
++  'StoreItem.metadata': 'Record<string, any>',
++  'SystemHealth.metadata': 'Record<string, any>',
++  'UserInventory.customData': 'Record<string, any>',
++  'VideoClip.metadata': 'Record<string, any>',
++  'WatchParty.customEmotes': 'Record<string, any>',
++  'WatchParty.metadata': 'Record<string, any>',
++  'WatchPartyChat.reactions': 'Record<string, any>',
++  'XpLog.metadata': 'Record<string, any>',
++  'YoutubeChannel.channelData': 'Record<string, any>',
++  'YoutubeChannel.metadata': 'Record<string, any>',
++  'YoutubeVideo.metadata': 'Record<string, any>',
++
++  // Ensure prioritized precise stubs are used for these fields
++  'Notification.data': 'NotificationData',
++  'Playlist.metadata': 'PlaylistMetadata',
++  'PostRevision.content': 'PostRevisionContent',
++  'UserAchievement.progressData': 'UserAchievementProgress',
++}
++
++// Authoritative expected model list (single source of truth)
++// Keep this synced with your product schema expectations
++const EXPECTED_MODELS = [
++  'User', 'UserStats', 'UserBalance', 'UserSubscription', 'Profile',
++  'Account', 'Session', 'LoginHistory', 'SecurityAlert', 'ApiKey',
++  'Webhook', 'Block', 'NotificationPreference', 'Referral',
++  'Category', 'Post', 'PostStats', 'PostRevision', 'PostRelation',
++  'PostSeries', 'Tag', 'PostTag', 'Comment', 'Reaction', 'Mention',
++  'Bookmark', 'BookmarkFolder', 'Follow', 'ViewHistory', 'SearchHistory',
++  'Notification', 'NotificationQueue', 'EmailCampaign', 'EmailTemplate',
++  'EmailSendQueue', 'NewsletterSubscription', 'Achievement', 'UserAchievement',
++  'XpLog', 'LevelConfig', 'CurrencyTransaction', 'CreatorPayout',
++  'FanFunding', 'RevenueShare', 'TipTransaction', 'StoreItem',
++  'StoreBundle', 'UserInventory', 'Trade', 'Quest', 'UserQuest',
++  'Leaderboard', 'LeaderboardEntry', 'YoutubeChannel', 'YoutubeVideo',
++  'VideoAnalytics', 'WatchParty', 'WatchPartyParticipant', 'WatchPartyChat',
++  'VideoClip', 'Playlist', 'PlaylistItem', 'YouTubeApiQuota',
++  'Group', 'GroupMember', 'GroupPost', 'GroupChannel', 'Event',
++  'EventAttendee', 'Conversation', 'ConversationParticipant', 'Message',
++  'MessageRead', 'WebsocketSession', 'ChatRoom', 'ChatMessage',
++  'CollaborativeSpace', 'SpaceCollaborator', 'PresenceTracking',
++  'ActivityStream', 'UserActivity', 'ContentPerformance', 'Poll',
++  'PollOption', 'PollVote', 'PollVoteChoice', 'FanArtGallery',
++  'FanArtSubmission', 'AiRecommendation', 'AiContentSuggestion',
++  'UserAiPreference', 'AiAssistantConversation', 'Report',
++  'AiModerationQueue', 'ModerationAction', 'ContentFilter', 'MediaFile',
++  'Experiment', 'ExperimentAssignment', 'FeatureFlag', 'SiteSetting',
++  'AuditLog', 'AnalyticsEvent', 'SearchIndex', 'CacheEntry',
++  'SystemHealth', 'RateLimitTracker', 'EncryptionKey', 'DataRetentionPolicy',
++  'ScheduledAction', 'RecurringSchedule', 'PublishQueue'
++]
+ 
+ interface GenerateTypesOptions {
+   outputDir?: string
+@@ -174,6 +298,10 @@
+       validateCompleteness: options.validateCompleteness ?? true,
+       expectedModelCount: options.expectedModelCount ?? 126,
+     }
++
++    // Authoritative expected model count is driven by EXPECTED_MODELS (single source of truth).
++    // This keeps diagnostics consistent before/after loading DMMF.
++    this.options.expectedModelCount = EXPECTED_MODELS.length
+   }
+ 
+   async generate(): Promise<void> {
+@@ -259,12 +387,12 @@
+       logger.success(`Loaded ${this.dmmf.datamodel.models.length} models from schema`)
+       logger.success(`Loaded ${this.dmmf.datamodel.enums.length} enums from schema`)
+       
+-      // Check against expected count
++      // Check against expected count (informational only — validateModelCompleteness checks model names)
+       if (this.dmmf.datamodel.models.length < this.options.expectedModelCount) {
+-        logger.warning(
+-          `Expected ${this.options.expectedModelCount} models but found ${this.dmmf.datamodel.models.length}`
++        logger.detail(
++          `Model count ${this.dmmf.datamodel.models.length} is less than expected (${this.options.expectedModelCount})`
+         )
+-        logger.warning('Some models may be missing or not yet defined in the schema')
++        logger.detail('Use validateCompleteness to check explicit expected model names')
+       }
+       
+     } catch (error) {
+@@ -276,45 +404,22 @@
+   private validateModelCompleteness(): void {
+     logger.info('Validating model completeness...')
+     
+-    const expectedModels = [
+-      'User', 'UserStats', 'UserBalance', 'UserSubscription', 'Profile',
+-      'Account', 'Session', 'LoginHistory', 'SecurityAlert', 'ApiKey',
+-      'Webhook', 'Block', 'NotificationPreference', 'Referral',
+-      'Category', 'Post', 'PostStats', 'PostRevision', 'PostRelation',
+-      'PostSeries', 'Tag', 'PostTag', 'Comment', 'Reaction', 'Mention',
+-      'Bookmark', 'BookmarkFolder', 'Follow', 'ViewHistory', 'SearchHistory',
+-      'Notification', 'NotificationQueue', 'EmailCampaign', 'EmailTemplate',
+-      'EmailSendQueue', 'NewsletterSubscription', 'Achievement', 'UserAchievement',
+-      'XpLog', 'LevelConfig', 'CurrencyTransaction', 'CreatorPayout',
+-      'FanFunding', 'RevenueShare', 'TipTransaction', 'StoreItem',
+-      'StoreBundle', 'UserInventory', 'Trade', 'Quest', 'UserQuest',
+-      'Leaderboard', 'LeaderboardEntry', 'YoutubeChannel', 'YoutubeVideo',
+-      'VideoAnalytics', 'WatchParty', 'WatchPartyParticipant', 'WatchPartyChat',
+-      'VideoClip', 'Playlist', 'PlaylistItem', 'YouTubeApiQuota',
+-      'Group', 'GroupMember', 'GroupPost', 'GroupChannel', 'Event',
+-      'EventAttendee', 'Conversation', 'ConversationParticipant', 'Message',
+-      'MessageRead', 'WebsocketSession', 'ChatRoom', 'ChatMessage',
+-      'CollaborativeSpace', 'SpaceCollaborator', 'PresenceTracking',
+-      'ActivityStream', 'UserActivity', 'ContentPerformance', 'Poll',
+-      'PollOption', 'PollVote', 'PollVoteChoice', 'FanArtGallery',
+-      'FanArtSubmission', 'AiRecommendation', 'AiContentSuggestion',
+-      'UserAiPreference', 'AiAssistantConversation', 'Report',
+-      'AiModerationQueue', 'ModerationAction', 'ContentFilter', 'MediaFile',
+-      'Experiment', 'ExperimentAssignment', 'FeatureFlag', 'SiteSetting',
+-      'AuditLog', 'AnalyticsEvent', 'SearchIndex', 'CacheEntry',
+-      'SystemHealth', 'RateLimitTracker', 'EncryptionKey', 'DataRetentionPolicy',
+-      'ScheduledAction', 'RecurringSchedule', 'PublishQueue'
+-    ]
++    // Use authoritative list
++    const expectedModels = EXPECTED_MODELS.slice()
++
++    // Keep numeric expectation aligned with the authoritative expected-models list
++    this.options.expectedModelCount = expectedModels.length
++    logger.detail(`Authoritative expected model count set to ${this.options.expectedModelCount}`)
+     
+     const actualModels = this.dmmf.datamodel.models.map((m: any) => m.name)
+     
+     this.missingModels = expectedModels.filter(model => !actualModels.includes(model))
+     
+     if (this.missingModels.length > 0) {
+-      logger.warning(`Missing ${this.missingModels.length} expected models:`)
+-      this.missingModels.forEach(model => {
+-        logger.detail(`Missing: ${model}`)
+-      })
++      logger.warning(`Missing models detected: ${this.missingModels.join(', ')}`)
++      if (this.options.validateCompleteness) {
++        logger.warning('Some expected models are missing from the Prisma schema.')
++      }
+     } else {
+       logger.success('All expected models are present!')
+     }
+@@ -436,11 +541,9 @@
+     } else if (kind === 'enum') {
+       tsType = type // Use enum name directly
+     } else if (kind === 'object') {
+-      // This is a relation to another model
++      // Relation to another model — property optionality is handled at the property level,
++      // so we return the model type name (no '?' suffix).
+       tsType = type
+-      if (!isRequired) {
+-        tsType = `${tsType}?`
+-      }
+     } else {
+       tsType = 'any'
+     }
+@@ -516,7 +619,7 @@
+     return imports.join('\n')
+   }
+ 
+-  private async generateJsonTypes(): Promise<void) {
++  private async generateJsonTypes(): Promise<void> {
+     logger.info('Generating comprehensive JSON field type definitions...')
+     
+     // Use correct current timestamp
+@@ -922,7 +1025,7 @@
+   achievements?: string[];
+   items?: string[];
+   reputation?: number;
+-  subscription?: string;
++  subscription?: string | number;
+ }
+ 
+ // ============================================
+@@ -1298,15 +1401,21 @@
+ }
+ `
+     
+-    await this.saveTypeFile('json-types.ts', jsonTypes)
+-    this.generatedTypes.set('json-types', jsonTypes)
++    // Inject precise JSON stubs for prioritized fields
++    const stubs = Object.values(PRECISE_JSON_STUBS).join('\n\n')
++    const content = `// Auto-generated json-types
++
++${stubs}
++
++${jsonTypes}
++`
++    
++    await this.saveTypeFile('json-types.ts', content)
++    // Store the actual written content (including injected stubs) for index/docs reporting.
++    this.generatedTypes.set('json-types', content)
+     logger.success('Generated comprehensive JSON field type definitions')
+   }
+ 
+-  // Rest of the methods remain the same...
+-  // Including generateValidators, generateApiTypes, generateComponentTypes, etc.
+-  // These are copied exactly as they were to preserve all functionality
+-
+   private async generateValidators(): Promise<void> {
+     logger.info('Generating runtime validators...')
+     
+@@ -2249,6 +2358,8 @@
+   }
+ 
+   private printGenerationSummary(): void {
++    logger.section('Generation Summary')
++
+     const modelCount = this.modelFields.size
+     const enumCount = this.enumTypes.size
+     const totalFields = Array.from(this.modelFields.values()).flat().length
+@@ -2256,7 +2367,6 @@
+       field => JSON_FIELD_TYPE_MAP[field]
+     ).length
+     
+-    logger.section('Generation Summary')
+     logger.success(`✓ Generated ${modelCount} models with complete fields`)
+     logger.success(`✓ Generated ${enumCount} enum types`)
+     logger.success(`✓ Total fields processed: ${totalFields}`)
+@@ -2266,6 +2376,36 @@
+       logger.warning(`⚠ Missing ${this.missingModels.length} expected models (may be defined elsewhere)`)
+     }
+     
++    // Unmapped JSON fields report
++    const allJsonFields = Array.from(this.jsonFieldsUsed).sort()
++    const unmappedJsonFields = allJsonFields.filter(f => !JSON_FIELD_TYPE_MAP[f])
++
++    if (unmappedJsonFields.length > 0) {
++      logger.warning(`Unmapped JSON fields detected: ${unmappedJsonFields.length}`)
++      logger.detail('Listing unmapped JSON fields:')
++      unmappedJsonFields.forEach(f => logger.detail(`  - ${f}`))
++
++      // Also write a human-friendly report into the output directory for easier inspection.
++      const reportContent = [
++        '# Unmapped JSON Fields Report',
++        `Generated on: ${new Date().toISOString()}`,
++        '',
++        `Total JSON fields seen: ${allJsonFields.length}`,
++        `Unmapped JSON fields: ${unmappedJsonFields.length}`,
++        '',
++        '## Unmapped Fields',
++        ...unmappedJsonFields.map(f => `- ${f}`),
++        ''
++      ].join('\n')
++
++      const reportPath = path.join(this.options.outputDir, 'UNMAPPED_JSON_FIELDS.md')
++      fs.writeFile(reportPath, reportContent).catch(err => {
++        logger.error(`Failed to write unmapped JSON fields report: ${String(err)}`)
++      })
++    } else {
++      logger.success('All JSON fields have type mappings.')
++    }
++
+     logger.success(`✓ Type generation completed successfully!`)
+     logger.info(`📁 Output directory: ${this.options.outputDir}`)
+   }
+```
+
+# File: 
