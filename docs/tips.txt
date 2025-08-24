@@ -6,6 +6,9 @@ git status | egrep -v 'tsx\.p.$|ts\.p.$|\.bak.$|\.bak$|orig$|md$|css\.p?$' | gre
 
 git status | egrep -v 'bak$|bak2$|orig|ts.p2|ts.p3|ts.p4|ts.p6|ts.p7|ts.p8|tsx.p6|tsx.p7|tsx.p8|css.p|md$|backup\/'
 
+find src prisma/schema.prisma -type f | egrep -v 'tsx.p7|tsx.p6|tsx.p8|ts.p6|tsx.p6|ts.p7|ts.p8|orig|bak$|bak2$'
+find src prisma/schema.prisma -type f | egrep 'tsx.p7|tsx.p6|tsx.p8|ts.p6|tsx.p6|ts.p7|ts.p8|orig|bak$|bak2$'
+
 git commit -m "update docs"
 git status
 git push -u origin main
